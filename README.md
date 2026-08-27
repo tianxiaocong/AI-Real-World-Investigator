@@ -1,22 +1,23 @@
-# 🕵️‍♂️ AI 现实世界侦察兵 (AI Real-World Investigator)
+# 🔍 AI Claim Verifier (事实核验透视镜)
 
-> **基于 Evidence-First 原则的深度自主调查与事实可回溯研究平台**  
-> 不做简易搜索总结器，只做严谨的 AI 调查记者与情报分析员。
+> **基于 Evidence-First 的多源事实核验与证据状态判定系统**  
+> 不下主观断言，只回答一个核心问题：**「现有公开证据是否足以支持这个说法？」**
 
 ---
 
-## 🌟 核心特色 (Core Highlights)
+## 🌟 核心设计原则 (Design Principles)
 
-1. **Evidence First (证据第一)**：所有关键结论均绑定原始网页中的**字符级精确证据片段 (`Exact Quote`)** 与上下文视窗，拒绝无源幻觉。
-2. **原子化主张建模 (Claim Modeling)**：自动区分：
-   - `FACT`（客观事实）
-   - `INFERENCE`（推论）
-   - `OPINION`（主观观点）
-   - `UNVERIFIED`（未证实传言）
-   - `CONFLICTING`（相互矛盾信息）
-3. **多源交叉核验与矛盾仲裁 (Cross-Verification Engine)**：利用向量嵌入聚类相同议题，自动识别多源一致支持（`MULTI_SOURCE_SUPPORTED`）与相互对立的冲突事实（`CONFLICTING`）。
-4. **实时情报雷达视窗 (Live SSE Radar)**：通过 Server-Sent Events 实时推送子课题规划、信源捕获与主张提取瀑布流。
-5. **交互式证据透视镜 (Evidence Inspector Drawer)**：点击研报中的任何角标 `[1]` 或陈述，右侧抽屉直接展示原始网页上下文、发布时间、权威度评分与冲突来源。
+1. **证据状态判定 (Evidence State vs Truth Claim)**：系统不对现实真伪妄下定论，而是严格评估公开证据链状态：
+   - 🟢 `SUFFICIENT`（证据充分）：多独立来源 + 官方一手直接证实 + 无可信反驳
+   - 🟢 `STRONG`（证据较强）：多独立来源直接支持 + 无可信反驳
+   - 🟡 `INSUFFICIENT`（证据不足）：公开证据不完整、仅有转载或单一来源（"没搜到 ≠ 证明是假的"）
+   - 🟠 `CONFLICTING`（存在冲突）：可靠来源之间存在直接对立或口径差异
+   - 🔴 `UNSUPPORTED`（有可靠证据反驳）：存在权威/第一手明确反证，且缺乏对等直接支持
+   - ⚪ `NOT_ASSESSABLE`（公开资料无法核验）：私人行为或非公开事项
+2. **规则引擎驱动 (Rule-Engine Driven Verdict)**：核心结论由确定性规则引擎与逻辑边界计算，LLM 仅负责引文提取与人话解释，杜绝大模型幻觉与概率瞎猜。
+3. **来源溯源图谱 (Source Provenance)**：穿透二次转载与通稿复制链条，精准识别原始信息源（Origin Source），杜绝"10个转载当作10个独立信源"的数量崇拜。
+4. **多主张拆解与完整覆盖 (Claim Decomposition & Coverage)**：输入复合长句时自动分解为独立可验证子事实，分别出具证据判断并汇总覆盖结论。
+5. **字符级精准引文 (Exact Quote Anchoring)**：每条证据均锁定原始网页精确片段与发布时间有效性，支持多维度交叉比对。
 
 ---
 

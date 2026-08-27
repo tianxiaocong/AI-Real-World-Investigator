@@ -23,8 +23,44 @@ from app.pipeline.orchestrator import (
     InvestigationOrchestrator, get_or_create_event_queue, remove_event_queue
 )
 
+from app.models.verification_models import (
+    OverallCoverage, InputType
+)
+from app.agents.fast_verifier import FastClaimVerifierAgent
+from app.providers.llm import get_llm_provider
+from app.providers.search import get_search_provider
+from pydantic import BaseModel, Field
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
+
+class FastVerifyRequest(BaseModel):
+    claim: str = Field(description="用户输入的待核验文本、陈述或问题")
+    input_type: Optional[InputType] = Field(default=InputType.TEXT, description="输入类型: TEXT/URL/IMAGE")
+    llm_provider: Optional[str] = Field(default="mock", description="LLM 提供商")
+    search_provider: Optional[str] = Field(default="mock", description="搜索提供商")
+    api_keys: Optional[dict] = Field(default=None, description="动态 API 密钥")
+
+@router.post("/verify", response_model=OverallCoverage)
+async def fast_verify_claim(req: FastVerifyRequest):
+    """
+    快速事实核验核心接口：一句话输入 → 主张拆解 → 溯源去重 → 规则引擎判定 → 结构化 Verdict
+    """
+    api_k = req.api_keys or {}
+    gemini_k = api_k.get("gemini_api_key")
+    openai_k = api_k.get("openai_api_key")
+    tavily_k = api_k.get("tavily_api_key")
+    
+    chosen_key = gemini_k if req.llm_provider == "gemini" else openai_k
+    llm = get_llm_provider(req.llm_provider, tier="reasoning", api_key=chosen_key)
+    search = get_search_provider(req.search_provider, api_key=tavily_k)
+    
+    agent = FastClaimVerifierAgent(llm_provider=llm, search_provider=search)
+    coverage = await agent.verify_input(
+        input_text=req.claim,
+        input_type=req.input_type or InputType.TEXT
+    )
+    return coverage
 
 async def run_investigation_in_background(
     investigation_id: str,

@@ -3,420 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 现实世界侦察兵 | AI Real-World Investigator</title>
-    <meta name="description" content="基于 Evidence-First 原则的深度自主调查与事实可回溯研究平台">
-    
+    <title>AI Claim Verifier | 事实核验透视镜</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Marked.js for Markdown Rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    
-    <!-- Stylesheet -->
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Main Style Sheet -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-theme">
-    <div class="app-layout">
+<body>
+    <div class="app-container">
         <!-- Top Navigation Header -->
-        <header class="app-header" id="app-header">
-            <div class="header-left">
-                <div class="brand-badge">
-                    <i data-lucide="radar" class="brand-icon"></i>
-                    <span class="brand-title">AI 现实世界侦察兵</span>
-                    <span class="brand-tag">EVIDENCE FIRST</span>
+        <header class="app-header">
+            <div class="brand-group">
+                <div class="logo-badge">
+                    <i data-lucide="shield-check" class="brand-icon"></i>
+                </div>
+                <div class="brand-titles">
+                    <h1 class="brand-name">AI Claim Verifier</h1>
+                    <span class="brand-sub">事实核验透视镜 · 基于证据状态的客观判定</span>
                 </div>
             </div>
-            <div class="header-center">
-                <div class="active-target-pill" id="active-target-pill" style="display: none;">
-                    <span class="pulse-dot"></span>
-                    <span class="target-label" id="current-target-label">调查目标: --</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <button class="settings-btn" id="btn-open-settings" title="配置 API 密钥与模型">
-                    <i data-lucide="settings"></i> <span>API 配置</span>
-                </button>
-                <div class="system-status" id="system-status">
-                    <span class="status-indicator online"></span>
-                    <span class="status-text" id="status-text">引擎就绪</span>
-                </div>
-                <button class="icon-btn" id="btn-refresh-history" title="刷新历史档案">
-                    <i data-lucide="rotate-cw"></i>
+            <div class="header-actions">
+                <button class="icon-btn" id="btn-open-settings" title="API 与推理模型配置">
+                    <i data-lucide="sliders"></i>
+                    <span class="btn-text">API 配置</span>
                 </button>
             </div>
         </header>
 
-        <!-- Main Workspace -->
-        <main class="workspace-grid">
-            <!-- Sidebar: Launchpad & Recent Dossiers -->
-            <aside class="sidebar-panel" id="sidebar-panel">
-                <div class="panel-section launch-box">
-                    <h2 class="section-heading"><i data-lucide="compass"></i> 发起新侦察</h2>
-                    <form id="investigation-form" class="investigation-form">
-                        <div class="input-group">
-                            <label for="target-input">调查目标 (公司/项目/人物/技术/观点)</label>
-                            <div class="input-wrapper">
-                                <i data-lucide="search" class="input-icon"></i>
-                                <input type="text" id="target-input" placeholder="例如: OpenAI 或 某商业模式" required autocomplete="off">
-                            </div>
-                        </div>
+        <!-- Main Verification Workspace -->
+        <main class="verify-main">
+            <!-- 1. Hero & Input Card -->
+            <section class="verify-input-section" id="verify-input-section">
+                <div class="hero-text-group">
+                    <h2 class="hero-headline">这个说法是真的吗？</h2>
+                    <p class="hero-subline">输入一段话、粘贴新闻链接或上传截图，基于公开证据链快速核验公开证据支持程度。</p>
+                </div>
 
-                        <!-- Target Category Presets -->
-                        <div class="preset-chips">
-                            <button type="button" class="chip active" data-type="COMPANY">企业调查</button>
-                            <button type="button" class="chip" data-type="PRODUCT">产品测评</button>
-                            <button type="button" class="chip" data-type="INVESTMENT">投资尽调</button>
-                            <button type="button" class="chip" data-type="TECHNOLOGY">技术真伪</button>
-                            <button type="button" class="chip" data-type="CLAIM">传言核验</button>
-                        </div>
-
-                        <!-- Depth & Provider Selection -->
-                        <div class="config-row">
-                            <div class="config-col">
-                                <label for="depth-select">调查深度</label>
-                                <select id="depth-select" class="custom-select">
-                                    <option value="STANDARD" selected>标准深度 (推荐)</option>
-                                    <option value="DEEP">全面深入尽调 (Deep)</option>
-                                    <option value="QUICK">快速简报 (Quick)</option>
-                                </select>
-                            </div>
-                            <div class="config-col">
-                                <label for="llm-select">推理大模型</label>
-                                <select id="llm-select" class="custom-select">
-                                    <option value="gemini" selected>Google Gemini (推荐)</option>
-                                    <option value="openai">OpenAI / DeepSeek</option>
-                                    <option value="mock">离线拟真引擎</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="config-row" style="margin-top: 10px;">
-                            <div class="config-col" style="flex: 1;">
-                                <label for="search-select">全网搜索引擎</label>
-                                <select id="search-select" class="custom-select">
-                                    <option value="duckduckgo" selected>DuckDuckGo (免Key / 中英检索)</option>
-                                    <option value="tavily">Tavily Search (高精准AI搜索 - 需配置Key)</option>
-                                    <option value="mock">离线事实库 (测试模式)</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="submit-btn" id="btn-launch">
-                            <i data-lucide="play"></i> 启动多源定向调查
+                <div class="main-input-card">
+                    <!-- Input Mode Selector -->
+                    <div class="input-mode-tabs">
+                        <button type="button" class="mode-tab active" data-mode="TEXT">
+                            <i data-lucide="file-text"></i> 文本陈述
                         </button>
+                        <button type="button" class="mode-tab" data-mode="URL">
+                            <i data-lucide="link"></i> 网页链接
+                        </button>
+                        <button type="button" class="mode-tab" data-mode="IMAGE">
+                            <i data-lucide="image"></i> 截图提取
+                        </button>
+                    </div>
+
+                    <!-- Input Form -->
+                    <form id="verify-form" class="verify-form">
+                        <div class="input-field-wrap">
+                            <textarea id="claim-input" placeholder="把你看到的说法、新闻快讯或争议声明贴进来...&#10;例如：宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投" rows="3" required></textarea>
+                            
+                            <!-- Hidden Image File Input -->
+                            <input type="file" id="image-upload-input" accept="image/*" style="display: none;">
+                            <div class="image-preview-box" id="image-preview-box" style="display: none;">
+                                <div class="preview-thumb-wrap">
+                                    <img id="image-preview-img" src="#" alt="截图预览">
+                                </div>
+                                <div class="preview-info">
+                                    <span id="preview-file-name">screenshot.png</span>
+                                    <button type="button" class="text-btn-danger" id="btn-remove-image">移除图片</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sample Quick-picks -->
+                        <div class="sample-pills-row">
+                            <span class="sample-label">试试这些例子：</span>
+                            <button type="button" class="sample-chip" data-sample="宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投">
+                                “宇树科技完成近10亿元融资”
+                            </button>
+                            <button type="button" class="sample-chip" data-sample="OpenAI 2025年营收突破130亿美元，且已经实现全年盈利">
+                                “OpenAI已实现全年盈利”
+                            </button>
+                            <button type="button" class="sample-chip" data-sample="某知名主播声称该高端美妆产品出厂成本仅为20元">
+                                “某产品出厂成本仅20元”
+                            </button>
+                        </div>
+
+                        <!-- Action Row -->
+                        <div class="form-action-row">
+                            <div class="provider-quick-hint">
+                                <i data-lucide="cpu" style="width:14px;height:14px;"></i>
+                                <span id="current-engine-label">运行模式: 离线拟真引擎 (内置事实库)</span>
+                            </div>
+                            <button type="submit" class="verify-submit-btn" id="btn-start-verify">
+                                <i data-lucide="search-check"></i> 开始核验
+                            </button>
+                        </div>
                     </form>
                 </div>
+            </section>
 
-                <!-- Recent Dossiers List -->
-                <div class="panel-section history-box">
-                    <div class="history-header">
-                        <h3 class="section-subheading"><i data-lucide="archive"></i> 历史调查档案</h3>
-                    </div>
-                    <div class="dossier-list" id="dossier-list">
-                        <div class="empty-state">
-                            <i data-lucide="inbox"></i>
-                            <p>暂无历史调查档案</p>
-                        </div>
-                    </div>
+            <!-- 2. Loading State Animation -->
+            <section class="loading-state-card" id="loading-state-card" style="display: none;">
+                <div class="radar-spinner"></div>
+                <div class="loading-text-group">
+                    <h3 class="loading-title" id="loading-title">正在执行多源事实检索与证据链分析...</h3>
+                    <p class="loading-desc" id="loading-desc">主张拆解 → 来源溯源去重 → 确定性规则引擎判断</p>
                 </div>
-            </aside>
+            </section>
 
-            <!-- Center: Investigation Timeline & Dossier Report -->
-            <section class="main-content-panel" id="main-content-panel">
-                <!-- Investigation Timeline Stepper (Visible during & after investigation) -->
-                <div class="live-radar-card" id="live-radar-card" style="display: none;">
-                    <div class="radar-card-header">
-                        <div class="radar-title-group">
-                            <div class="radar-spinner" id="radar-spinner"></div>
-                            <div>
-                                <h3 class="radar-title" id="radar-title">正在执行多源事实侦察...</h3>
-                                <p class="radar-subtitle" id="radar-subtitle">规划子课题与搜索维度</p>
-                            </div>
-                        </div>
-                        <div class="progress-badge" id="progress-badge">0%</div>
+            <!-- 3. Verdict Result Section -->
+            <section class="verdict-result-section" id="verdict-result-section" style="display: none;">
+                <!-- Overall Multi-Claim Summary Banner -->
+                <div class="overall-summary-card" id="overall-summary-card" style="display: none;">
+                    <div class="overall-state-pill" id="overall-state-pill">
+                        <i data-lucide="layers"></i> <span id="overall-state-text">部分支持</span>
                     </div>
-
-                    <!-- Progress Bar -->
-                    <div class="progress-track">
-                        <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+                    <div class="overall-summary-text" id="overall-summary-text">
+                        你提供的说法包含 3 个可验证事实点：其中 2 个证据充分，1 个证据不足。
                     </div>
-
-                    <!-- Investigation Stage Stepper -->
-                    <div class="investigation-stepper" id="investigation-stepper">
-                        <div class="step-card" id="step-card-planning">
-                            <div class="step-header">
-                                <span class="step-num">01</span>
-                                <span class="step-name"><i data-lucide="crosshair"></i> 目标拆解与假说规划</span>
-                                <span class="step-status" id="step-status-planning">待执行</span>
-                            </div>
-                            <div class="step-body" id="step-body-planning" style="display: none;">
-                                <div class="hypotheses-box" id="timeline-hypotheses"></div>
-                                <div class="subtasks-grid" id="timeline-subtasks"></div>
-                            </div>
-                        </div>
-
-                        <div class="step-card" id="step-card-searching">
-                            <div class="step-header">
-                                <span class="step-num">02</span>
-                                <span class="step-name"><i data-lucide="globe"></i> 全网多源定向检索</span>
-                                <span class="step-status" id="step-status-searching">待执行</span>
-                            </div>
-                            <div class="step-body" id="step-body-searching" style="display: none;">
-                                <div class="queries-tags" id="timeline-queries"></div>
-                            </div>
-                        </div>
-
-                        <div class="step-card" id="step-card-scraping">
-                            <div class="step-header">
-                                <span class="step-num">03</span>
-                                <span class="step-name"><i data-lucide="file-text"></i> 权威信源清洗与抓取</span>
-                                <span class="step-status" id="step-status-scraping">待执行</span>
-                            </div>
-                            <div class="step-body" id="step-body-scraping" style="display: none;">
-                                <div class="sources-pill-list" id="timeline-sources"></div>
-                            </div>
-                        </div>
-
-                        <div class="step-card" id="step-card-extracting">
-                            <div class="step-header">
-                                <span class="step-num">04</span>
-                                <span class="step-name"><i data-lucide="microscope"></i> 字符级证据与主张提取</span>
-                                <span class="step-status" id="step-status-extracting">待执行</span>
-                            </div>
-                            <div class="step-body" id="step-body-extracting" style="display: none;">
-                                <div class="claims-feed-list" id="timeline-claims"></div>
-                            </div>
-                        </div>
-
-                        <div class="step-card" id="step-card-verifying">
-                            <div class="step-header">
-                                <span class="step-num">05</span>
-                                <span class="step-name"><i data-lucide="git-merge"></i> 交叉核验与冲突仲裁</span>
-                                <span class="step-status" id="step-status-verifying">待执行</span>
-                            </div>
-                            <div class="step-body" id="step-body-verifying" style="display: none;">
-                                <div class="verification-stats" id="timeline-verif-stats"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Live Debug Terminal (Collapsible) -->
-                    <div class="terminal-toggle-bar">
-                        <button type="button" class="action-btn" id="btn-toggle-terminal" style="padding: 4px 8px; font-size: 0.72rem;">
-                            <i data-lucide="terminal"></i> 切换原始事件流日志
-                        </button>
-                    </div>
-                    <div class="live-event-terminal" id="live-event-terminal" style="display: none;">
-                        <div class="terminal-line"><span class="t-time">[SYS]</span> 侦察雷达已激活，准备连接情报管线...</div>
+                    <div class="claims-coverage-table-wrap">
+                        <table class="coverage-table" id="coverage-table">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>拆解事实陈述</th>
+                                    <th>公开可验证性</th>
+                                    <th>核验结论</th>
+                                </tr>
+                            </thead>
+                            <tbody id="coverage-table-body">
+                                <!-- Filled dynamically -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- Investigation Dossier Report Area -->
-                <div class="report-view-container" id="report-view-container">
-                    <!-- Placeholder when no report is selected -->
-                    <div class="welcome-hero" id="welcome-hero">
-                        <div class="hero-icon-wrap">
-                            <i data-lucide="shield-check" class="hero-icon"></i>
-                        </div>
-                        <h1 class="hero-title">真实世界事实核验与深度调查平台</h1>
-                        <p class="hero-desc">
-                            拒绝无源幻觉与随意拼凑的总结。系统遵循 <strong>Evidence First</strong> 原则，
-                            自动规划调查子问题、抓取多源正文、提取字符级证据，并在不同来源之间进行交叉核验与矛盾仲裁。
-                        </p>
-                        <div class="hero-feature-tags">
-                            <span class="ft-tag"><i data-lucide="link"></i> 100% 字符级引文锚定</span>
-                            <span class="ft-tag"><i data-lucide="git-compare"></i> 事实交叉多源核验</span>
-                            <span class="ft-tag"><i data-lucide="alert-triangle"></i> 自动识别矛盾冲突</span>
-                            <span class="ft-tag"><i data-lucide="database"></i> 结构化情报档案</span>
-                        </div>
-                    </div>
+                <!-- Per-claim Detailed Verdict Cards -->
+                <div class="verdict-cards-container" id="verdict-cards-container">
+                    <!-- Filled dynamically -->
+                </div>
 
-                    <!-- Active Dossier Report -->
-                    <div class="active-report" id="active-report" style="display: none;">
-                        <!-- Report Header Metadata Bar -->
-                        <div class="report-header-card">
-                            <div class="report-main-meta">
-                                <span class="tag-pill category-pill" id="badge-target-type">COMPANY</span>
-                                <h1 class="report-heading" id="report-heading">调查研报标题</h1>
-                            </div>
-                            <div class="report-stats-grid">
-                                <div class="stat-badge stat-badge-sources" title="参与支撑本次调查的独立信源域名总数">
-                                    <i data-lucide="files"></i>
-                                    <span id="badge-sources-count">0 个独立信源</span>
-                                </div>
-                                <div class="stat-badge stat-badge-claims" title="经聚合核验的原子主张总数">
-                                    <i data-lucide="list-checks"></i>
-                                    <span id="badge-claims-total">0 条核验主张</span>
-                                </div>
-                                <div class="stat-badge stat-badge-verified" title="多源独立印证或官方权威披露的事实">
-                                    <i data-lucide="check-circle-2" style="color:var(--accent-emerald);"></i>
-                                    <span id="badge-claims-verified">0 已确认</span>
-                                </div>
-                                <div class="stat-badge stat-badge-conflicts" title="在不同来源间存在相互矛盾或数据对立的事实">
-                                    <i data-lucide="alert-triangle" style="color:var(--accent-rose);"></i>
-                                    <span id="badge-claims-conflicts">0 存在争议</span>
-                                </div>
-                                <div class="stat-badge stat-badge-unverified" title="仅单一信源或未经证实的主观观点/传闻">
-                                    <i data-lucide="help-circle" style="color:var(--text-muted);"></i>
-                                    <span id="badge-claims-unverified">0 单一/未证实</span>
-                                </div>
-                                <div class="stat-badge stat-badge-citations" title="最终调查研报正文中生成的精确可回溯引用锚点数量">
-                                    <i data-lucide="link-2" style="color:var(--accent-cyan);"></i>
-                                    <span id="badge-citations-count">0 处报告引用</span>
-                                </div>
-                                <div class="stat-badge stat-badge-rating" title="综合参与信源的权威评级">
-                                    <i data-lucide="award" style="color:var(--accent-cyan);"></i>
-                                    <span id="badge-credibility">信源评级: --</span>
-                                </div>
-                            </div>
-                            <div class="report-actions">
-                                <button class="action-btn" id="btn-export-md"><i data-lucide="download"></i> 导出 Markdown</button>
-                                <button class="action-btn" id="btn-export-json"><i data-lucide="code"></i> 导出 JSON</button>
-                            </div>
-                        </div>
+                <!-- Bottom Reset & Action Bar -->
+                <div class="verdict-footer-actions">
+                    <button type="button" class="action-btn" id="btn-new-verify">
+                        <i data-lucide="rotate-ccw"></i> 核验新说法
+                    </button>
+                    <button type="button" class="action-btn primary-action" id="btn-copy-verdict">
+                        <i data-lucide="copy"></i> 复制核验结论
+                    </button>
+                </div>
+            </section>
 
-                        <!-- Report View Mode Tabs -->
-                        <div class="report-view-tabs">
-                            <button class="view-tab active" id="tab-btn-narrative" data-view="narrative">
-                                <i data-lucide="file-text"></i> 调研研报长文
-                            </button>
-                            <button class="view-tab" id="tab-btn-matrix" data-view="matrix">
-                                <i data-lucide="table-properties"></i> 结构化主张与证据矩阵
-                            </button>
-                        </div>
-
-                        <!-- Claim Category Filter Bar -->
-                        <div class="claim-filter-bar">
-                            <span class="filter-label"><i data-lucide="filter"></i> 核验状态筛选:</span>
-                            <button class="filter-btn active" data-filter="ALL">全部主张</button>
-                            <button class="filter-btn" data-filter="CONFIRMED">🟢 已确认/基本确认</button>
-                            <button class="filter-btn" data-filter="DISPUTED">🔴 存在争议/冲突</button>
-                            <button class="filter-btn" data-filter="SINGLE_SOURCE">🟠 单一来源</button>
-                            <button class="filter-btn" data-filter="UNVERIFIED">⚪ 观点/无法确认</button>
-                        </div>
-
-                        <!-- Executive Summary Card -->
-                        <div class="executive-summary-card">
-                            <div class="summary-badge"><i data-lucide="sparkles"></i> 调查核心结论与真伪裁决</div>
-                            <div class="executive-summary-body" id="executive-summary-body">
-                                正在加载执行摘要...
-                            </div>
-                        </div>
-
-                        <!-- Full Markdown Dossier View -->
-                        <div class="markdown-body" id="markdown-body">
-                            <!-- Report markdown rendered here -->
-                        </div>
-
-                        <!-- Structured Claims Matrix View -->
-                        <div class="claims-matrix-grid" id="claims-matrix-grid" style="display: none;">
-                            <!-- Filled dynamically from /claims data -->
-                        </div>
+            <!-- 4. Recent History List -->
+            <section class="recent-history-section" id="recent-history-section">
+                <div class="history-section-header">
+                    <h3 class="section-title"><i data-lucide="clock"></i> 最近核验记录</h3>
+                </div>
+                <div class="recent-history-grid" id="recent-history-grid">
+                    <div class="empty-history-tip">
+                        <i data-lucide="inbox"></i>
+                        <p>暂无核验记录。在上方输入任意说法即可开始。</p>
                     </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Sliding Evidence Details Side Drawer & Backdrop Overlay -->
-    <div class="drawer-backdrop" id="drawer-backdrop" style="display: none;"></div>
-    <aside class="evidence-drawer" id="evidence-drawer">
-        <div class="drawer-header">
-            <div class="drawer-title-group">
-                <i data-lucide="shield-check"></i>
-                <h3 class="drawer-title">事实核验透视镜</h3>
-            </div>
-            <button class="icon-btn" id="btn-close-drawer" title="关闭"><i data-lucide="x"></i></button>
-        </div>
-
-        <div class="drawer-content" id="drawer-content">
-            <div class="drawer-empty-state">
-                <i data-lucide="mouse-pointer-click"></i>
-                <p>点击研报中的引用角标 <span class="cite-sample">[1]</span> 或主张卡片，查看结论裁决、判定依据、独立信源及原始网页精确引文。</p>
-            </div>
-
-            <!-- Active Citation Inspector Card -->
-            <div class="inspector-card" id="inspector-card" style="display: none;">
-                <!-- 1. Verdict Banner -->
-                <div class="verdict-banner-box">
-                    <div class="verdict-tag-row">
-                        <span class="verdict-pill" id="insp-verdict-pill">🟢 已确认</span>
-                        <span class="nature-pill" id="insp-claim-nature">事实陈述</span>
-                    </div>
-                    <h4 class="claim-statement-text" id="insp-claim-statement">--</h4>
-                </div>
-
-                <!-- 2. Why this verdict? (核验判定依据) -->
-                <div class="verdict-reasons-section">
-                    <div class="section-label"><i data-lucide="check-circle-2"></i> 为什么这样判断？(核验依据)</div>
-                    <div class="verdict-reasons-list" id="insp-verdict-reasons">
-                        <!-- Filled dynamically -->
-                    </div>
-                </div>
-
-                <!-- 3. Independent Sources Breakdown -->
-                <div class="sources-stat-mini-card">
-                    <div class="meta-row">
-                        <span class="meta-k"><i data-lucide="layers"></i> 独立信源统计</span>
-                        <span class="meta-v" id="insp-independent-count">2 个独立信源</span>
-                    </div>
-                </div>
-
-                <!-- 4. Primary Evidence Quote with Context Window -->
-                <div class="evidence-context-section">
-                    <div class="section-label"><i data-lucide="quote"></i> 首要信源原始引文</div>
-                    <div class="source-header-inline">
-                        <span class="tier-badge" id="insp-tier-badge">★★★★★ 官方信源</span>
-                        <span class="domain-label" id="insp-source-domain">--</span>
-                    </div>
-                    <div class="evidence-quote-box">
-                        <span class="ctx-prefix" id="insp-ctx-prefix"></span>
-                        <mark class="exact-quote-highlight" id="insp-exact-quote"></mark>
-                        <span class="ctx-suffix" id="insp-ctx-suffix"></span>
-                    </div>
-                    <div class="source-link-action">
-                        <a href="#" target="_blank" rel="noopener noreferrer" class="visit-source-btn" id="insp-visit-url">
-                            <i data-lucide="external-link"></i> 打开原始网页
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 5. Multi-source Corroboration Matrix -->
-                <div class="corroboration-section" id="insp-corroboration-section">
-                    <div class="section-label"><i data-lucide="check-check"></i> 其他独立交叉印证来源</div>
-                    <div class="corroboration-list" id="insp-corroboration-list">
-                        <!-- Filled dynamically -->
-                    </div>
-                </div>
-
-                <!-- 6. Contradicting / Opposing Claims (if any) -->
-                <div class="contradictions-section" id="insp-contradictions-section" style="display: none;">
-                    <div class="section-label warning-label"><i data-lucide="alert-triangle"></i> 存在相互矛盾的对立记录</div>
-                    <div class="contradiction-box" id="insp-contradiction-box">
-                        <!-- Filled dynamically -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-    <!-- Settings Modal -->
+    <!-- API Settings Modal -->
     <div class="modal-backdrop" id="settings-modal" style="display: none;">
         <div class="modal-dialog">
             <div class="modal-header">
-                <div class="modal-title"><i data-lucide="sliders"></i> 侦察兵全局 API 配置</div>
+                <div class="modal-title"><i data-lucide="sliders"></i> API 密钥与推理引擎配置</div>
                 <button class="icon-btn" id="btn-close-settings"><i data-lucide="x"></i></button>
             </div>
             <div class="modal-body">
-                <p class="modal-tip">系统默认内置高速离线侦察引擎。如需开启实时全网多源 AI 深度推理与最新互联网检索，可在此配置您的 API 密钥（保存在本地浏览器中）：</p>
+                <p class="modal-tip">系统默认启用高速离线事实库。如需开启实时全网多源 AI 深度推理与最新互联网检索，可在此配置您的 API 密钥（仅保存在本地浏览器中）：</p>
                 
                 <div class="settings-group">
-                    <label for="set-gemini-key">Google Gemini API Key (推荐)</label>
+                    <label for="set-llm-select">默认推理大模型</label>
+                    <select id="set-llm-select" class="custom-select">
+                        <option value="mock" selected>离线拟真引擎 (测试模式)</option>
+                        <option value="gemini">Google Gemini 2.5/3.0 (推荐)</option>
+                        <option value="openai">OpenAI / DeepSeek</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <label for="set-search-select">默认全网搜索引擎</label>
+                    <select id="set-search-select" class="custom-select">
+                        <option value="mock" selected>离线事实库 (测试模式)</option>
+                        <option value="duckduckgo">DuckDuckGo Search (免Key)</option>
+                        <option value="tavily">Tavily Search (高精准AI搜索)</option>
+                    </select>
+                </div>
+
+                <div class="settings-group">
+                    <label for="set-gemini-key">Google Gemini API Key</label>
                     <input type="password" id="set-gemini-key" placeholder="AIzaSy...">
                 </div>
 
@@ -432,12 +217,12 @@
             </div>
             <div class="modal-footer">
                 <button class="action-btn" id="btn-cancel-settings">取消</button>
-                <button class="submit-btn" id="btn-save-settings" style="width: auto; padding: 8px 18px;">保存配置</button>
+                <button class="action-btn primary-btn" id="btn-save-settings">保存配置</button>
             </div>
         </div>
     </div>
 
-    <!-- Application Script -->
+    <!-- Main Frontend Script -->
     <script src="app.js"></script>
 </body>
 </html>

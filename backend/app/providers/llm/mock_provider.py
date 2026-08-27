@@ -314,6 +314,67 @@ class MockLLMProvider(LLMProvider):
                 explanation="来源彼此印证，描述了同一技术与商业发展脉络。"
             )  # type: ignore
 
+        # 5. Fast Claim Verification Pipeline Models
+        if response_model.__name__ == "DecomposeOutput":
+            from app.agents.fast_verifier import DecomposeOutput, RawDecomposedClaim
+            from app.models.verification_models import Verifiability
+            return DecomposeOutput(
+                claims=[
+                    RawDecomposedClaim(
+                        statement=f"{target_name} 于2024年完成近10亿元人民币B2轮融资，美团领投",
+                        subject=target_name,
+                        predicate="完成融资",
+                        object_value="近10亿元人民币",
+                        time_context="2024年",
+                        polarity=True,
+                        verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+                        verifiability_reason="重大创投融资通常有投资方或权威媒体公开披露"
+                    )
+                ]
+            )  # type: ignore
+
+        if response_model.__name__ == "EvidenceExtractionBatch":
+            from app.agents.fast_verifier import EvidenceExtractionBatch, RawExtractedEvidence
+            from app.models.verification_models import EvidenceDirectness
+            return EvidenceExtractionBatch(
+                evidences=[
+                    RawExtractedEvidence(
+                        exact_quote=f"{target_name} 官方正式宣布完成近10亿元人民币B2轮融资，美团领投",
+                        context="官方公告与财经快讯均有详细报道",
+                        supports_claim=True,
+                        contradicts_claim=False,
+                        directness=EvidenceDirectness.DIRECT,
+                        scope_match=True,
+                        evidence_note="官方渠道直接确认",
+                        origin_credit="公司官方公告"
+                    ),
+                    RawExtractedEvidence(
+                        exact_quote=f"36氪科技创投报道：{target_name} 完成近10亿元B2轮融资，投资方包括美团与金石投资",
+                        context="主流财经媒体独立跟进报道",
+                        supports_claim=True,
+                        contradicts_claim=False,
+                        directness=EvidenceDirectness.DIRECT,
+                        scope_match=True,
+                        evidence_note="主流财经媒体独立印证",
+                        origin_credit="36氪"
+                    )
+                ]
+            )  # type: ignore
+
+        if response_model.__name__ == "VerdictExplanationOutput":
+            from app.agents.fast_verifier import VerdictExplanationOutput
+            return VerdictExplanationOutput(
+                why_reasons=[
+                    "✓ 找到 2 个相互独立的权威信息源证实该融资事件",
+                    "✓ 获得企业官方公告与主流财经创投直接确认",
+                    "ℹ️ 未发现主要投资方或监管层面的相悖反驳"
+                ],
+                evidence_gaps=[
+                    "尚未查验对应工商登记实缴资本变更记录"
+                ],
+                next_step_advice="如需进一步核实细节，可查阅全国企业信用信息公示系统或国家企业信用信息报告。"
+            )  # type: ignore
+
         # 4. Report Synthesis
         if response_model == StructuredSynthesisOutput:
             if is_unitree:
