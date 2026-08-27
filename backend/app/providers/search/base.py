@@ -8,6 +8,7 @@ class SearchResultItem(BaseModel):
     snippet: str
     published_date: Optional[str] = None
     score: Optional[float] = None
+    is_synthetic: bool = False
 
 class SearchProvider(ABC):
     """Abstract Base Class for web search providers"""
