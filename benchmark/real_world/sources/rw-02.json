@@ -1,0 +1,36 @@
+[
+  {
+    "id": "s-off",
+    "url": "mock://official.com/press",
+    "domain": "official.com",
+    "title": "Official Company Announcement",
+    "source_tier": "OFFICIAL",
+    "clean_text": "Title: Official Company Announcement\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投 This concludes the paragraph.",
+    "content_hash": "5631d17d56a5ad13834412f90b8d5a4b3b7a78e6f2b383c4a04b60381925be51",
+    "extracted_quotes": [
+      {
+        "quote": "宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "DIRECT"
+      }
+    ]
+  },
+  {
+    "id": "s-reu",
+    "url": "mock://reuters.com/news",
+    "domain": "reuters.com",
+    "title": "Reuters Financial Desk",
+    "source_tier": "AUTHORITATIVE",
+    "clean_text": "Title: Reuters Financial Desk\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投 This concludes the paragraph.",
+    "content_hash": "f9c57db9fafc7d66bf8ace117a698e5769bb8e67f221f854c6dd5d72e4878470",
+    "extracted_quotes": [
+      {
+        "quote": "宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "DIRECT"
+      }
+    ]
+  }
+]

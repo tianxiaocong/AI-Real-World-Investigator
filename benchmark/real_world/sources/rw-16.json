@@ -1,0 +1,36 @@
+[
+  {
+    "id": "s-src1",
+    "url": "mock://source1.com/statement",
+    "domain": "source1.com",
+    "title": "First Source Claim",
+    "source_tier": "AUTHORITATIVE",
+    "clean_text": "Title: First Source Claim\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 某新能源车企公布的月度新车交付量与保监会机动车交强险上险量数据不一致 This concludes the paragraph.",
+    "content_hash": "0e7fa89891a5efe46b44c0472faf08223d5b9c0f0bef85542254e96642a69527",
+    "extracted_quotes": [
+      {
+        "quote": "某新能源车企公布的月度新车交付量与保监会机动车交强险上险量数据不一致",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "DIRECT"
+      }
+    ]
+  },
+  {
+    "id": "s-src2",
+    "url": "mock://source2.com/audit",
+    "domain": "source2.com",
+    "title": "Second Source Counter-Claim",
+    "source_tier": "AUTHORITATIVE",
+    "clean_text": "Title: Second Source Counter-Claim\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 独立审计与实测报告证实数据存在重大出入与冲突 This concludes the paragraph.",
+    "content_hash": "bc48dcfeb432f293b70f217d78a3422f21bb5b651349aadcd75f09043df868a3",
+    "extracted_quotes": [
+      {
+        "quote": "独立审计与实测报告证实数据存在重大出入与冲突",
+        "supports_claim": null,
+        "contradicts_claim": true,
+        "directness": "DIRECT"
+      }
+    ]
+  }
+]

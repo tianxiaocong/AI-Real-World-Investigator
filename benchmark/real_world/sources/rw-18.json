@@ -1,0 +1,19 @@
+[
+  {
+    "id": "s-gov",
+    "url": "mock://gov.org/denial",
+    "domain": "gov.org",
+    "title": "Official Regulatory Denial",
+    "source_tier": "OFFICIAL",
+    "clean_text": "Title: Official Regulatory Denial\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 监管通报与官方档案明确辟谣并否定该陈述 This concludes the paragraph.",
+    "content_hash": "afc05de9f5f1f7ad926eee0b5e57ea1a4a70f5afe8010f2b3169f7fc5826c4d6",
+    "extracted_quotes": [
+      {
+        "quote": "监管通报与官方档案明确辟谣并否定该陈述",
+        "supports_claim": null,
+        "contradicts_claim": true,
+        "directness": "DIRECT"
+      }
+    ]
+  }
+]

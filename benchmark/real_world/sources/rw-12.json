@@ -1,0 +1,19 @@
+[
+  {
+    "id": "s-anon",
+    "url": "mock://forum.com/post",
+    "domain": "forum.com",
+    "title": "Forum Post",
+    "source_tier": "COMMUNITY",
+    "clean_text": "Title: Forum Post\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 某社交平台匿名帖子称某手机大厂将在下个月全面关停手机业务 This concludes the paragraph.",
+    "content_hash": "d40ccf03d1d1be2a51e03f4f8db4f7fb6fc89b798041644b710ce566ae8536fd",
+    "extracted_quotes": [
+      {
+        "quote": "某社交平台匿名帖子称某手机大厂将在下个月全面关停手机业务",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "INDIRECT"
+      }
+    ]
+  }
+]

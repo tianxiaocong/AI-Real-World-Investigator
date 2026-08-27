@@ -1,0 +1,19 @@
+[
+  {
+    "id": "s-anon",
+    "url": "mock://forum.com/post",
+    "domain": "forum.com",
+    "title": "Forum Post",
+    "source_tier": "COMMUNITY",
+    "clean_text": "Title: Forum Post\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 某博主声称该高端降噪耳机出厂BOM硬件成本仅15元 This concludes the paragraph.",
+    "content_hash": "40cb33d668b99121ab0375c480f0125de4608ecf338506052fa0e7ec6a65598a",
+    "extracted_quotes": [
+      {
+        "quote": "某博主声称该高端降噪耳机出厂BOM硬件成本仅15元",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "INDIRECT"
+      }
+    ]
+  }
+]

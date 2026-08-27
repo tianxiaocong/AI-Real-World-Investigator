@@ -1,0 +1,20 @@
+{"id": "rw-01", "claim": "Twitter于2022年10月被埃隆·马斯克以约440亿美元完成私有化收购", "category": "CONFIRMED_MAINSTREAM", "notes": "SEC监管备案与Twitter官方公告均已归档披露"}
+{"id": "rw-02", "claim": "宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投", "category": "OFFICIAL_INVESTMENT", "notes": "企业官方公告与美团创投官方联合证实"}
+{"id": "rw-03", "claim": "苹果公司于2024年WWDC开发者大会上正式发布Apple Intelligence", "category": "OFFICIAL_TECH_LAUNCH", "notes": "Apple Newsroom官方新闻稿与发布会实况"}
+{"id": "rw-04", "claim": "OpenAI由山姆·奥特曼、格雷格·布罗克曼等人于2015年创立", "category": "ENTITY_FOUNDING", "notes": "OpenAI官方初始博客与监管注册文件"}
+{"id": "rw-05", "claim": "英伟达在2024年市值一度超越微软成为全球市值最高上市公司", "category": "FINANCIAL_MARKET_CAP", "notes": "纳斯达克官方交易数据与主流财经媒体实时行情"}
+{"id": "rw-06", "claim": "Anthropic由前OpenAI核心研发员工达里奥·阿莫代伊等人创立", "category": "LEADERSHIP_ORIGIN", "notes": "多权威媒体深度调查报道，无对立异议"}
+{"id": "rw-07", "claim": "TikTok在全球拥有超过10亿月活跃用户", "category": "USER_SCALE", "notes": "行业权威第三方数据监测机构与官方宣传口径高度吻合"}
+{"id": "rw-08", "claim": "SpaceX在2024年成功实现了星舰(Starship)超重助推器的发射塔臂筷子回收", "category": "AEROSPACE_TEST", "notes": "全球多方实时多机位直播与第三方独立航天监测"}
+{"id": "rw-09", "claim": "英伟达Blackwell芯片量产良率曾因封装设计调整经历数周延迟", "category": "TECH_SUPPLY_CHAIN", "notes": "台积电供应链与外媒调查报道一致证实"}
+{"id": "rw-10", "claim": "DeepSeek-V3大模型开源发布并在多项代码Benchmark评测中比肩顶级闭源模型", "category": "OPEN_SOURCE_EVAL", "notes": "第三方开源社区与学术Benchmark交叉验证"}
+{"id": "rw-11", "claim": "某初创AI团队宣布获得500亿美元种子轮融资", "category": "UNVERIFIED_HUGE_NUMBER", "notes": "金额脱离实际且无任何资方披露，缺乏有效证据"}
+{"id": "rw-12", "claim": "某社交平台匿名帖子称某手机大厂将在下个月全面关停手机业务", "category": "ANONYMOUS_COMMUNITY_LEAK", "notes": "仅单一匿名发帖，缺乏第二方独立证实"}
+{"id": "rw-13", "claim": "8家地方自媒体通稿宣称某农科基地研发出亩产3万斤转基因水稻", "category": "SYNDICATED_PROPAGATION", "notes": "全部追溯到同一篇营销通稿，无学术机构与农业部门备案"}
+{"id": "rw-14", "claim": "某博主声称该高端降噪耳机出厂BOM硬件成本仅15元", "category": "COST_ESTIMATE_LACK_DATA", "notes": "缺乏专业拆解报告与供应链采购单支撑"}
+{"id": "rw-15", "claim": "某跨国科技公司2024财年GAAP净利润与Non-GAAP调整后净利润数据存在明显差异", "category": "GAAP_NON_GAAP_DISPUTE", "notes": "会计准则口径差异导致官方披露数据与部分媒体计算口径对立"}
+{"id": "rw-16", "claim": "某新能源车企公布的月度新车交付量与保监会机动车交强险上险量数据不一致", "category": "METRIC_SOURCE_CONFLICT", "notes": "厂家批发交付口径与终端实际上牌口径存在直接差额"}
+{"id": "rw-17", "claim": "某开源模型评测声称其推理能力全面超越GPT-4，但第三方盲测机构报告显示其得分落后", "category": "BENCHMARK_SCORE_DISPUTE", "notes": "官方自测数据与第三方权威盲测实测存在对立冲突"}
+{"id": "rw-18", "claim": "某上市公司创始人因涉及重大证券欺诈已秘密被引渡出境", "category": "GOV_OFFICIAL_REFUTED", "notes": "最高人民检察院与外交部例行通报明确辟谣否定"}
+{"id": "rw-19", "claim": "联合国宣布取消所有常任理事国一票否决权", "category": "AUTHORITATIVE_REFUTATION", "notes": "联合国官方宪章与安全理事会官方会议记录明确否定"}
+{"id": "rw-20", "claim": "某知名投资人上周五晚上在北京某私房菜馆与朋友讨论了下一期基金策略", "category": "PRIVATE_UNDISCLOSED_MATTER", "notes": "私人非公开行程，互联网无公开资料可供核验"}

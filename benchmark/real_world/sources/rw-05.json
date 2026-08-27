@@ -1,0 +1,36 @@
+[
+  {
+    "id": "s-off",
+    "url": "mock://official.com/press",
+    "domain": "official.com",
+    "title": "Official Company Announcement",
+    "source_tier": "OFFICIAL",
+    "clean_text": "Title: Official Company Announcement\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 英伟达在2024年市值一度超越微软成为全球市值最高上市公司 This concludes the paragraph.",
+    "content_hash": "7b6a99d9456d547df13b9bd632ff404b1e51785f02fe4e94165f7215b1351012",
+    "extracted_quotes": [
+      {
+        "quote": "英伟达在2024年市值一度超越微软成为全球市值最高上市公司",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "DIRECT"
+      }
+    ]
+  },
+  {
+    "id": "s-reu",
+    "url": "mock://reuters.com/news",
+    "domain": "reuters.com",
+    "title": "Reuters Financial Desk",
+    "source_tier": "AUTHORITATIVE",
+    "clean_text": "Title: Reuters Financial Desk\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 英伟达在2024年市值一度超越微软成为全球市值最高上市公司 This concludes the paragraph.",
+    "content_hash": "011efd5212ce836b37e04341cbb90249c02d0ea537b47878a3a13826fddfaa59",
+    "extracted_quotes": [
+      {
+        "quote": "英伟达在2024年市值一度超越微软成为全球市值最高上市公司",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "DIRECT"
+      }
+    ]
+  }
+]

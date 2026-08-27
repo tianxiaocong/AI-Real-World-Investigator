@@ -1,0 +1,19 @@
+[
+  {
+    "id": "s-anon",
+    "url": "mock://forum.com/post",
+    "domain": "forum.com",
+    "title": "Forum Post",
+    "source_tier": "COMMUNITY",
+    "clean_text": "Title: Forum Post\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. 某初创AI团队宣布获得500亿美元种子轮融资 This concludes the paragraph.",
+    "content_hash": "6a313ffe3689013ca2d27f8459a0b2a58653343fb9acb4e9f00bb25ec376d948",
+    "extracted_quotes": [
+      {
+        "quote": "某初创AI团队宣布获得500亿美元种子轮融资",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "INDIRECT"
+      }
+    ]
+  }
+]

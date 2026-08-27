@@ -1,0 +1,36 @@
+[
+  {
+    "id": "s-off",
+    "url": "mock://official.com/press",
+    "domain": "official.com",
+    "title": "Official Company Announcement",
+    "source_tier": "OFFICIAL",
+    "clean_text": "Title: Official Company Announcement\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. Twitter于2022年10月被埃隆·马斯克以约440亿美元完成私有化收购 This concludes the paragraph.",
+    "content_hash": "a95adb5b87a1475790f3fb3e6fb9c4ae27ea3c9b89f2f3766b269701db1676ee",
+    "extracted_quotes": [
+      {
+        "quote": "Twitter于2022年10月被埃隆·马斯克以约440亿美元完成私有化收购",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "DIRECT"
+      }
+    ]
+  },
+  {
+    "id": "s-reu",
+    "url": "mock://reuters.com/news",
+    "domain": "reuters.com",
+    "title": "Reuters Financial Desk",
+    "source_tier": "AUTHORITATIVE",
+    "clean_text": "Title: Reuters Financial Desk\n\nDate: 2026-08-28\n\nContent:\nHere is a paragraph that contains the relevant information. Twitter于2022年10月被埃隆·马斯克以约440亿美元完成私有化收购 This concludes the paragraph.",
+    "content_hash": "bc0205a99790a4149e1578418dff901dc1ba2bf607f5fc788d1e822aa9aaacd9",
+    "extracted_quotes": [
+      {
+        "quote": "Twitter于2022年10月被埃隆·马斯克以约440亿美元完成私有化收购",
+        "supports_claim": true,
+        "contradicts_claim": null,
+        "directness": "DIRECT"
+      }
+    ]
+  }
+]
