@@ -19,7 +19,10 @@ def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
     return float(np.dot(a, b) / (norm_a * norm_b))
 
 def extract_root_domain(domain_or_url: str) -> str:
-    """Extract normalized domain name"""
+    """
+    Extract true normalized root domain name (stripping subdomains like www, mobile, m, news, etc.).
+    Example: 'news.reuters.com' -> 'reuters.com', 'mobile.baidu.com' -> 'baidu.com'
+    """
     if not domain_or_url:
         return "unknown"
     if "://" in domain_or_url:
@@ -27,7 +30,16 @@ def extract_root_domain(domain_or_url: str) -> str:
         host = parsed.hostname or domain_or_url
     else:
         host = domain_or_url.split(":")[0].split("/")[0]
-    return host.lower().strip()
+    
+    host = host.lower().strip()
+    parts = host.split(".")
+    if len(parts) > 2:
+        two_part_tlds = {"com.cn", "gov.cn", "org.cn", "net.cn", "co.uk", "gov.uk", "ac.uk", "com.hk", "org.uk"}
+        last_two = ".".join(parts[-2:])
+        if last_two in two_part_tlds and len(parts) >= 3:
+            return ".".join(parts[-3:])
+        return ".".join(parts[-2:])
+    return host
 
 class ConflictJudgement(BaseModel):
     is_conflicting: bool = Field(..., description="True if statement A and statement B present irreconcilable, contradictory facts or opposing figures.")
@@ -147,18 +159,20 @@ class VerificationAgent:
         for claim in merged_clusters:
             sources = claim.get("sources", [])
             
-            # Calculate Independent Root Domains
-            unique_domains: Set[str] = set()
+            # Calculate Independent Root Domains and Origin Provenance
+            unique_origins: Set[str] = set()
             tier_counts: Dict[str, int] = {}
             for s in sources:
                 dom = extract_root_domain(s.get("domain") or s.get("url") or "")
-                if dom and dom != "unknown":
-                    unique_domains.add(dom)
+                # If origin_domain is indicated (e.g. syndicated report from Bloomberg), use origin
+                origin_dom = extract_root_domain(s.get("origin_domain")) if s.get("origin_domain") else dom
+                if origin_dom and origin_dom != "unknown":
+                    unique_origins.add(origin_dom)
                 st = s.get("source_type", "OTHER")
                 st_str = st.value if hasattr(st, "value") else str(st)
                 tier_counts[st_str] = tier_counts.get(st_str, 0) + 1
 
-            independent_count = max(1, len(unique_domains))
+            independent_count = max(1, len(unique_origins))
             claim["independent_sources_count"] = independent_count
             claim["source_tiers_summary"] = tier_counts
 
@@ -177,7 +191,7 @@ class VerificationAgent:
                 claim["verdict_summary"] = "⚪ 观点推论 (主观评估/分析推导)"
                 verdict_reasons.append("该主张属于行业分析师/媒体观点或逻辑推导，不作为客观确凿事实采信。")
                 if independent_count > 1:
-                    verdict_reasons.append(f"共 {independent_count} 个信源表达了类似观点倾向。")
+                    verdict_reasons.append(f"共 {independent_count} 个独立信源表达了类似观点倾向。")
 
             elif has_contradictions or c_type_val in ("DISPUTED", ClaimType.DISPUTED.value):
                 claim["verification_status"] = VerificationStatus.DISPUTED
@@ -189,21 +203,21 @@ class VerificationAgent:
             elif independent_count >= 2 and has_authoritative:
                 claim["verification_status"] = VerificationStatus.CONFIRMED
                 claim["verdict_summary"] = f"🟢 已确认 ({independent_count} 个独立信源)"
-                domains_str = "、".join(list(unique_domains)[:3])
+                domains_str = "、".join(list(unique_origins)[:3])
                 verdict_reasons.append(f"✓ 经 {independent_count} 个独立权威信源交叉证实 ({domains_str})")
                 if has_official:
                     verdict_reasons.append("✓ 获得一手官方或合规监管主体披露直接支持")
-                verdict_reasons.append("✓ 全网未检索到相反反证，事实链条自洽")
+                verdict_reasons.append("✓ 当前检索范围内未发现直接冲突反证，事实链条自洽")
 
             elif has_official or (has_authoritative and claim.get("confidence") == ConfidenceLevel.HIGH):
                 claim["verification_status"] = VerificationStatus.PROBABLE
-                claim["verdict_summary"] = f"🟢 基本确认 ({list(unique_domains)[0] if unique_domains else '权威信源'})"
-                verdict_reasons.append(f"✓ 获得权威信源 ({list(unique_domains)[0] if unique_domains else '主流披露'}) 明确报道")
-                verdict_reasons.append("✓ 描述具体翔实，暂无对立反证")
+                claim["verdict_summary"] = f"🟢 基本确认 ({list(unique_origins)[0] if unique_origins else '权威信源'})"
+                verdict_reasons.append(f"✓ 获得权威信源 ({list(unique_origins)[0] if unique_origins else '主流披露'}) 明确报道")
+                verdict_reasons.append("✓ 描述具体翔实，当前检索范围内暂无对立反证")
 
             elif independent_count == 1:
                 claim["verification_status"] = VerificationStatus.SINGLE_SOURCE
-                first_dom = list(unique_domains)[0] if unique_domains else "单一信源"
+                first_dom = list(unique_origins)[0] if unique_origins else "单一信源"
                 claim["verdict_summary"] = f"🟠 单一来源 ({first_dom})"
                 verdict_reasons.append(f"ℹ️ 目前仅由单一信源 [{first_dom}] 提及")
                 verdict_reasons.append("ℹ️ 尚未获得第二方独立信源交叉印证，建议审慎参考")
@@ -211,7 +225,7 @@ class VerificationAgent:
             else:
                 claim["verification_status"] = VerificationStatus.UNVERIFIED
                 claim["verdict_summary"] = "⚪ 无法确认 (证据不足)"
-                verdict_reasons.append("缺乏确凿一手出处，当前标记为待证实假设。")
+                verdict_reasons.append("缺乏确凿一手出处，当前检索范围内未发现直接有效佐证。")
 
             claim["verdict_reasons"] = verdict_reasons
             claim["reasoning"] = "\n".join(verdict_reasons)

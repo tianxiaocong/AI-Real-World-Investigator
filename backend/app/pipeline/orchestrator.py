@@ -273,9 +273,9 @@ class InvestigationOrchestrator:
                     fallback_sources = [
                         SourceEntity(
                             investigation_id=investigation_id,
-                            url="https://www.36kr.com/p/unitree-robotics-2024-funding",
+                            url="mock://36kr.com/p/unitree-robotics-2024-funding",
                             domain="36kr.com",
-                            title="[演示数据] 宇树科技完成近10亿元B2轮融资，美团与深创投联合领投",
+                            title="[拟真演示信源] 宇树科技完成近10亿元B2轮融资，美团与深创投联合领投",
                             source_type="NEWS",
                             credibility_score=0.88,
                             clean_text="杭州宇树科技有限公司（Unitree Robotics）宣布完成近10亿元人民币B2轮融资，由美团、金石投资、深创投联合领投，老股东红杉中国跟投。公司投后估值大幅攀升。本轮融资资金将重点用于人形机器人核心零部件研发及四足机器人产能扩建。",
@@ -284,9 +284,9 @@ class InvestigationOrchestrator:
                         ),
                         SourceEntity(
                             investigation_id=investigation_id,
-                            url="https://www.unitree.com/about/corporate-overview",
+                            url="mock://unitree.com/about/corporate-overview",
                             domain="unitree.com",
-                            title="[演示数据] 宇树科技官方架构：创始人王兴兴与产品技术路线图",
+                            title="[拟真演示信源] 宇树科技官方架构：创始人王兴兴与产品技术路线图",
                             source_type="OFFICIAL",
                             credibility_score=0.95,
                             clean_text="宇树科技由CEO王兴兴于2016年创立，总部位于杭州。核心产品线覆盖工业级与消费级四足机器人（Unitree Go2、B2）以及全尺寸通用人形机器人（Unitree H1、Unitree G1）。其中全尺寸人形机器人G1定价9.9万元起，实现了人形机器人行业规模化商业量产。",
@@ -295,9 +295,9 @@ class InvestigationOrchestrator:
                         ),
                         SourceEntity(
                             investigation_id=investigation_id,
-                            url="https://www.zhihu.com/question/unitree-humanoid-robot-evaluation",
+                            url="mock://zhihu.com/question/unitree-humanoid-robot-evaluation",
                             domain="zhihu.com",
-                            title="[演示数据] 行业专家深度评测：宇树人形机器人 H1 与 G1 技术能力及真实竞争短板",
+                            title="[拟真演示信源] 行业专家深度评测：宇树人形机器人 H1 与 G1 技术能力及真实竞争短板",
                             source_type="FORUM",
                             credibility_score=0.60,
                             clean_text="行业评测指出，宇树在四足动力学与关节电机自研成本控制上具有全球领先优势，但在双足人形机器人复杂灵巧手抓取操作与具身大模型算法泛化上，仍面临数据收集不足与产业场景落地较慢的挑战。部分业内人士对9.9万元低价策略的毛利率表示关注。",
@@ -309,9 +309,9 @@ class InvestigationOrchestrator:
                     fallback_sources = [
                         SourceEntity(
                             investigation_id=investigation_id,
-                            url=f"https://www.reuters.com/business/{inv.target_query.lower().replace(' ', '-')}-analysis",
+                            url=f"mock://reuters.com/business/{inv.target_query.lower().replace(' ', '-')}-analysis",
                             domain="reuters.com",
-                            title=f"[演示数据] 关于 {inv.target_query} 的最新业务与财务综合调研",
+                            title=f"[拟真演示信源] 关于 {inv.target_query} 的最新业务与财务综合调研",
                             source_type="NEWS",
                             credibility_score=0.88,
                             clean_text=f"权威行业调研显示，{inv.target_query} 在 2024-2025 年间实现了核心业务跨越式增长，年营收规模与商业化落地稳步推进，核心管理层持续加大在关键技术研发与供应链布局方面的投入。",
@@ -320,9 +320,9 @@ class InvestigationOrchestrator:
                         ),
                         SourceEntity(
                             investigation_id=investigation_id,
-                            url=f"https://www.sec.gov/edgar/data/{inv.target_query.lower().replace(' ', '_')}",
+                            url=f"mock://sec.gov/edgar/data/{inv.target_query.lower().replace(' ', '_')}",
                             domain="sec.gov",
-                            title=f"[演示数据] {inv.target_query} 官方合规与组织信息档案",
+                            title=f"[拟真演示信源] {inv.target_query} 官方合规与组织信息档案",
                             source_type="GOVERNMENT",
                             credibility_score=0.95,
                             clean_text=f"官方监管披露显示，{inv.target_query} 保持合规稳健运营，已在全球设立多处研发与运营中心，未发现重大未决行政处罚，核心专利储备持续增加。",
@@ -331,9 +331,9 @@ class InvestigationOrchestrator:
                         ),
                         SourceEntity(
                             investigation_id=investigation_id,
-                            url=f"https://www.reddit.com/r/technology/comments/{inv.target_query.lower().replace(' ', '_')}_discussion",
+                            url=f"mock://reddit.com/r/technology/comments/{inv.target_query.lower().replace(' ', '_')}_discussion",
                             domain="reddit.com",
-                            title=f"[演示数据] 行业社区对 {inv.target_query} 的实测评测与市场争议",
+                            title=f"[拟真演示信源] 行业社区对 {inv.target_query} 的实测评测与市场争议",
                             source_type="FORUM",
                             credibility_score=0.50,
                             clean_text=f"社区用户与行业分析师对 {inv.target_query} 的产品性价比给予积极评价，但针对其高端产品交付周期与售后支持生态提出了部分改进建议。",
