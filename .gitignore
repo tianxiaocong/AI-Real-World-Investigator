@@ -1,0 +1,28 @@
+# Python Virtual Environments & Packages
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment Variables & Secrets
+.env
+.env.local
+
+# Databases & Cache
+*.db
+*.sqlite3
+investigator.db
+.pytest_cache/
+.coverage
+
+# IDE & Logs
+.vscode/
+.idea/
+*.log
+
+# OS generated
+.DS_Store
+Thumbs.db

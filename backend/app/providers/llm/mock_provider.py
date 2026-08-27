@@ -1,0 +1,264 @@
+import hashlib
+import json
+from typing import Optional, Type, TypeVar
+from pydantic import BaseModel
+from app.providers.llm.base import LLMProvider
+from app.models.schemas import (
+    ResearchPlan, TargetType, SubTask
+)
+
+T = TypeVar("T", bound=BaseModel)
+
+class MockLLMProvider(LLMProvider):
+    """Mock LLM provider for local offline testing and unit tests"""
+
+    async def generate_text(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.2,
+        max_tokens: Optional[int] = None,
+    ) -> str:
+        return f"[Mock Response for prompt: {prompt[:80]}...]"
+
+    async def generate_structured(
+        self,
+        prompt: str,
+        response_model: Type[T],
+        system_prompt: Optional[str] = None,
+        temperature: float = 0.1,
+    ) -> T:
+        import re
+        from app.agents.claim_extractor import ClaimExtractionBatch, RawExtractedClaim
+        from app.agents.verifier import ConflictJudgement
+        from app.agents.synthesizer import StructuredSynthesisOutput
+        from app.models.schemas import ClaimType, ConfidenceLevel
+
+        # Extract target query name from prompt if present
+        target_name = "调查目标"
+        m = re.search(r'(?:Investigation Target|目标)[：:\s]*["\']?([^"\'\n\r]+)["\']?', prompt, re.IGNORECASE)
+        if m:
+            target_name = m.group(1).strip()
+
+        is_unitree = any(k in target_name for k in ["宇树", "Unitree", "机器人", "王兴兴"])
+
+        # 1. Research Plan
+        if response_model == ResearchPlan:
+            if is_unitree:
+                return ResearchPlan(
+                    target_type=TargetType.COMPANY,
+                    target_name=target_name,
+                    key_hypotheses=[
+                        "四足与通用人形机器人商业化量产处于全球第一梯队，率先将人形机器人价格打入 10 万元以内区间。",
+                        "在关节电机与动力学算法上具备成本与自研优势，但在复杂具身大模型泛化与长程任务操作上仍有待突破。"
+                    ],
+                    sub_tasks=[
+                        SubTask(
+                            id="task-1",
+                            dimension="公司背景与创始人架构",
+                            question="宇树科技创始人王兴兴的创业履历、创始团队背景与核心控制权架构如何？",
+                            search_queries=["宇树科技 创始人 王兴兴 履历", "宇树科技 股权架构 核心团队"],
+                            rationale="理清核心创始团队的技术基因与公司治理结构。"
+                        ),
+                        SubTask(
+                            id="task-2",
+                            dimension="融资历程与估值财务",
+                            question="宇树科技 2024-2026 年最新融资轮次、投资方阵营（美团/深创投/红杉）与估值如何？",
+                            search_queries=["宇树科技 B2轮 融资 美团 深创投", "宇树科技 估值 营收 财务数据"],
+                            rationale="核验真实资本实力与商业化营收体量。"
+                        ),
+                        SubTask(
+                            id="task-3",
+                            dimension="产品矩阵与真实技术评测",
+                            question="四足机器人（B2/Go2）与人形机器人（H1/G1）的真实评测表现、量产定价与行业竞争优劣势？",
+                            search_queries=["宇树 G1 人形机器人 9.9万 评测", "宇树科技 H1 机器人 优劣势 争议"],
+                            rationale="剥离营销宣传，评估真实技术护城河与潜在缺陷。"
+                        ),
+                    ]
+                )  # type: ignore
+            else:
+                return ResearchPlan(
+                    target_type=TargetType.COMPANY,
+                    target_name=target_name,
+                    key_hypotheses=[
+                        f"{target_name} 在 2024-2026 年保持活跃的商业运营与技术迭代。",
+                        f"行业竞争格局加剧背景下，{target_name} 面临产品交付与供应链成本优化挑战。"
+                    ],
+                    sub_tasks=[
+                        SubTask(
+                            id="task-1",
+                            dimension="组织治理与核心背景",
+                            question=f"{target_name} 的创立背景、关键管理层与发展里程碑？",
+                            search_queries=[f"{target_name} 创始人 管理层 历史", f"{target_name} 官方架构"],
+                            rationale="厘清主体基本面。"
+                        ),
+                        SubTask(
+                            id="task-2",
+                            dimension="财务状况与商业化",
+                            question=f"{target_name} 的最新融资、商业模式与营收规模？",
+                            search_queries=[f"{target_name} 融资 估值 财务数据", f"{target_name} 商业模式"],
+                            rationale="评估商业健康度与盈利可持续性。"
+                        ),
+                        SubTask(
+                            id="task-3",
+                            dimension="争议与潜在风险",
+                            question=f"{target_name} 是否存在公开法律诉讼、行业竞争争议或用户负面反馈？",
+                            search_queries=[f"{target_name} 争议 风险 投诉", f"{target_name} 竞品对比 短板"],
+                            rationale="排查潜在隐患与未验证信息。"
+                        ),
+                    ]
+                )  # type: ignore
+
+        # 2. Claim Extraction
+        if response_model == ClaimExtractionBatch:
+            if is_unitree:
+                return ClaimExtractionBatch(
+                    claims=[
+                        RawExtractedClaim(
+                            statement="宇树科技于2024年完成近10亿元人民币B2轮融资，由美团、金石投资、深创投联合领投，红杉中国跟投。",
+                            exact_quote="宣布完成近10亿元人民币B2轮融资，由美团、金石投资、深创投联合领投",
+                            claim_type=ClaimType.FACT,
+                            confidence=ConfidenceLevel.HIGH,
+                            reasoning="由36氪等权威财经媒体及资方联合披露。"
+                        ),
+                        RawExtractedClaim(
+                            statement="宇树科技由CEO王兴兴于2016年创立，核心产品线覆盖四足机器人（Go2、B2）与全尺寸通用人形机器人（H1、G1）。",
+                            exact_quote="由CEO王兴兴于2016年创立，总部位于杭州。核心产品线覆盖工业级与消费级四足机器人",
+                            claim_type=ClaimType.FACT,
+                            confidence=ConfidenceLevel.HIGH,
+                            reasoning="官方公司架构与技术路线图明确记载。"
+                        ),
+                        RawExtractedClaim(
+                            statement="宇树全尺寸通用人形机器人G1官方定价为9.9万元人民币起，开创人形机器人规模化平价量产先河。",
+                            exact_quote="全尺寸人形机器人G1定价9.9万元起，实现了人形机器人行业规模化商业量产",
+                            claim_type=ClaimType.FACT,
+                            confidence=ConfidenceLevel.HIGH,
+                            reasoning="官方公开发布会及官网上线售价。"
+                        ),
+                        RawExtractedClaim(
+                            statement="行业专家指出宇树在低价策略下的综合硬件毛利率承压，且复杂灵巧手精细操作大模型数据仍显不足。",
+                            exact_quote="但在双足人形机器人复杂灵巧手抓取操作与具身大模型算法泛化上，仍面临数据收集不足",
+                            claim_type=ClaimType.OPINION,
+                            confidence=ConfidenceLevel.MEDIUM,
+                            reasoning="知乎与行业评测专家深度剖析观点。"
+                        )
+                    ]
+                )  # type: ignore
+            else:
+                return ClaimExtractionBatch(
+                    claims=[
+                        RawExtractedClaim(
+                            statement=f"{target_name} 在 2024-2025 年间保持跨越式增长，年营收规模与商业化落地稳步推进。",
+                            exact_quote="实现了核心业务跨越式增长，年营收规模与商业化落地稳步推进",
+                            claim_type=ClaimType.FACT,
+                            confidence=ConfidenceLevel.HIGH,
+                            reasoning="行业综合调研报告披露。"
+                        ),
+                        RawExtractedClaim(
+                            statement=f"{target_name} 保持合规稳健运营，已在全球设立多处研发与运营中心。",
+                            exact_quote="保持合规稳健运营，已在全球设立多处研发与运营中心",
+                            claim_type=ClaimType.FACT,
+                            confidence=ConfidenceLevel.HIGH,
+                            reasoning="官方监管与备案记录。"
+                        ),
+                        RawExtractedClaim(
+                            statement=f"部分社区用户对 {target_name} 高端产品交付周期及售后支持生态提出了改进建议。",
+                            exact_quote="针对其高端产品交付周期与售后支持生态提出了部分改进建议",
+                            claim_type=ClaimType.OPINION,
+                            confidence=ConfidenceLevel.MEDIUM,
+                            reasoning="社区评测讨论与用户反馈。"
+                        )
+                    ]
+                )  # type: ignore
+
+        # 3. Conflict Judgement
+        if response_model == ConflictJudgement:
+            return ConflictJudgement(
+                is_conflicting=False,
+                is_supporting=True,
+                explanation="来源彼此印证，描述了同一技术与商业发展脉络。"
+            )  # type: ignore
+
+        # 4. Report Synthesis
+        if response_model == StructuredSynthesisOutput:
+            if is_unitree:
+                md = f"""# 宇树科技 (Unitree Robotics) 深度事实调查与前沿情报研报 (2025-2026)
+
+## 1. 执行摘要与核心结论 (Executive Summary)
+杭州宇树科技有限公司（Unitree Robotics）作为全球具身智能与足式机器人头部领军企业，在 2024-2026 年实现了四足机器人全球市占领先与通用人形机器人量产突破。公司完成近 10 亿元人民币 B2 轮融资 [1]，由创始人兼 CEO 王兴兴掌舵 [2]，推出 9.9 万元起售的普及型全尺寸人形机器人 Unitree G1 [3]，但在复杂灵巧操作与具身大模型算法泛化上仍面临行业共性演进挑战 [4]。
+
+## 2. 创始人与核心组织架构 (Leadership & Governance)
+- **创始人基因**：宇树科技由王兴兴于 2016 年创立 [2]。王兴兴在上海大学读研期间自研 XDog 四足机器人，开创了外转子电机驱动四足机器人的技术先河，技术直觉敏锐且对硬件成本控制具备极高执念。
+- **总部与团队**：公司总部位于杭州滨江区，研发人员占比超过 50%，核心覆盖机械结构、电机电控、运动控制算法及具身感知决策。
+
+## 3. 产品矩阵与技术路线 (Products & Technology)
+- **四足机器人矩阵**：涵盖工业级防爆巡检四足机器人（Unitree B2）与消费级/科教四足机器人（Unitree Go2）[2]。
+- **人形机器人突破**：发布全尺寸人形机器人 Unitree H1（曾创下全尺寸人形机器人奔跑速度世界纪录）与全新量产型人形机器人 Unitree G1，官方定价 9.9 万元人民币起 [3]。
+- **核心零部件自研**：自研高扭矩密度关节电机、减速器与自制动力学运控算法，具备全产业链垂直整合能力。
+
+## 4. 融资历程与资本版图 (Funding & Capital)
+- **B2轮近10亿元**：美团、金石投资、深创投联合领投，老股东红杉中国跟投 [1]。
+- **战投资金用途**：主要投向人形机器人核心零部件供应链量产建设、具身世界模型训练与全球出海销售网络布局。
+
+## 5. 潜在风险与行业争议 (Risks & Controversies)
+- **灵巧手与高阶操作短板**：当前双足行走与奔跑跳跃表现优异，但在非结构化复杂家庭/工业场景中的精细双手抓取依然受限 [4]。
+- **价格战与毛利权衡**：9.9 万元定价对行业供应链形成颠覆性冲击，但对量产良品率与前期研发摊销提出了极高要求 [4]。
+
+## 15. 引用信源清单 (Verified Citations)
+- **[1]** [36氪 科技创投](https://www.36kr.com) - *宇树科技完成近10亿元B2轮融资，美团与深创投联合领投* (`FACT`, 状态: `MULTI_SOURCE_SUPPORTED`)
+- **[2]** [宇树科技官方架构](https://www.unitree.com) - *创始人王兴兴与产品技术路线图* (`FACT`, 状态: `VERIFIED`)
+- **[3]** [官方量产发布会](https://www.unitree.com) - *人形机器人G1定价9.9万元起* (`FACT`, 状态: `VERIFIED`)
+- **[4]** [行业技术深度评测](https://www.zhihu.com) - *人形机器人灵巧手与算法泛化短板分析* (`OPINION`, 状态: `SINGLE_SOURCE`)
+"""
+            else:
+                md = f"""# {target_name} 深度事实调查与前沿情报研报 (2025-2026)
+
+## 1. 执行摘要与核心结论 (Executive Summary)
+本报告针对「{target_name}」完成了多源侦察、事实提取与交叉验证。综合官方备案、权威新闻报道及行业社区讨论，{target_name} 在 2024-2026 年间实现了核心业务跨越式增长 [1]，全球化合规稳健运营 [2]，并在产品交付与生态构建中持续迭代优化 [3]。
+
+## 2. 核心事实与核验证据 (Verified Facts)
+- **业务规模与增长**：权威行业调研显示其年营收规模与商业化落地稳步推进 [1]。
+- **组织治理与合规**：官方监管披露证实其保持合规稳健运营，在全球设立多处运营节点 [2]。
+- **社区与用户反馈**：社区整体评价良好，同时在高端交付周期上存在部分改进建议 [3]。
+
+## 15. 引用信源清单 (Verified Citations)
+- **[1]** [Reuters 行业综合调研](https://www.reuters.com) - *核心业务跨越式增长与商业化落地* (`FACT`, 状态: `MULTI_SOURCE_SUPPORTED`)
+- **[2]** [SEC 官方合规档案](https://www.sec.gov) - *组织治理与稳健运营* (`FACT`, 状态: `VERIFIED`)
+- **[3]** [行业社区评测与反馈](https://www.reddit.com) - *市场反馈与交付建议* (`OPINION`, 状态: `SINGLE_SOURCE`)
+"""
+
+            return StructuredSynthesisOutput(
+                title=f"{target_name} 深度事实调查与前沿情报研报 (2025-2026)",
+                executive_summary=f"本报告针对目标「{target_name}」完成了多源全网侦察、事实提取与交叉验证。汇总多维度权威信源，提取并核验原子主张，全方位透视其团队、产品、商业模式与潜在风险。",
+                markdown_content=md,
+                credibility_breakdown={"average_credibility": 0.88}
+            )  # type: ignore
+
+        # Generic default via schema default/fields
+        schema = response_model.model_json_schema()
+        dummy_data = {}
+        for prop, details in schema.get("properties", {}).items():
+            prop_type = details.get("type")
+            if prop_type == "string":
+                dummy_data[prop] = f"Mock {prop}"
+            elif prop_type == "integer":
+                dummy_data[prop] = 1
+            elif prop_type == "number":
+                dummy_data[prop] = 0.85
+            elif prop_type == "array":
+                dummy_data[prop] = []
+            elif prop_type == "boolean":
+                dummy_data[prop] = True
+            elif prop_type == "object":
+                dummy_data[prop] = {}
+        return response_model.model_validate(dummy_data)
+
+    async def get_embedding(self, text: str) -> list[float]:
+        """Generate deterministic pseudo-embedding based on text hash"""
+        h = hashlib.sha256(text.encode("utf-8")).digest()
+        # Expand 32 bytes to 768 floats between -1.0 and 1.0
+        vec = []
+        for i in range(768):
+            b = h[i % len(h)]
+            vec.append((float(b) / 128.0) - 1.0)
+        return vec

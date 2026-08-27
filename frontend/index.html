@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 现实世界侦察兵 | AI Real-World Investigator</title>
+    <meta name="description" content="基于 Evidence-First 原则的深度自主调查与事实可回溯研究平台">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Marked.js for Markdown Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-layout">
+        <!-- Top Navigation Header -->
+        <header class="app-header" id="app-header">
+            <div class="header-left">
+                <div class="brand-badge">
+                    <i data-lucide="radar" class="brand-icon"></i>
+                    <span class="brand-title">AI 现实世界侦察兵</span>
+                    <span class="brand-tag">EVIDENCE FIRST</span>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="active-target-pill" id="active-target-pill" style="display: none;">
+                    <span class="pulse-dot"></span>
+                    <span class="target-label" id="current-target-label">调查目标: --</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="settings-btn" id="btn-open-settings" title="配置 API 密钥与模型">
+                    <i data-lucide="settings"></i> <span>API 配置</span>
+                </button>
+                <div class="system-status" id="system-status">
+                    <span class="status-indicator online"></span>
+                    <span class="status-text" id="status-text">引擎就绪</span>
+                </div>
+                <button class="icon-btn" id="btn-refresh-history" title="刷新历史档案">
+                    <i data-lucide="rotate-cw"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="workspace-grid">
+            <!-- Sidebar: Launchpad & Recent Dossiers -->
+            <aside class="sidebar-panel" id="sidebar-panel">
+                <div class="panel-section launch-box">
+                    <h2 class="section-heading"><i data-lucide="compass"></i> 发起新侦察</h2>
+                    <form id="investigation-form" class="investigation-form">
+                        <div class="input-group">
+                            <label for="target-input">调查目标 (公司/项目/人物/技术/观点)</label>
+                            <div class="input-wrapper">
+                                <i data-lucide="search" class="input-icon"></i>
+                                <input type="text" id="target-input" placeholder="例如: OpenAI 或 某商业模式" required autocomplete="off">
+                            </div>
+                        </div>
+
+                        <!-- Target Category Presets -->
+                        <div class="preset-chips">
+                            <button type="button" class="chip active" data-type="COMPANY">企业调查</button>
+                            <button type="button" class="chip" data-type="PRODUCT">产品测评</button>
+                            <button type="button" class="chip" data-type="INVESTMENT">投资尽调</button>
+                            <button type="button" class="chip" data-type="TECHNOLOGY">技术真伪</button>
+                            <button type="button" class="chip" data-type="CLAIM">传言核验</button>
+                        </div>
+
+                        <!-- Depth & Provider Selection -->
+                        <div class="config-row">
+                            <div class="config-col">
+                                <label for="depth-select">调查深度</label>
+                                <select id="depth-select" class="custom-select">
+                                    <option value="STANDARD" selected>标准深度 (推荐)</option>
+                                    <option value="DEEP">全面深入尽调 (Deep)</option>
+                                    <option value="QUICK">快速事实简报 (Quick)</option>
+                                </select>
+                            </div>
+                            <div class="config-col">
+                                <label for="llm-select">推理引擎</label>
+                                <select id="llm-select" class="custom-select">
+                                    <option value="gemini" selected>Google Gemini (推荐)</option>
+                                    <option value="openai">OpenAI / DeepSeek</option>
+                                    <option value="mock">离线 Mock 测试</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="submit-btn" id="btn-launch">
+                            <i data-lucide="play"></i> 启动全网深度侦察
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Recent Dossiers List -->
+                <div class="panel-section history-box">
+                    <div class="history-header">
+                        <h3 class="section-subheading"><i data-lucide="archive"></i> 历史调查档案</h3>
+                    </div>
+                    <div class="dossier-list" id="dossier-list">
+                        <div class="empty-state">
+                            <i data-lucide="inbox"></i>
+                            <p>暂无历史调查档案</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Center: Live Radar & Investigation Dossier -->
+            <section class="main-content-panel" id="main-content-panel">
+                <!-- Live Progress Card (Visible during investigation) -->
+                <div class="live-radar-card" id="live-radar-card" style="display: none;">
+                    <div class="radar-card-header">
+                        <div class="radar-title-group">
+                            <div class="radar-spinner"></div>
+                            <div>
+                                <h3 class="radar-title" id="radar-title">正在执行多源事实侦察...</h3>
+                                <p class="radar-subtitle" id="radar-subtitle">规划子课题与搜索维度</p>
+                            </div>
+                        </div>
+                        <div class="progress-badge" id="progress-badge">0%</div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-track">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+                    </div>
+
+                    <!-- Live Feed / Radar Terminal -->
+                    <div class="live-event-terminal" id="live-event-terminal">
+                        <div class="terminal-line"><span class="t-time">[SYS]</span> 侦察雷达已激活，准备连接情报管线...</div>
+                    </div>
+                </div>
+
+                <!-- Investigation Dossier Report Area -->
+                <div class="report-view-container" id="report-view-container">
+                    <!-- Placeholder when no report is selected -->
+                    <div class="welcome-hero" id="welcome-hero">
+                        <div class="hero-icon-wrap">
+                            <i data-lucide="shield-check" class="hero-icon"></i>
+                        </div>
+                        <h1 class="hero-title">真实世界事实核验与深度调查平台</h1>
+                        <p class="hero-desc">
+                            拒绝无源幻觉与随意拼凑的总结。系统遵循 <strong>Evidence First</strong> 原则，
+                            自动规划调查子问题、抓取多源正文、提取字符级证据，并在不同来源之间进行交叉核验与矛盾仲裁。
+                        </p>
+                        <div class="hero-feature-tags">
+                            <span class="ft-tag"><i data-lucide="link"></i> 100% 字符级引文锚定</span>
+                            <span class="ft-tag"><i data-lucide="git-compare"></i> 事实交叉多源核验</span>
+                            <span class="ft-tag"><i data-lucide="alert-triangle"></i> 自动识别矛盾冲突</span>
+                            <span class="ft-tag"><i data-lucide="database"></i> 结构化情报档案</span>
+                        </div>
+                    </div>
+
+                    <!-- Active Report Content -->
+                    <div class="active-report" id="active-report" style="display: none;">
+                        <!-- Report Header Bar -->
+                        <div class="report-top-bar">
+                            <div class="report-title-meta">
+                                <h2 class="report-heading" id="report-heading">调查报告</h2>
+                                <div class="report-badges" id="report-badges">
+                                    <span class="meta-badge" id="badge-target-type">COMPANY</span>
+                                    <span class="meta-badge" id="badge-sources-count">12 Sources</span>
+                                    <span class="meta-badge" id="badge-claims-count">36 Claims</span>
+                                </div>
+                            </div>
+                            <div class="report-actions">
+                                <button class="action-btn" id="btn-export-md"><i data-lucide="file-text"></i> 导出 Markdown</button>
+                                <button class="action-btn" id="btn-export-json"><i data-lucide="code"></i> 导出 JSON</button>
+                            </div>
+                        </div>
+
+                        <!-- Claim Category Filter Bar -->
+                        <div class="claim-filter-bar">
+                            <span class="filter-label">筛选事实状态:</span>
+                            <button class="filter-btn active" data-filter="ALL">全部主张</button>
+                            <button class="filter-btn filter-fact" data-filter="FACT">已验证事实 (FACT)</button>
+                            <button class="filter-btn filter-conflict" data-filter="CONFLICTING">⚠️ 矛盾/争议事实</button>
+                            <button class="filter-btn filter-unverified" data-filter="UNVERIFIED">未证实传言</button>
+                        </div>
+
+                        <!-- Executive Summary Box -->
+                        <div class="exec-summary-card">
+                            <div class="summary-header"><i data-lucide="sparkles"></i> 执行摘要与核心研判</div>
+                            <p class="summary-body" id="executive-summary-body">--</p>
+                        </div>
+
+                        <!-- Rendered Report Markdown Content -->
+                        <div class="markdown-body" id="markdown-body">
+                            <!-- Filled dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right: Evidence & Source Inspector Drawer -->
+            <aside class="evidence-drawer" id="evidence-drawer">
+                <div class="drawer-header">
+                    <div class="drawer-title-group">
+                        <i data-lucide="file-search"></i>
+                        <h3 class="drawer-title">证据核验透视镜</h3>
+                    </div>
+                    <button class="icon-btn" id="btn-close-drawer"><i data-lucide="x"></i></button>
+                </div>
+
+                <div class="drawer-content" id="drawer-content">
+                    <div class="drawer-empty-state">
+                        <i data-lucide="mouse-pointer-click"></i>
+                        <p>点击报告中的引用角标 <span class="cite-sample">[1]</span> 或事实陈述，在此处透视原始网页字符级证据上下文。</p>
+                    </div>
+
+                    <!-- Active Citation Inspector Card -->
+                    <div class="inspector-card" id="inspector-card" style="display: none;">
+                        <div class="claim-statement-box">
+                            <span class="tag-pill" id="insp-claim-type">FACT</span>
+                            <span class="tag-pill" id="insp-verif-status">MULTI_SOURCE</span>
+                            <h4 class="claim-statement-text" id="insp-claim-statement">--</h4>
+                        </div>
+
+                        <!-- Evidence Quote with Context Window -->
+                        <div class="evidence-context-section">
+                            <div class="section-label"><i data-lucide="quote"></i> 网页原文精确锚定证据</div>
+                            <div class="evidence-quote-box">
+                                <span class="ctx-prefix" id="insp-ctx-prefix"></span>
+                                <mark class="exact-quote-highlight" id="insp-exact-quote"></mark>
+                                <span class="ctx-suffix" id="insp-ctx-suffix"></span>
+                            </div>
+                        </div>
+
+                        <!-- Source Metadata Card -->
+                        <div class="source-metadata-card">
+                            <div class="meta-row">
+                                <span class="meta-k">权威可信度</span>
+                                <div class="credibility-meter">
+                                    <div class="meter-bar" id="insp-meter-bar" style="width: 85%;"></div>
+                                    <span class="meter-val" id="insp-meter-val">0.85</span>
+                                </div>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-k">信源域名</span>
+                                <span class="meta-v" id="insp-source-domain">--</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-k">文章标题</span>
+                                <span class="meta-v title-v" id="insp-source-title">--</span>
+                            </div>
+                            <div class="source-link-action">
+                                <a href="#" target="_blank" rel="noopener noreferrer" class="visit-source-btn" id="insp-visit-url">
+                                    <i data-lucide="external-link"></i> 打开原始网页
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Contradicting / Opposing Claims (if any) -->
+                        <div class="contradictions-section" id="insp-contradictions-section" style="display: none;">
+                            <div class="section-label warning-label"><i data-lucide="alert-triangle"></i> 存在相互矛盾的冲突记录</div>
+                            <div class="contradiction-box" id="insp-contradiction-box">
+                                <!-- Filled dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-backdrop" id="settings-modal" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="modal-title"><i data-lucide="sliders"></i> 侦察兵全局 API 配置</div>
+                <button class="icon-btn" id="btn-close-settings"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-tip">系统默认内置高速离线侦察引擎。如需开启实时全网多源 AI 深度推理与最新互联网检索，可在此配置您的 API 密钥（保存在本地浏览器中）：</p>
+                
+                <div class="settings-group">
+                    <label for="set-gemini-key">Google Gemini API Key (推荐)</label>
+                    <input type="password" id="set-gemini-key" placeholder="AIzaSy...">
+                </div>
+
+                <div class="settings-group">
+                    <label for="set-openai-key">OpenAI / DeepSeek API Key</label>
+                    <input type="password" id="set-openai-key" placeholder="sk-...">
+                </div>
+
+                <div class="settings-group">
+                    <label for="set-tavily-key">Tavily Search API Key</label>
+                    <input type="password" id="set-tavily-key" placeholder="tvly-...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn" id="btn-cancel-settings">取消</button>
+                <button class="submit-btn" id="btn-save-settings" style="width: auto; padding: 8px 18px;">保存配置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
