@@ -85,35 +85,45 @@ class WebScraper:
             return None
 
     @staticmethod
-    def locate_quote_spans(clean_text: str, quote: str) -> Tuple[Optional[int], Optional[int], Optional[str], Optional[str]]:
+    def locate_quote_spans(clean_text: str, quote: str) -> Tuple[Optional[int], Optional[int], Optional[str], Optional[str], str]:
         """
         Locates the exact character position of a quote in the source text,
-        along with surrounding context window for UI evidence inspection.
+        along with surrounding context window for UI evidence inspection and match tier.
+        Returns (char_start, char_end, prefix, suffix, match_tier: EXACT|FUZZY|UNVERIFIED)
         """
+        if not clean_text or not quote:
+            return None, None, None, None, "UNVERIFIED"
+
         clean_text_norm = " ".join(clean_text.split())
         quote_norm = " ".join(quote.split())
 
+        # 1. Exact verbatim match
         idx = clean_text_norm.find(quote_norm)
-        if idx == -1:
-            # Fallback: case-insensitive search
-            idx = clean_text_norm.lower().find(quote_norm.lower())
-
         if idx != -1:
             char_start = idx
             char_end = idx + len(quote_norm)
             prefix = clean_text_norm[max(0, char_start - 120):char_start]
             suffix = clean_text_norm[char_end:min(len(clean_text_norm), char_end + 120)]
-            return char_start, char_end, prefix, suffix
+            return char_start, char_end, prefix, suffix, "EXACT"
 
-        # If not found directly, try finding the first 40 chars
-        if len(quote_norm) > 40:
-            prefix_sub = quote_norm[:40]
+        # 2. Case-insensitive match
+        idx_lower = clean_text_norm.lower().find(quote_norm.lower())
+        if idx_lower != -1:
+            char_start = idx_lower
+            char_end = idx_lower + len(quote_norm)
+            prefix = clean_text_norm[max(0, char_start - 120):char_start]
+            suffix = clean_text_norm[char_end:min(len(clean_text_norm), char_end + 120)]
+            return char_start, char_end, prefix, suffix, "FUZZY"
+
+        # 3. Fuzzy prefix anchor match
+        if len(quote_norm) > 30:
+            prefix_sub = quote_norm[:30]
             idx_sub = clean_text_norm.find(prefix_sub)
             if idx_sub != -1:
                 char_start = idx_sub
                 char_end = idx_sub + len(quote_norm)
                 prefix = clean_text_norm[max(0, char_start - 100):char_start]
                 suffix = clean_text_norm[min(len(clean_text_norm), char_end):min(len(clean_text_norm), char_end + 100)]
-                return char_start, char_end, prefix, suffix
+                return char_start, char_end, prefix, suffix, "FUZZY"
 
-        return None, None, None, None
+        return None, None, None, None, "UNVERIFIED"

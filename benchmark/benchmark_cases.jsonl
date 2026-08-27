@@ -1,0 +1,10 @@
+{"id": "bm-01", "claim": "Twitter于2022年被埃隆·马斯克以约440亿美元收购", "input_type": "TEXT", "gold_state": "STRONG", "category": "CONFIRMED_FACT", "notes": "多权威媒体与SEC文件直接证实"}
+{"id": "bm-02", "claim": "宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投", "input_type": "TEXT", "gold_state": "SUFFICIENT", "category": "OFFICIAL_SUPPORTED", "notes": "企业官方公告与36氪等权威创投直接证实"}
+{"id": "bm-03", "claim": "某初创公司宣布获得100亿美元天使轮融资", "input_type": "TEXT", "gold_state": "INSUFFICIENT", "category": "IMPLAUSIBLE_LACK_EVIDENCE", "notes": "无权威资方确认，缺乏有效公开佐证"}
+{"id": "bm-04", "claim": "某品牌手机官方定价为4999元，但部分电商平台补贴后售价为4299元", "input_type": "TEXT", "gold_state": "INSUFFICIENT", "category": "PRICE_VARIANT_DIFFERENCE", "notes": "渠道补贴与官方指导价属不同口径，非事实冲突"}
+{"id": "bm-05", "claim": "某科技公司在2024年营业收入达到500亿元", "input_type": "TEXT", "gold_state": "CONFLICTING", "category": "NUMERICAL_DISPUTE", "notes": "不同主流财报与审计通报对具体收入存在500亿与320亿的重大对立"}
+{"id": "bm-06", "claim": "某未上市企业已秘密在火星设立生产基地", "input_type": "TEXT", "gold_state": "UNSUPPORTED", "category": "FACTUALLY_REFUTED", "notes": "监管与航天权威机构公开档案明确反驳否定"}
+{"id": "bm-07", "claim": "某知名企业家昨晚在北京私下参加了家庭聚餐", "input_type": "TEXT", "gold_state": "NOT_ASSESSABLE", "category": "PRIVATE_MATTER", "notes": "私人非公开行程，公开资料无法有效核验"}
+{"id": "bm-08", "claim": "某论坛用户爆料某公司下周将全员降薪50%", "input_type": "TEXT", "gold_state": "INSUFFICIENT", "category": "SINGLE_COMMUNITY_SOURCE", "notes": "仅有单一匿名社区讨论，缺乏第二方独立印证"}
+{"id": "bm-09", "claim": "10家科技博客均报道某团队开发了新型开源大模型", "input_type": "TEXT", "gold_state": "INSUFFICIENT", "category": "SYNDICATED_SINGLE_ORIGIN", "notes": "10篇转载均追溯到同1条博客原文，独立信源仅为1"}
+{"id": "bm-10", "claim": "OpenAI由山姆·奥特曼等人于2015年创立", "input_type": "TEXT", "gold_state": "SUFFICIENT", "category": "CONFIRMED_FACT", "notes": "官网与全网多权威来源交叉确证"}

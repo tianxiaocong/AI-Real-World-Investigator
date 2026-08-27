@@ -77,13 +77,11 @@ class ClaimExtractorAgent:
             if not quote:
                 continue
 
-            # Verify and locate the span in original text
-            start, end, prefix, suffix = WebScraper.locate_quote_spans(clean_text, quote)
+            # Verify and locate the span in original text with 3-tier precision matching
+            start, end, prefix, suffix, match_tier = WebScraper.locate_quote_spans(clean_text, quote)
             
-            # If quote cannot be found directly in text, do not reject if text is rich, but attempt slight fallback
-            if start is None:
-                # If exact quote is slightly modified by LLM, try finding sentence fragments
-                logger.debug(f"Quote not perfectly aligned in text: {quote[:40]}")
+            if match_tier == "UNVERIFIED":
+                logger.debug(f"Quote not verifiable in source text: {quote[:40]}")
             
             validated_results.append({
                 "statement": raw.statement,
@@ -91,6 +89,7 @@ class ClaimExtractorAgent:
                 "confidence": raw.confidence,
                 "reasoning": raw.reasoning,
                 "exact_quote": quote,
+                "quote_match": match_tier,
                 "char_start": start,
                 "char_end": end,
                 "context_prefix": prefix,
