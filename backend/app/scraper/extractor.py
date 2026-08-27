@@ -77,7 +77,7 @@ class WebScraper:
                     clean_text=clean_text,
                     raw_content=html_content[:50000],  # keep max 50KB raw snippet
                     content_hash=content_hash,
-                    metadata={"char_count": len(clean_text)}
+                    source_metadata={"char_count": len(clean_text)}
                 )
 
         except Exception as e:

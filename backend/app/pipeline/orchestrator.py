@@ -230,6 +230,7 @@ class InvestigationOrchestrator:
                     search_meta = discovered_urls.get(url)
 
                     if isinstance(source_data, SourceEntity) or (source_data and hasattr(source_data, "clean_text") and source_data.clean_text):
+                        src_meta = getattr(source_data, "source_metadata", {}) or {}
                         src_entity = SourceEntity(
                             investigation_id=investigation_id,
                             url=source_data.url,
@@ -240,7 +241,7 @@ class InvestigationOrchestrator:
                             clean_text=source_data.clean_text,
                             raw_content=source_data.raw_content,
                             content_hash=source_data.content_hash,
-                            source_metadata=source_data.metadata
+                            source_metadata=src_meta
                         )
                         self.db.add(src_entity)
                         persisted_sources.append(src_entity)
