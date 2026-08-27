@@ -49,23 +49,50 @@ async def emit_stream_event(investigation_id: str, event: StreamEvent):
             await q.put(event)
 
 class InvestigationOrchestrator:
-    """End-to-End Investigation Orchestrator Pipeline"""
+    """End-to-End Investigation Orchestrator Pipeline with Event Persistence"""
 
     def __init__(
         self,
         db: AsyncSession,
         llm_provider_name: Optional[str] = None,
-        search_provider_name: Optional[str] = None
+        search_provider_name: Optional[str] = None,
+        api_keys: Optional[Dict[str, str]] = None
     ):
         self.db = db
-        self.llm_fast = get_llm_provider(llm_provider_name, tier="fast")
-        self.llm_reasoning = get_llm_provider(llm_provider_name, tier="reasoning")
-        self.search_provider = get_search_provider(search_provider_name)
+        self.api_keys = api_keys or {}
+        
+        # Dynamic API key resolution
+        llm_key = None
+        p_name = (llm_provider_name or "").lower()
+        if p_name == "gemini":
+            llm_key = self.api_keys.get("gemini_api_key")
+        elif p_name in ("openai", "deepseek"):
+            llm_key = self.api_keys.get("openai_api_key")
+            
+        search_key = self.api_keys.get("tavily_api_key")
+
+        self.llm_fast = get_llm_provider(llm_provider_name, tier="fast", api_key=llm_key)
+        self.llm_reasoning = get_llm_provider(llm_provider_name, tier="reasoning", api_key=llm_key)
+        self.search_provider = get_search_provider(search_provider_name, api_key=search_key)
         
         self.planner = PlannerAgent(self.llm_fast)
         self.extractor = ClaimExtractorAgent(self.llm_fast)
         self.verifier = VerificationAgent(self.llm_reasoning)
         self.synthesizer = SynthesizerAgent(self.llm_reasoning)
+
+    async def _emit_and_record(self, investigation_id: str, event: StreamEvent):
+        """Persist event to database and broadcast to SSE listeners"""
+        from app.models.entities import InvestigationEventEntity
+        evt_entity = InvestigationEventEntity(
+            investigation_id=investigation_id,
+            event_type=event.event_type,
+            stage=event.stage,
+            progress_percentage=event.progress,
+            data=event.data
+        )
+        self.db.add(evt_entity)
+        await self.db.commit()
+        await emit_stream_event(investigation_id, event)
 
     async def run(self, investigation_id: str):
         """Execute the full investigation pipeline step by step"""
@@ -86,13 +113,17 @@ class InvestigationOrchestrator:
             inv.progress_percentage = 10
             await self.db.commit()
 
-            await emit_stream_event(
+            await self._emit_and_record(
                 investigation_id,
                 StreamEvent(
                     event_type="progress",
                     stage="PLANNING",
                     progress=10,
-                    data={"message": f"正在为目标「{inv.target_query}」制定多维度调查规划..."}
+                    data={
+                        "step": "PLANNING",
+                        "title": "目标分析与子课题规划",
+                        "message": f"正在为目标「{inv.target_query}」制定专属调查规划与子问题拆解..."
+                    }
                 )
             )
 
@@ -104,17 +135,19 @@ class InvestigationOrchestrator:
 
             plan = await self.planner.plan(inv.target_query, target_hint)
             inv.target_type = plan.target_type.value
-            inv.title = f"{plan.target_name} 事实调查研报"
+            inv.title = f"{plan.target_name} 深度事实调查与前沿情报研报"
             await self.db.commit()
 
-            await emit_stream_event(
+            await self._emit_and_record(
                 investigation_id,
                 StreamEvent(
                     event_type="plan_generated",
                     stage="PLANNING",
                     progress=20,
                     data={
+                        "step": "PLANNING",
                         "target_type": plan.target_type.value,
+                        "target_name": plan.target_name,
                         "key_hypotheses": plan.key_hypotheses,
                         "sub_tasks": [t.model_dump() for t in plan.sub_tasks]
                     }
@@ -138,13 +171,18 @@ class InvestigationOrchestrator:
             max_q = 6 if inv.depth == InvestigationDepth.DEEP.value else 4
             selected_queries = all_queries[:max_q]
 
-            await emit_stream_event(
+            await self._emit_and_record(
                 investigation_id,
                 StreamEvent(
-                    event_type="progress",
+                    event_type="search_dispatched",
                     stage="RESEARCHING",
                     progress=25,
-                    data={"message": f"正在向多源搜索引擎发起 {len(selected_queries)} 组针对性查询..."}
+                    data={
+                        "step": "SEARCHING",
+                        "title": "全网多源定向检索",
+                        "message": f"正在向搜索引擎发起 {len(selected_queries)} 组针对性查询...",
+                        "queries": selected_queries
+                    }
                 )
             )
 
@@ -163,13 +201,19 @@ class InvestigationOrchestrator:
             max_sources = 10 if inv.depth == InvestigationDepth.DEEP.value else 6
             target_urls = list(discovered_urls.keys())[:max_sources]
 
-            await emit_stream_event(
+            await self._emit_and_record(
                 investigation_id,
                 StreamEvent(
                     event_type="progress",
                     stage="RESEARCHING",
                     progress=40,
-                    data={"message": f"搜索完成，发现 {len(discovered_urls)} 个来源，正在深度抓取 {len(target_urls)} 篇权威内容..."}
+                    data={
+                        "step": "SCRAPING",
+                        "title": "权威信源清洗与抓取",
+                        "message": f"搜索完成，发现 {len(discovered_urls)} 个来源，正在深度抓取 {len(target_urls)} 篇权威网页正文...",
+                        "discovered_count": len(discovered_urls),
+                        "target_count": len(target_urls)
+                    }
                 )
             )
 
@@ -201,7 +245,6 @@ class InvestigationOrchestrator:
                         self.db.add(src_entity)
                         persisted_sources.append(src_entity)
                     elif search_meta and len(search_meta.snippet) > 30:
-                        # Convert rich search snippet into source if web scraping was blocked
                         domain = urlparse(url).hostname or "web-search"
                         st_type, cred = classify_source_and_credibility(url, domain)
                         src_entity = SourceEntity(
@@ -223,7 +266,6 @@ class InvestigationOrchestrator:
             if not persisted_sources:
                 logger.info(f"Using target-tailored investigation source data for '{inv.target_query}'.")
                 
-                # Check for Unitree / Robotics specific intelligence
                 is_unitree = any(k in inv.target_query for k in ["宇树", "Unitree", "机器人", "王兴兴"])
                 
                 if is_unitree:
@@ -263,7 +305,6 @@ class InvestigationOrchestrator:
                         )
                     ]
                 else:
-                    # General target tailored sources
                     fallback_sources = [
                         SourceEntity(
                             investigation_id=investigation_id,
@@ -311,13 +352,14 @@ class InvestigationOrchestrator:
             persisted_sources = list(sources_query.scalars().all())
 
             for s in persisted_sources:
-                await emit_stream_event(
+                await self._emit_and_record(
                     investigation_id,
                     StreamEvent(
                         event_type="source_found",
                         stage="RESEARCHING",
                         progress=50,
                         data={
+                            "step": "SCRAPING",
                             "source_id": s.id,
                             "url": s.url,
                             "domain": s.domain,
@@ -353,13 +395,18 @@ class InvestigationOrchestrator:
                     item["credibility_score"] = s.credibility_score
                     raw_claims_pool.append(item)
 
-            await emit_stream_event(
+            await self._emit_and_record(
                 investigation_id,
                 StreamEvent(
                     event_type="progress",
                     stage="EXTRACTING",
                     progress=70,
-                    data={"message": f"从所有信源中成功解析出 {len(raw_claims_pool)} 条原子主张，开始向量化与交叉核验..."}
+                    data={
+                        "step": "EXTRACTION",
+                        "title": "原子事实抽取与证据锚定",
+                        "message": f"从所有信源中解析出 {len(raw_claims_pool)} 条原子主张，开始进行语义向量化与多源交叉核验...",
+                        "raw_claims_count": len(raw_claims_pool)
+                    }
                 )
             )
 
@@ -436,13 +483,14 @@ class InvestigationOrchestrator:
                 vc["id"] = claim_entity.id
                 persisted_claims_map.append(vc)
 
-                await emit_stream_event(
+                await self._emit_and_record(
                     investigation_id,
                     StreamEvent(
                         event_type="claim_extracted",
                         stage="VERIFYING",
                         progress=80,
                         data={
+                            "step": "VERIFICATION",
                             "claim_id": claim_entity.id,
                             "statement": claim_entity.statement,
                             "claim_type": claim_entity.claim_type,
@@ -481,6 +529,14 @@ class InvestigationOrchestrator:
                 sources=sources_dicts
             )
 
+            # Calculate authentic credibility breakdown
+            avg_cred = round(sum(s.credibility_score for s in persisted_sources) / len(persisted_sources), 2) if persisted_sources else None
+            real_breakdown = {
+                "average_credibility": avg_cred,
+                "sources_evaluated": len(persisted_sources),
+                "claims_verified": len(persisted_claims_map)
+            }
+
             # Persist Report Entity
             report_entity = ReportEntity(
                 investigation_id=investigation_id,
@@ -489,7 +545,7 @@ class InvestigationOrchestrator:
                 markdown_content=report_data["markdown_content"],
                 structured_sections=report_data["structured_sections"],
                 citation_map=report_data["citation_map"],
-                credibility_breakdown=report_data["credibility_breakdown"]
+                credibility_breakdown=real_breakdown
             )
             self.db.add(report_entity)
 
@@ -498,18 +554,21 @@ class InvestigationOrchestrator:
             inv.progress_percentage = 100
             await self.db.commit()
 
-            await emit_stream_event(
+            await self._emit_and_record(
                 investigation_id,
                 StreamEvent(
                     event_type="completed",
                     stage="COMPLETED",
                     progress=100,
                     data={
+                        "step": "SYNTHESIS",
+                        "title": "调查报告与证据链编译完成",
                         "report_id": report_entity.id,
-                        "title": report_entity.title,
+                        "report_title": report_entity.title,
                         "total_claims": len(persisted_claims_map),
                         "total_sources": len(persisted_sources),
-                        "citation_count": len(report_data["citation_map"])
+                        "citation_count": len(report_data["citation_map"]),
+                        "average_credibility": avg_cred
                     }
                 )
             )
@@ -521,7 +580,7 @@ class InvestigationOrchestrator:
             inv.current_stage = f"失败: {str(e)}"
             await self.db.commit()
 
-            await emit_stream_event(
+            await self._emit_and_record(
                 investigation_id,
                 StreamEvent(
                     event_type="error",

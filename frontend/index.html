@@ -82,15 +82,26 @@
                                 <select id="depth-select" class="custom-select">
                                     <option value="STANDARD" selected>标准深度 (推荐)</option>
                                     <option value="DEEP">全面深入尽调 (Deep)</option>
-                                    <option value="QUICK">快速事实简报 (Quick)</option>
+                                    <option value="QUICK">快速简报 (Quick)</option>
                                 </select>
                             </div>
                             <div class="config-col">
-                                <label for="llm-select">推理引擎</label>
+                                <label for="llm-select">推理大模型</label>
                                 <select id="llm-select" class="custom-select">
                                     <option value="gemini" selected>Google Gemini (推荐)</option>
                                     <option value="openai">OpenAI / DeepSeek</option>
-                                    <option value="mock">离线 Mock 测试</option>
+                                    <option value="mock">离线拟真引擎</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="config-row" style="margin-top: 10px;">
+                            <div class="config-col" style="flex: 1;">
+                                <label for="search-select">全网搜索引擎</label>
+                                <select id="search-select" class="custom-select">
+                                    <option value="duckduckgo" selected>DuckDuckGo (免Key / 中英检索)</option>
+                                    <option value="tavily">Tavily Search (高精准AI搜索 - 需配置Key)</option>
+                                    <option value="mock">离线事实库 (测试模式)</option>
                                 </select>
                             </div>
                         </div>
@@ -115,13 +126,13 @@
                 </div>
             </aside>
 
-            <!-- Center: Live Radar & Investigation Dossier -->
+            <!-- Center: Investigation Timeline & Dossier Report -->
             <section class="main-content-panel" id="main-content-panel">
-                <!-- Live Progress Card (Visible during investigation) -->
+                <!-- Investigation Timeline Stepper (Visible during & after investigation) -->
                 <div class="live-radar-card" id="live-radar-card" style="display: none;">
                     <div class="radar-card-header">
                         <div class="radar-title-group">
-                            <div class="radar-spinner"></div>
+                            <div class="radar-spinner" id="radar-spinner"></div>
                             <div>
                                 <h3 class="radar-title" id="radar-title">正在执行多源事实侦察...</h3>
                                 <p class="radar-subtitle" id="radar-subtitle">规划子课题与搜索维度</p>
@@ -135,8 +146,72 @@
                         <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
                     </div>
 
-                    <!-- Live Feed / Radar Terminal -->
-                    <div class="live-event-terminal" id="live-event-terminal">
+                    <!-- Investigation Stage Stepper -->
+                    <div class="investigation-stepper" id="investigation-stepper">
+                        <div class="step-card" id="step-card-planning">
+                            <div class="step-header">
+                                <span class="step-num">01</span>
+                                <span class="step-name"><i data-lucide="crosshair"></i> 目标拆解与假说规划</span>
+                                <span class="step-status" id="step-status-planning">待执行</span>
+                            </div>
+                            <div class="step-body" id="step-body-planning" style="display: none;">
+                                <div class="hypotheses-box" id="timeline-hypotheses"></div>
+                                <div class="subtasks-grid" id="timeline-subtasks"></div>
+                            </div>
+                        </div>
+
+                        <div class="step-card" id="step-card-searching">
+                            <div class="step-header">
+                                <span class="step-num">02</span>
+                                <span class="step-name"><i data-lucide="globe"></i> 全网多源定向检索</span>
+                                <span class="step-status" id="step-status-searching">待执行</span>
+                            </div>
+                            <div class="step-body" id="step-body-searching" style="display: none;">
+                                <div class="queries-tags" id="timeline-queries"></div>
+                            </div>
+                        </div>
+
+                        <div class="step-card" id="step-card-scraping">
+                            <div class="step-header">
+                                <span class="step-num">03</span>
+                                <span class="step-name"><i data-lucide="file-text"></i> 权威信源清洗与抓取</span>
+                                <span class="step-status" id="step-status-scraping">待执行</span>
+                            </div>
+                            <div class="step-body" id="step-body-scraping" style="display: none;">
+                                <div class="sources-pill-list" id="timeline-sources"></div>
+                            </div>
+                        </div>
+
+                        <div class="step-card" id="step-card-extracting">
+                            <div class="step-header">
+                                <span class="step-num">04</span>
+                                <span class="step-name"><i data-lucide="microscope"></i> 字符级证据与主张提取</span>
+                                <span class="step-status" id="step-status-extracting">待执行</span>
+                            </div>
+                            <div class="step-body" id="step-body-extracting" style="display: none;">
+                                <div class="claims-feed-list" id="timeline-claims"></div>
+                            </div>
+                        </div>
+
+                        <div class="step-card" id="step-card-verifying">
+                            <div class="step-header">
+                                <span class="step-num">05</span>
+                                <span class="step-name"><i data-lucide="git-merge"></i> 交叉核验与冲突仲裁</span>
+                                <span class="step-status" id="step-status-verifying">待执行</span>
+                            </div>
+                            <div class="step-body" id="step-body-verifying" style="display: none;">
+                                <div class="verification-stats" id="timeline-verif-stats"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Debug Terminal (Collapsible) -->
+                    <div class="terminal-toggle-bar">
+                        <button type="button" class="action-btn" id="btn-toggle-terminal" style="padding: 4px 8px; font-size: 0.72rem;">
+                            <i data-lucide="terminal"></i> 切换原始事件流日志
+                        </button>
+                    </div>
+                    <div class="live-event-terminal" id="live-event-terminal" style="display: none;">
                         <div class="terminal-line"><span class="t-time">[SYS]</span> 侦察雷达已激活，准备连接情报管线...</div>
                     </div>
                 </div>
@@ -161,42 +236,54 @@
                         </div>
                     </div>
 
-                    <!-- Active Report Content -->
+                    <!-- Active Dossier Report -->
                     <div class="active-report" id="active-report" style="display: none;">
-                        <!-- Report Header Bar -->
-                        <div class="report-top-bar">
-                            <div class="report-title-meta">
-                                <h2 class="report-heading" id="report-heading">调查报告</h2>
-                                <div class="report-badges" id="report-badges">
-                                    <span class="meta-badge" id="badge-target-type">COMPANY</span>
-                                    <span class="meta-badge" id="badge-sources-count">12 Sources</span>
-                                    <span class="meta-badge" id="badge-claims-count">36 Claims</span>
+                        <!-- Report Header Metadata Bar -->
+                        <div class="report-header-card">
+                            <div class="report-main-meta">
+                                <span class="tag-pill category-pill" id="badge-target-type">COMPANY</span>
+                                <h1 class="report-heading" id="report-heading">调查研报标题</h1>
+                            </div>
+                            <div class="report-stats-grid">
+                                <div class="stat-badge">
+                                    <i data-lucide="files"></i>
+                                    <span id="badge-sources-count">0 信源</span>
+                                </div>
+                                <div class="stat-badge">
+                                    <i data-lucide="check-circle-2"></i>
+                                    <span id="badge-claims-count">0 事实</span>
+                                </div>
+                                <div class="stat-badge">
+                                    <i data-lucide="shield"></i>
+                                    <span id="badge-credibility">真实可信度: --</span>
                                 </div>
                             </div>
                             <div class="report-actions">
-                                <button class="action-btn" id="btn-export-md"><i data-lucide="file-text"></i> 导出 Markdown</button>
+                                <button class="action-btn" id="btn-export-md"><i data-lucide="download"></i> 导出 Markdown</button>
                                 <button class="action-btn" id="btn-export-json"><i data-lucide="code"></i> 导出 JSON</button>
                             </div>
                         </div>
 
                         <!-- Claim Category Filter Bar -->
                         <div class="claim-filter-bar">
-                            <span class="filter-label">筛选事实状态:</span>
+                            <span class="filter-label"><i data-lucide="filter"></i> 事实透视筛选:</span>
                             <button class="filter-btn active" data-filter="ALL">全部主张</button>
-                            <button class="filter-btn filter-fact" data-filter="FACT">已验证事实 (FACT)</button>
-                            <button class="filter-btn filter-conflict" data-filter="CONFLICTING">⚠️ 矛盾/争议事实</button>
-                            <button class="filter-btn filter-unverified" data-filter="UNVERIFIED">未证实传言</button>
+                            <button class="filter-btn" data-filter="FACT">客观事实 (FACT)</button>
+                            <button class="filter-btn" data-filter="CONFLICTING">存在争议/冲突 (CONFLICTING)</button>
+                            <button class="filter-btn" data-filter="UNVERIFIED">未证实传闻 (UNVERIFIED)</button>
                         </div>
 
-                        <!-- Executive Summary Box -->
-                        <div class="exec-summary-card">
-                            <div class="summary-header"><i data-lucide="sparkles"></i> 执行摘要与核心研判</div>
-                            <p class="summary-body" id="executive-summary-body">--</p>
+                        <!-- Executive Summary Card -->
+                        <div class="executive-summary-card">
+                            <div class="summary-badge"><i data-lucide="sparkles"></i> 调查核心结论与执行摘要</div>
+                            <div class="executive-summary-body" id="executive-summary-body">
+                                正在加载执行摘要...
+                            </div>
                         </div>
 
-                        <!-- Rendered Report Markdown Content -->
+                        <!-- Full 15-Section Markdown Dossier -->
                         <div class="markdown-body" id="markdown-body">
-                            <!-- Filled dynamically -->
+                            <!-- Report markdown rendered here -->
                         </div>
                     </div>
                 </div>
@@ -215,20 +302,22 @@
                 <div class="drawer-content" id="drawer-content">
                     <div class="drawer-empty-state">
                         <i data-lucide="mouse-pointer-click"></i>
-                        <p>点击报告中的引用角标 <span class="cite-sample">[1]</span> 或事实陈述，在此处透视原始网页字符级证据上下文。</p>
+                        <p>点击报告中的引用角标 <span class="cite-sample">[1]</span> 或事实陈述，在此处透视原始网页字符级证据上下文与多源交叉印证矩阵。</p>
                     </div>
 
                     <!-- Active Citation Inspector Card -->
                     <div class="inspector-card" id="inspector-card" style="display: none;">
                         <div class="claim-statement-box">
-                            <span class="tag-pill" id="insp-claim-type">FACT</span>
-                            <span class="tag-pill" id="insp-verif-status">MULTI_SOURCE</span>
+                            <div class="claim-tags-row">
+                                <span class="tag-pill" id="insp-claim-type">FACT</span>
+                                <span class="tag-pill" id="insp-verif-status">MULTI_SOURCE</span>
+                            </div>
                             <h4 class="claim-statement-text" id="insp-claim-statement">--</h4>
                         </div>
 
                         <!-- Evidence Quote with Context Window -->
                         <div class="evidence-context-section">
-                            <div class="section-label"><i data-lucide="quote"></i> 网页原文精确锚定证据</div>
+                            <div class="section-label"><i data-lucide="quote"></i> 原始网页字符级锚定引文</div>
                             <div class="evidence-quote-box">
                                 <span class="ctx-prefix" id="insp-ctx-prefix"></span>
                                 <mark class="exact-quote-highlight" id="insp-exact-quote"></mark>
@@ -238,12 +327,17 @@
 
                         <!-- Source Metadata Card -->
                         <div class="source-metadata-card">
+                            <div class="section-label"><i data-lucide="shield-check"></i> 信源权威画像与评级</div>
                             <div class="meta-row">
-                                <span class="meta-k">权威可信度</span>
+                                <span class="meta-k">可信度评分</span>
                                 <div class="credibility-meter">
                                     <div class="meter-bar" id="insp-meter-bar" style="width: 85%;"></div>
                                     <span class="meter-val" id="insp-meter-val">0.85</span>
                                 </div>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-k">信源类型</span>
+                                <span class="meta-v" id="insp-source-type">官方信源</span>
                             </div>
                             <div class="meta-row">
                                 <span class="meta-k">信源域名</span>
@@ -257,6 +351,14 @@
                                 <a href="#" target="_blank" rel="noopener noreferrer" class="visit-source-btn" id="insp-visit-url">
                                     <i data-lucide="external-link"></i> 打开原始网页
                                 </a>
+                            </div>
+                        </div>
+
+                        <!-- Multi-source Corroboration Matrix -->
+                        <div class="corroboration-section" id="insp-corroboration-section">
+                            <div class="section-label"><i data-lucide="check-check"></i> 多源交叉印证列表</div>
+                            <div class="corroboration-list" id="insp-corroboration-list">
+                                <!-- Filled dynamically -->
                             </div>
                         </div>
 

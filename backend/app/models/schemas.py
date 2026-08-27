@@ -94,7 +94,7 @@ class SourceBase(BaseModel):
     published_at: Optional[datetime] = None
     source_type: SourceType = SourceType.OTHER
     credibility_score: float = Field(default=0.5, ge=0.0, le=1.0)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    source_metadata: Dict[str, Any] = Field(default_factory=dict)
 
 class SourceCreate(SourceBase):
     raw_content: Optional[str] = None
@@ -173,6 +173,8 @@ class ReportResponse(BaseModel):
     structured_sections: List[Dict[str, Any]]
     citation_map: Dict[str, Any]  # e.g., "1": {"claim_id": "...", "source_url": "...", "quote": "..."}
     credibility_breakdown: Dict[str, Any]
+    claims_distribution: Optional[Dict[str, Any]] = None
+    sources_breakdown: Optional[Dict[str, Any]] = None
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -182,8 +184,9 @@ class InvestigationCreateRequest(BaseModel):
     target_query: str = Field(..., min_length=2, max_length=500, description="调查目标，如 'OpenAI' 或 '某商业模式'")
     depth: InvestigationDepth = InvestigationDepth.STANDARD
     target_type_hint: Optional[TargetType] = None
-    llm_provider: Optional[str] = None
-    search_provider: Optional[str] = None
+    llm_provider: Optional[str] = "gemini"
+    search_provider: Optional[str] = "duckduckgo"
+    api_keys: Optional[Dict[str, str]] = Field(default_factory=dict, description="前端动态传入的 API 密钥")
 
 class InvestigationSummaryResponse(BaseModel):
     id: str
@@ -198,9 +201,26 @@ class InvestigationSummaryResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     sources_count: int = 0
+    scraped_sources_count: int = 0
     claims_count: int = 0
     verified_claims_count: int = 0
     conflicting_claims_count: int = 0
+    unverified_claims_count: int = 0
+    average_credibility: Optional[float] = None
+    llm_provider: Optional[str] = None
+    search_provider: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Investigation Event Log ---
+class EventLogResponse(BaseModel):
+    id: str
+    investigation_id: str
+    event_type: str
+    stage: str
+    progress_percentage: int
+    data: Dict[str, Any]
+    created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

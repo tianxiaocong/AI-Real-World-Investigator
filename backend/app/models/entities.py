@@ -30,6 +30,21 @@ class InvestigationEntity(Base):
     sources = relationship("SourceEntity", back_populates="investigation", cascade="all, delete-orphan")
     claims = relationship("ClaimEntity", back_populates="investigation", cascade="all, delete-orphan")
     report = relationship("ReportEntity", back_populates="investigation", uselist=False, cascade="all, delete-orphan")
+    events = relationship("InvestigationEventEntity", back_populates="investigation", cascade="all, delete-orphan", order_by="InvestigationEventEntity.created_at")
+
+class InvestigationEventEntity(Base):
+    __tablename__ = "investigation_events"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    investigation_id = Column(String(36), ForeignKey("investigations.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_type = Column(String(50), nullable=False)
+    stage = Column(String(50), nullable=False)
+    progress_percentage = Column(Integer, nullable=False, default=0)
+    data = Column(JSON, nullable=False, default=dict)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    investigation = relationship("InvestigationEntity", back_populates="events")
 
 class SourceEntity(Base):
     __tablename__ = "sources"

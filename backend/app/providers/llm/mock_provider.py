@@ -42,6 +42,13 @@ class MockLLMProvider(LLMProvider):
 
         is_unitree = any(k in target_name for k in ["宇树", "Unitree", "机器人", "王兴兴"])
 
+        # Extract target type hint if present in prompt
+        t_type = TargetType.COMPANY
+        for tt in TargetType:
+            if tt.value in prompt.upper():
+                t_type = tt
+                break
+
         # 1. Research Plan
         if response_model == ResearchPlan:
             if is_unitree:
@@ -74,6 +81,134 @@ class MockLLMProvider(LLMProvider):
                             search_queries=["宇树 G1 人形机器人 9.9万 评测", "宇树科技 H1 机器人 优劣势 争议"],
                             rationale="剥离营销宣传，评估真实技术护城河与潜在缺陷。"
                         ),
+                    ]
+                )  # type: ignore
+            elif t_type == TargetType.PRODUCT:
+                return ResearchPlan(
+                    target_type=TargetType.PRODUCT,
+                    target_name=target_name,
+                    key_hypotheses=[
+                        f"{target_name} 在核心性能指标上表现亮眼，但用户在真实使用场景中反映存在散热或续航短板。",
+                        f"{target_name} 的定价策略主打高端市场，面临同类竞品高性价比替代的竞争压力。"
+                    ],
+                    sub_tasks=[
+                        SubTask(
+                            id="task-1",
+                            dimension="硬件参数与基准实测",
+                            question=f"{target_name} 的核心规格参数与第三方评测跑分表现如何？",
+                            search_queries=[f"{target_name} 参数 实测 跑分", f"{target_name} 规格 对比"],
+                            rationale="获取客观硬件基准与性能数据。"
+                        ),
+                        SubTask(
+                            id="task-2",
+                            dimension="真实口碑与故障率",
+                            question=f"{target_name} 在长期使用中的发热、续航、故障与用户投诉集中在哪些方面？",
+                            search_queries=[f"{target_name} 缺点 发热 续航 翻车", f"{target_name} 故障率 售后 评价"],
+                            rationale="排查营销滤镜下的真实使用体验缺陷。"
+                        ),
+                        SubTask(
+                            id="task-3",
+                            dimension="竞品横评与性价比",
+                            question=f"{target_name} 与同赛道核心竞品相比的优劣势及价格定位如何？",
+                            search_queries=[f"{target_name} 竞品 对比 推荐", f"{target_name} 性价比 评测"],
+                            rationale="综合评估产品竞争力和购买决策建议。"
+                        )
+                    ]
+                )  # type: ignore
+            elif t_type == TargetType.INVESTMENT:
+                return ResearchPlan(
+                    target_type=TargetType.INVESTMENT,
+                    target_name=target_name,
+                    key_hypotheses=[
+                        f"{target_name} 宣称的高年化回报率存在资金池运转与信息披露不透明风险。",
+                        f"{target_name} 缺乏权威金融监管牌照，底层资产与造血机制存疑。"
+                    ],
+                    sub_tasks=[
+                        SubTask(
+                            id="task-1",
+                            dimension="商业模式与底层造血",
+                            question=f"{target_name} 的资金投向、收益产生来源与商业闭环是否真实成立？",
+                            search_queries=[f"{target_name} 商业模式 底层资产", f"{target_name} 收益来源 造血"],
+                            rationale="验证收益来源的真实性与合规性。"
+                        ),
+                        SubTask(
+                            id="task-2",
+                            dimension="合规资质与监管排查",
+                            question=f"{target_name} 及其运营主体是否具备对应金融牌照或存在监管风险通报？",
+                            search_queries=[f"{target_name} 金融牌照 监管 备案", f"{target_name} 涉嫌 非法集资 预警"],
+                            rationale="排查非法集资与虚假宣传法律风险。"
+                        ),
+                        SubTask(
+                            id="task-3",
+                            dimension="资方背景与兑付历史",
+                            question=f"{target_name} 的股东资方实力如何，过往兑付是否出现延迟或违约？",
+                            search_queries=[f"{target_name} 股东 资方 兑付 违约", f"{target_name} 投诉 维权"],
+                            rationale="评估信用违约与流动性崩塌风险。"
+                        )
+                    ]
+                )  # type: ignore
+            elif t_type == TargetType.CLAIM:
+                return ResearchPlan(
+                    target_type=TargetType.CLAIM,
+                    target_name=target_name,
+                    key_hypotheses=[
+                        f"关于「{target_name}」的传言存在断章取义或营销夸大成分。",
+                        f"权威官方声明与第三方独立核验机构已对此传言做出明确澄清或反驳。"
+                    ],
+                    sub_tasks=[
+                        SubTask(
+                            id="task-1",
+                            dimension="传言原始出处溯源",
+                            question=f"关于「{target_name}」的最早信源出处、首发时间与初始传播文本是什么？",
+                            search_queries=[f"{target_name} 原始出处 首发 来源", f"{target_name} 传言 起源"],
+                            rationale="追踪信息源头，判断是否为自媒体恶意拼凑。"
+                        ),
+                        SubTask(
+                            id="task-2",
+                            dimension="当事方官方通报与声明",
+                            question=f"相关主体、官方机构或当事人是否发布过正式辟谣声明或澄清公告？",
+                            search_queries=[f"{target_name} 官方通报 辟谣 声明", f"{target_name} 警方通报 真相"],
+                            rationale="获取第一手权威官方定论。"
+                        ),
+                        SubTask(
+                            id="task-3",
+                            dimension="事实链条反证与矛盾点",
+                            question=f"是否存在与「{target_name}」相互矛盾的时间线证据或物证记录？",
+                            search_queries=[f"{target_name} 证据 矛盾 疑点", f"{target_name} 反转 真相 调查"],
+                            rationale="建立完整的正反反证事实链。"
+                        )
+                    ]
+                )  # type: ignore
+            elif t_type == TargetType.TECHNOLOGY:
+                return ResearchPlan(
+                    target_type=TargetType.TECHNOLOGY,
+                    target_name=target_name,
+                    key_hypotheses=[
+                        f"{target_name} 在实验室理论阶段已获验证，但大规模工业化量产面临良品率与成本壁垒。",
+                        f"{target_name} 存在部分宣传概念前置超前，实际商用落地周期长于预期。"
+                    ],
+                    sub_tasks=[
+                        SubTask(
+                            id="task-1",
+                            dimension="底层科学原理与专利",
+                            question=f"{target_name} 的核心底层理论、学术论文支撑与核心专利储备如何？",
+                            search_queries=[f"{target_name} 原理 论文 专利", f"{target_name} 技术路线 突破"],
+                            rationale="验证技术底座的科学性与自主知识产权。"
+                        ),
+                        SubTask(
+                            id="task-2",
+                            dimension="产业化壁垒与良品率",
+                            question=f"{target_name} 在工程化落地、良品率、生产成本与供应链上面临哪些关键瓶颈？",
+                            search_queries=[f"{target_name} 量产 瓶颈 良品率 成本", f"{target_name} 商业化 挑战"],
+                            rationale="剥离实验室噱头，评估真实落地难度。"
+                        ),
+                        SubTask(
+                            id="task-3",
+                            dimension="权威评测与宣传对比",
+                            question=f"第三方权威科研机构或 Benchmark 实测是否验证了 {target_name} 的公开宣称数据？",
+                            search_queries=[f"{target_name} Benchmark 实测 夸大", f"{target_name} 真实 表现 质疑"],
+                            rationale="甄别技术宣发是否存在夸大造假。"
+                        )
                     ]
                 )  # type: ignore
             else:
