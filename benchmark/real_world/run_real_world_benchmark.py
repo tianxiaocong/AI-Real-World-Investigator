@@ -188,6 +188,7 @@ async def run_e2e_benchmark_async():
         "extracted_claims": 0,
         "grounded_claims": 0,
         "validated_claims": 0,
+        "eligible_for_extraction": 0,
     }
     
     # --- PHASE 1: PIPELINE EXECUTION (NO GOLD STATE VISIBILITY) ---
@@ -218,6 +219,8 @@ async def run_e2e_benchmark_async():
         if not snapshots:
             failure_logs[c_id].append("RETRIEVAL_FAILURE: No source snapshots found for claim")
             claim.verifiability = Verifiability.NOT_PUBLICLY_VERIFIABLE
+        else:
+            stats["eligible_for_extraction"] += 1
             
         for s_data in snapshots:
             source = Source(
@@ -233,6 +236,14 @@ async def run_e2e_benchmark_async():
             clean_text = s_data["clean_text"]
             if not clean_text.strip():
                 failure_logs[c_id].append(f"RETRIEVAL_FAILURE: Empty clean_text for source {source.id}")
+                continue
+                
+            # TRUE E2E: Content Hash Validation
+            import hashlib
+            actual_hash = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()
+            expected_hash = s_data.get("content_hash", "")
+            if expected_hash and actual_hash != expected_hash:
+                failure_logs[c_id].append(f"CONTENT_HASH_MISMATCH: Source {source.id} has been modified since snapshot")
                 continue
                 
             # TRUE E2E: Run the Extractor Agent on the raw snapshot text
@@ -324,13 +335,20 @@ async def run_e2e_benchmark_async():
 
     accuracy = (correct_verdicts / total_cases) * 100.0
     
+    eligible = stats["eligible_for_extraction"]
+    
     print("\n============================================================")
     print(" Pipeline Success Rate Metrics")
     print("============================================================")
-    print(f" Total Claims                     : {total_cases}")
-    print(f" Extraction Success Rate          : {stats['extracted_claims']}/{total_cases} ({(stats['extracted_claims']/total_cases)*100:.1f}%)")
-    print(f" Quote Grounding Rate             : {stats['grounded_claims']}/{total_cases} ({(stats['grounded_claims']/total_cases)*100:.1f}%)")
-    print(f" Evidence Validation Success Rate : {stats['validated_claims']}/{total_cases} ({(stats['validated_claims']/total_cases)*100:.1f}%)")
+    print(f" Total Claims                     : {total_cases} (Eligible for Extraction: {eligible}, N/A: {total_cases - eligible})")
+    if eligible > 0:
+        print(f" Extraction Success Rate          : {stats['extracted_claims']}/{eligible} ({(stats['extracted_claims']/eligible)*100:.1f}%)")
+        print(f" Quote Grounding Rate             : {stats['grounded_claims']}/{eligible} ({(stats['grounded_claims']/eligible)*100:.1f}%)")
+        print(f" Evidence Validation Success Rate : {stats['validated_claims']}/{eligible} ({(stats['validated_claims']/eligible)*100:.1f}%)")
+    else:
+        print(f" Extraction Success Rate          : N/A")
+        print(f" Quote Grounding Rate             : N/A")
+        print(f" Evidence Validation Success Rate : N/A")
     print(f" Verdict Accuracy                 : {correct_verdicts}/{total_cases} ({accuracy:.1f}%)")
     print(f" Overclaim Rate                   : {overclaims}/{total_cases} ({(overclaims/total_cases)*100:.1f}%)")
     print("============================================================\n")
