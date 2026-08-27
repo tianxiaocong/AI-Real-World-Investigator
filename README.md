@@ -5,25 +5,65 @@
 
 ---
 
-## 🌟 核心设计原则 (Design Principles)
+## 🎯 系统核心哲学 (Core Philosophy)
 
-1. **证据状态判定 (Evidence State vs Truth Claim)**：系统不对现实真伪妄下定论，而是严格评估公开证据链状态：
-   - 🟢 `SUFFICIENT`（证据充分）：多独立来源 + 官方一手直接证实 + 无可信反驳
-   - 🟢 `STRONG`（证据较强）：多独立来源直接支持 + 无可信反驳
-   - 🟡 `INSUFFICIENT`（证据不足）：公开证据不完整、仅有转载或单一来源（"没搜到 ≠ 证明是假的"）
-   - 🟠 `CONFLICTING`（存在冲突）：可靠来源之间存在直接对立或口径差异
-   - 🔴 `UNSUPPORTED`（有可靠证据反驳）：存在权威/第一手明确反证，且缺乏对等直接支持
-   - ⚪ `NOT_ASSESSABLE`（公开资料无法核验）：私人行为或非公开事项
-2. **规则引擎驱动 (Rule-Engine Driven Verdict)**：核心结论由确定性规则引擎与逻辑边界计算，LLM 仅负责引文提取与人话解释，杜绝大模型幻觉与概率瞎猜。
-3. **来源溯源图谱 (Source Provenance)**：穿透二次转载与通稿复制链条，精准识别原始信息源（Origin Source），杜绝"10个转载当作10个独立信源"的数量崇拜。
-4. **多主张拆解与完整覆盖 (Claim Decomposition & Coverage)**：输入复合长句时自动分解为独立可验证子事实，分别出具证据判断并汇总覆盖结论。
-5. **字符级精准引文 (Exact Quote Anchoring)**：每条证据均锁定原始网页精确片段与发布时间有效性，支持多维度交叉比对。
+> **AI 不是上帝，不能直接宣称现实世界某件事情是绝对的“真”或“假”。**  
+> 本系统的使命是：**寻找公开证据 → 判断证据质量与直接性 → 识别同源与转载链条 → 寻找支持与反证 → 用保守的确定性规则引擎，告诉用户目前公开证据支持到什么程度。**
+
+```
+用户输入一个说法 (文字 / 链接 / 截图)
+         │
+         ▼
+ 1. 主张拆解 (Claim Decomposition)
+    将长句/复合陈述拆解为 1~N 个独立可验证事实点
+         │
+         ▼
+ 2. 定向证据检索与抽取 (Evidence Retrieval & Extraction)
+    检索公开网络信源，提取精确引文并标记支持/反驳/直接性/范围匹配
+         │
+         ▼
+ 3. 信息溯源去重 (Source Provenance)
+    穿透通稿转载链条，还原真实原始信息源 (Origin Source)
+         │
+         ▼
+ 4. 确定性规则引擎 (Rule-Engine Verdict)
+    由严密的逻辑边界计算判定，杜绝 LLM 概率瞎猜与数量崇拜
+         │
+         ▼
+ 5. 结构化呈现 (Verdict Card & Coverage)
+    输出 6 级证据状态、判定依据清单、关键证据缺口与核实指引
+```
+
+---
+
+## 🌟 6 级证据状态体系 (Evidence States)
+
+用户端展示严格对应以下 6 种证据状态：
+
+| 证据状态 | 英文枚举 | 核心判定逻辑 |
+|---|---|---|
+| 🟢 **证据充分** | `SUFFICIENT` | 拥有 ≥2 个独立信息源直接支持，且包含官方/一手渠道直接证实，无可信反驳 |
+| 🟢 **证据较强** | `STRONG` | 拥有 ≥2 个独立可靠信息源直接证实，无可信反驳 |
+| 🟡 **证据不足** | `INSUFFICIENT` | 证据链不完整、仅有单一信息源、均为二次转载，或尚未检索到有效证据（**“没搜到 ≠ 证明是假的”**） |
+| 🟠 **存在冲突** | `CONFLICTING` | 可靠信源之间存在直接对立或口径差异（如融资金额或统计数据不一） |
+| 🔴 **有可靠证据反驳** | `UNSUPPORTED` | 存在权威/第一手渠道的明确否定反证，且缺乏对等的可靠支持 |
+| ⚪ **公开资料无法核验** | `NOT_ASSESSABLE` | 涉及私人行为或非公开未披露事项，无法通过公开互联网资料进行有效判定 |
+
+---
+
+## 🛡️ 核心设计原则 (Design Principles)
+
+1. **规则引擎驱动判定**：最终 Verdict 状态由纯逻辑规则引擎（`verdict_rules.py`）严格计算，LLM 仅负责文本片段提取与人话解释翻译。
+2. **信息溯源去重 (Provenance)**：穿透二次转载与引用关系（`CITES` / `REPUBLISHES`），避免将“10 个互相抄袭的通稿”误判为“10 个独立来源”。
+3. **复合主张完整覆盖 (Claim Coverage)**：复合输入分别核验，多维度生成完整性覆盖结论（`FULLY_SUPPORTED` / `PARTIALLY_SUPPORTED` / `MIXED` / `FULLY_UNSUPPORTED` / `NOT_ASSESSABLE`），杜绝粗暴“取最弱”。
+4. **可追溯证据绑定**：核验结果尽可能绑定可追溯的原始来源域名、发布时间与具体引文片段。
+5. **不使用伪精确概率**：不展示无数学依据的“78% 可信度”或模糊标签，仅呈现事实依据清单与关键缺口。
 
 ---
 
 ## 🚀 快速启动 (Quick Start)
 
-### 1. 激活虚拟环境与启动后端
+### 1. 激活虚拟环境与启动服务
 
 在项目根目录下运行：
 
@@ -34,7 +74,7 @@
 # 或 Windows CMD 环境
 .\.venv\Scripts\activate.bat
 
-# 启动一体化服务 (FastAPI + 前端静态托管)
+# 启动一体化服务 (FastAPI 后端 + 前端静态托管)
 .\.venv\Scripts\python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -43,24 +83,19 @@
 ### 2. 打开网页控制台
 浏览器访问：[http://127.0.0.1:8000](http://127.0.0.1:8000)
 
----
-
-## 🎯 五大专属调查场景 (Specialized Investigation Modes)
-
-系统根据不同的调查场景，自动匹配差异化的侦察方法论与子问题拆解：
-1. 🏢 **企业全景背调 (`COMPANY`)**：组织架构、创始人履历、融资财务、产品矩阵、诉讼与合规风险。
-2. 📱 **产品深度评测 (`PRODUCT`)**：技术参数实测、故障率与真实口碑、竞品横向对比、价格毛利。
-3. 💰 **投资商业尽调 (`INVESTMENT`)**：商业模式闭环、造血能力、主要资方资质、非法集资/虚假宣传欺诈排查。
-4. 🔍 **事实核验与辟谣 (`CLAIM`)**：原始出处溯源、官方通报与声明、传播链反转与关键反证链。
-5. 🔬 **技术成熟度评估 (`TECHNOLOGY`)**：底层科学原理、论文与专利、第三方 Benchmark 实测、宣传夸大与落地短板。
+### 3. 运行自动化测试套件
+```powershell
+.\.venv\Scripts\pytest backend\tests -v
+```
 
 ---
 
-## ⚙️ API 密钥配置
+## ⚙️ 运行模式与 API 密钥配置
 
-您可以通过两种方式配置 API 密钥：
-1. **方式一（网页端动态配置）**：点击页面右上角 **「API 配置」**，在弹出窗口中填写您的 `Google Gemini`、`OpenAI / DeepSeek` 或 `Tavily` 密钥（保存在本地浏览器，随任务动态注入后端）。
-2. **方式二（服务端环境配置文件）**：复制 `.env.example` 到 `.env`：
+系统默认内置**离线拟真引擎与事实库**（无需任何 API Key 即可全流程离线体验与测试）。如需接入实时公网大模型与搜索：
+
+1. **网页端配置**：点击页面右上角 **「API 配置」**，在弹出窗口中填写您的 `Google Gemini`、`OpenAI / DeepSeek` 或 `Tavily` 密钥（仅保存在本地浏览器）。
+2. **环境变量配置**：复制 `.env.example` 到 `.env`：
 
 ```env
 # 推理模型 (支持 Gemini, OpenAI, DeepSeek, Mock)
@@ -71,6 +106,6 @@ GEMINI_API_KEY=your_gemini_api_key_here
 DEFAULT_SEARCH_PROVIDER=duckduckgo
 TAVILY_API_KEY=your_tavily_api_key_here
 
-# 数据库 (默认免配置本地 SQLite，支持 PostgreSQL + pgvector)
+# 数据库
 DATABASE_URL=sqlite+aiosqlite:///./investigator.db
 ```
