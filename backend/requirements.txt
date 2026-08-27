@@ -16,3 +16,5 @@ python-dotenv>=1.0.1
 tavily-python>=0.3.3
 pytest>=8.2.0
 pytest-asyncio>=0.23.0
+tldextract>=5.1.0
+

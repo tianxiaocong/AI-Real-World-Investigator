@@ -18,18 +18,40 @@ def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
         return 0.0
     return float(np.dot(a, b) / (norm_a * norm_b))
 
+try:
+    import tldextract
+    _tld_extractor = tldextract.TLDExtract(cache_dir=None)
+except ImportError:
+    _tld_extractor = None
+
 def extract_root_domain(domain_or_url: str) -> str:
     """
-    Extract true normalized root domain name (stripping subdomains like www, mobile, m, news, etc.).
-    Example: 'news.reuters.com' -> 'reuters.com', 'mobile.baidu.com' -> 'baidu.com'
+    Extract true normalized root domain name using Public Suffix List.
+    Handles 'mobile.reuters.com' -> 'reuters.com', 'news.bbc.co.uk' -> 'bbc.co.uk', etc.
     """
     if not domain_or_url:
         return "unknown"
-    if "://" in domain_or_url:
-        parsed = urlparse(domain_or_url)
-        host = parsed.hostname or domain_or_url
+    
+    clean_target = domain_or_url.strip()
+    if clean_target.startswith("mock://"):
+        clean_target = clean_target.replace("mock://", "http://")
+
+    if _tld_extractor:
+        try:
+            ext = _tld_extractor(clean_target)
+            if ext.domain and ext.suffix:
+                return f"{ext.domain}.{ext.suffix}".lower()
+            if ext.domain:
+                return ext.domain.lower()
+        except Exception:
+            pass
+
+    # Fallback to hostname normalization
+    if "://" in clean_target:
+        parsed = urlparse(clean_target)
+        host = parsed.hostname or clean_target
     else:
-        host = domain_or_url.split(":")[0].split("/")[0]
+        host = clean_target.split(":")[0].split("/")[0]
     
     host = host.lower().strip()
     parts = host.split(".")
