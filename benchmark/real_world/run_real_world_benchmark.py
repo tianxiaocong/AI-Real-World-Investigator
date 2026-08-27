@@ -188,6 +188,7 @@ async def run_e2e_benchmark_async():
         "extracted_claims": 0,
         "grounded_claims": 0,
         "validated_claims": 0,
+        "claims_with_snapshots": 0,
         "eligible_for_extraction": 0,
     }
     
@@ -214,13 +215,14 @@ async def run_e2e_benchmark_async():
         has_extracted = False
         has_grounded = False
         has_validated = False
+        has_integrity_passing = False
         
         snapshots = load_source_snapshots(benchmark_dir, c_id)
         if not snapshots:
             failure_logs[c_id].append("RETRIEVAL_FAILURE: No source snapshots found for claim")
             claim.verifiability = Verifiability.NOT_PUBLICLY_VERIFIABLE
         else:
-            stats["eligible_for_extraction"] += 1
+            stats["claims_with_snapshots"] += 1
             
         for s_data in snapshots:
             source = Source(
@@ -245,6 +247,8 @@ async def run_e2e_benchmark_async():
             if expected_hash and actual_hash != expected_hash:
                 failure_logs[c_id].append(f"CONTENT_HASH_MISMATCH: Source {source.id} has been modified since snapshot")
                 continue
+                
+            has_integrity_passing = True
                 
             # TRUE E2E: Run the Extractor Agent on the raw snapshot text
             extracted_results = await extractor.extract_claims_from_source(
@@ -300,6 +304,7 @@ async def run_e2e_benchmark_async():
         pred_state = compute_evidence_state(assessment, claim.verifiability)
         predictions[c_id] = pred_state.value
         
+        if has_integrity_passing: stats["eligible_for_extraction"] += 1
         if has_extracted: stats["extracted_claims"] += 1
         if has_grounded: stats["grounded_claims"] += 1
         if has_validated: stats["validated_claims"] += 1
@@ -340,7 +345,15 @@ async def run_e2e_benchmark_async():
     print("\n============================================================")
     print(" Pipeline Success Rate Metrics")
     print("============================================================")
-    print(f" Total Claims                     : {total_cases} (Eligible for Extraction: {eligible}, N/A: {total_cases - eligible})")
+    
+    is_mock = isinstance(llm, BenchmarkMockLLMProvider)
+    print(f" LLM Provider                     : {'BenchmarkMock' if is_mock else 'Real LLM'}")
+    print(f" Semantic Evaluation              : {'SIMULATED (Deterministic)' if is_mock else 'REAL (Agentic)'}")
+    print("------------------------------------------------------------")
+    print(f" Total Claims                     : {total_cases}")
+    print(f" Claims with Snapshots            : {stats['claims_with_snapshots']}")
+    print(f" Integrity-Passing Claims         : {eligible}")
+    print(f" Eligible for Extraction          : {eligible}")
     if eligible > 0:
         print(f" Extraction Success Rate          : {stats['extracted_claims']}/{eligible} ({(stats['extracted_claims']/eligible)*100:.1f}%)")
         print(f" Quote Grounding Rate             : {stats['grounded_claims']}/{eligible} ({(stats['grounded_claims']/eligible)*100:.1f}%)")
