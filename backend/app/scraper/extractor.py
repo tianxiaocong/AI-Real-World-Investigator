@@ -87,35 +87,49 @@ class WebScraper:
     @staticmethod
     def locate_quote_spans(clean_text: str, quote: str) -> Tuple[Optional[int], Optional[int], Optional[str], Optional[str], str]:
         """
-        Locates the exact character position of a quote in the source text,
+        Locates the character position of a quote in the source text,
         along with surrounding context window for UI evidence inspection and match tier.
         Returns (char_start, char_end, prefix, suffix, match_tier: EXACT|FUZZY|UNVERIFIED)
+        - EXACT: True verbatim raw substring match directly on clean_text where clean_text[start:end] == quote.
+        - FUZZY: Normalized whitespace or case-insensitive match on normalized text.
+        - UNVERIFIED: No reliable anchor found.
         """
         if not clean_text or not quote:
             return None, None, None, None, "UNVERIFIED"
 
-        clean_text_norm = " ".join(clean_text.split())
-        quote_norm = " ".join(quote.split())
+        raw_quote = quote.strip()
 
-        # 1. Exact verbatim match
-        idx = clean_text_norm.find(quote_norm)
-        if idx != -1:
-            char_start = idx
-            char_end = idx + len(quote_norm)
-            prefix = clean_text_norm[max(0, char_start - 120):char_start]
-            suffix = clean_text_norm[char_end:min(len(clean_text_norm), char_end + 120)]
+        # 1. True verbatim EXACT match directly on raw clean_text
+        idx_raw = clean_text.find(raw_quote)
+        if idx_raw != -1:
+            char_start = idx_raw
+            char_end = idx_raw + len(raw_quote)
+            prefix = clean_text[max(0, char_start - 120):char_start]
+            suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
             return char_start, char_end, prefix, suffix, "EXACT"
 
-        # 2. Case-insensitive match
-        idx_lower = clean_text_norm.lower().find(quote_norm.lower())
-        if idx_lower != -1:
-            char_start = idx_lower
-            char_end = idx_lower + len(quote_norm)
+        # 2. Case-insensitive match on raw clean_text
+        idx_raw_lower = clean_text.lower().find(raw_quote.lower())
+        if idx_raw_lower != -1:
+            char_start = idx_raw_lower
+            char_end = idx_raw_lower + len(raw_quote)
+            prefix = clean_text[max(0, char_start - 120):char_start]
+            suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
+            return char_start, char_end, prefix, suffix, "FUZZY"
+
+        # 3. Normalized whitespace match
+        clean_text_norm = " ".join(clean_text.split())
+        quote_norm = " ".join(raw_quote.split())
+
+        idx_norm = clean_text_norm.find(quote_norm)
+        if idx_norm != -1:
+            char_start = idx_norm
+            char_end = idx_norm + len(quote_norm)
             prefix = clean_text_norm[max(0, char_start - 120):char_start]
             suffix = clean_text_norm[char_end:min(len(clean_text_norm), char_end + 120)]
             return char_start, char_end, prefix, suffix, "FUZZY"
 
-        # 3. Fuzzy prefix anchor match
+        # 4. Fuzzy prefix anchor match
         if len(quote_norm) > 30:
             prefix_sub = quote_norm[:30]
             idx_sub = clean_text_norm.find(prefix_sub)

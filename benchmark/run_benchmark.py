@@ -1,16 +1,14 @@
 """
-AI Claim Verifier — Automated Benchmark Evaluation Suite
+AI Claim Verifier — Synthetic Rule Regression Benchmark Suite
 
-Evaluates:
-- Verdict Classification Accuracy (Gold State vs Engine Output)
-- Provenance De-duplication Precision
-- Overall Evidence State Metrics
+Explicitly tests the deterministic rule engine logic, provenance de-duplication,
+and state transition regression across gold boundary cases.
 """
 
 import json
-import asyncio
 import sys
 from pathlib import Path
+from collections import defaultdict
 
 # Add backend directory to sys.path
 backend_dir = Path(__file__).resolve().parent.parent / "backend"
@@ -24,19 +22,27 @@ from app.engine.verdict_rules import (
     assess_evidence_for_claim, compute_evidence_state
 )
 
+STATE_ORDER = [
+    "SUFFICIENT", "STRONG", "INSUFFICIENT", "CONFLICTING", "UNSUPPORTED", "NOT_ASSESSABLE"
+]
+STATE_WEIGHT = {
+    "SUFFICIENT": 5, "STRONG": 4, "INSUFFICIENT": 2, "CONFLICTING": 3, "UNSUPPORTED": 1, "NOT_ASSESSABLE": 0
+}
 
-def run_synthetic_benchmark():
+
+def run_rule_regression_benchmark():
     cases_path = Path(__file__).resolve().parent / "benchmark_cases.jsonl"
     with open(cases_path, "r", encoding="utf-8") as f:
         cases = [json.loads(line) for line in f if line.strip()]
 
     print(f"============================================================")
-    print(f" [BENCHMARK] AI Claim Verifier Evaluation (Cases: {len(cases)})")
+    print(f" [BENCHMARK] Synthetic Rule Engine Regression (Cases: {len(cases)})")
     print(f"============================================================")
 
     correct_verdicts = 0
     total_cases = len(cases)
-    per_state_stats = {}
+    overclaim_cases = 0
+    confusion_matrix = defaultdict(lambda: defaultdict(int))
 
     for item in cases:
         c_id = item["id"]
@@ -44,7 +50,6 @@ def run_synthetic_benchmark():
         gold_state = item["gold_state"]
         category = item.get("category", "")
 
-        # Build appropriate claim & evidence fixtures corresponding to test scenario
         claim = Claim(
             id=c_id,
             original_input=statement,
@@ -112,22 +117,37 @@ def run_synthetic_benchmark():
         assessment = assess_evidence_for_claim(claim, sources, evidences, provenances)
         pred_state = compute_evidence_state(assessment, claim.verifiability)
 
-        is_match = (pred_state.value == gold_state)
+        pred_val = pred_state.value
+        confusion_matrix[gold_state][pred_val] += 1
+
+        is_match = (pred_val == gold_state)
         if is_match:
             correct_verdicts += 1
+        elif STATE_WEIGHT.get(pred_val, 0) > STATE_WEIGHT.get(gold_state, 0):
+            overclaim_cases += 1
 
-        print(f"[{'PASS' if is_match else 'FAIL'}] {c_id}: {statement[:28]}... -> Pred: {pred_state.value} | Gold: {gold_state}")
+        print(f"[{'PASS' if is_match else 'FAIL'}] {c_id}: {statement[:28]}... -> Pred: {pred_val} | Gold: {gold_state}")
 
     accuracy = (correct_verdicts / total_cases) * 100.0
+    overclaim_rate = (overclaim_cases / total_cases) * 100.0
+
     print(f"\n============================================================")
-    print(f" [SUMMARY] BENCHMARK EVALUATION RESULTS")
+    print(f" [SUMMARY] SYNTHETIC RULE REGRESSION RESULTS")
     print(f" Total Cases Evaluated : {total_cases}")
-    print(f" Correct Predictions   : {correct_verdicts}")
-    print(f" Overall Accuracy      : {accuracy:.1f}%")
-    print(f" Deterministic Rule Precision : 100.0%")
-    print(f" Provenance Dedup Accuracy    : 100.0%")
+    print(f" Regression Passed     : {correct_verdicts} / {total_cases}")
+    print(f" Rule Engine Accuracy  : {accuracy:.1f}%")
+    print(f" Overclaim Rate (Risk) : {overclaim_rate:.1f}%")
+    print(f"============================================================")
+    print(f" Confusion Matrix (Gold Rows x Pred Cols):")
+    header = f"{'GOLD / PRED':<15}" + "".join([f"{s[:6]:>8}" for s in STATE_ORDER])
+    print(header)
+    for g in STATE_ORDER:
+        row_str = f"{g:<15}"
+        for p in STATE_ORDER:
+            row_str += f"{confusion_matrix[g][p]:>8}"
+        print(row_str)
     print(f"============================================================\n")
 
 
 if __name__ == "__main__":
-    run_synthetic_benchmark()
+    run_rule_regression_benchmark()
