@@ -1,0 +1,6 @@
+Title: Official Company Announcement
+
+Date: 2026-08-28
+
+Content:
+Here is a paragraph that contains the relevant information. 苹果公司于2024年WWDC开发者大会上正式发布Apple Intelligence This concludes the paragraph.

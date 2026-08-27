@@ -1,0 +1,9 @@
+{
+  "url": "mock://forum.com/post",
+  "title": "Forum Post",
+  "domain": "forum.com",
+  "source_tier": "COMMUNITY",
+  "content_hash": "6a313ffe3689013ca2d27f8459a0b2a58653343fb9acb4e9f00bb25ec376d948",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}

@@ -1,0 +1,9 @@
+{
+  "url": "mock://source1.com/statement",
+  "title": "First Source Claim",
+  "domain": "source1.com",
+  "source_tier": "AUTHORITATIVE",
+  "content_hash": "2d3c2ff61206b2fd00aeb9d82ee0ff69402a056dacf38a69deca6047542ddc90",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}

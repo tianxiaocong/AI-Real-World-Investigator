@@ -1,0 +1,9 @@
+{
+  "url": "mock://reuters.com/news",
+  "title": "Reuters Financial Desk",
+  "domain": "reuters.com",
+  "source_tier": "AUTHORITATIVE",
+  "content_hash": "011efd5212ce836b37e04341cbb90249c02d0ea537b47878a3a13826fddfaa59",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}

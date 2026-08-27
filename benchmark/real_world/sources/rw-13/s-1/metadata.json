@@ -1,0 +1,10 @@
+{
+  "url": "mock://blog1.com",
+  "title": "Blog 1",
+  "domain": "blog1.com",
+  "source_tier": "COMMUNITY",
+  "content_hash": "18d270b833b95e6c0cd6d9fd195ba67d3d1a5b07d123589c17b3b55f80a7e5fe",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28",
+  "republishes_source_id": "s-0"
+}

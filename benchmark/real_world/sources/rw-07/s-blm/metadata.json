@@ -1,0 +1,9 @@
+{
+  "url": "mock://bloomberg.com/news",
+  "title": "Bloomberg News",
+  "domain": "bloomberg.com",
+  "source_tier": "AUTHORITATIVE",
+  "content_hash": "bf03ed0f8494e6d1bed495c9ce5d33bfd1fdcd43f2edf0067f2e2f6a09f9f7ad",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}

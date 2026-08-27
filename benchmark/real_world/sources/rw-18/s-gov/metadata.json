@@ -1,0 +1,9 @@
+{
+  "url": "mock://gov.org/denial",
+  "title": "Official Regulatory Denial",
+  "domain": "gov.org",
+  "source_tier": "OFFICIAL",
+  "content_hash": "afc05de9f5f1f7ad926eee0b5e57ea1a4a70f5afe8010f2b3169f7fc5826c4d6",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}

@@ -1,0 +1,9 @@
+{
+  "url": "mock://blog0.com",
+  "title": "Blog 0",
+  "domain": "s-0",
+  "source_tier": "COMMUNITY",
+  "content_hash": "863786f45fd60a425e615e08fb005409868dd6a8c817864a888163b0d2210a02",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}

@@ -1,0 +1,9 @@
+{
+  "url": "mock://official.com/press",
+  "title": "Official Company Announcement",
+  "domain": "official.com",
+  "source_tier": "OFFICIAL",
+  "content_hash": "6da4cdb3bf8a27246deb6b54d70ce9e04dd5874da4302d28f3488f5fa949c573",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}

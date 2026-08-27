@@ -1,0 +1,9 @@
+{
+  "url": "mock://reuters.com/report",
+  "title": "Reuters Report",
+  "domain": "reuters.com",
+  "source_tier": "AUTHORITATIVE",
+  "content_hash": "0da2fd9d41897045f1e1fcf7f040565349cda39b8c7138bd4c36ab82a9ac53a0",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}

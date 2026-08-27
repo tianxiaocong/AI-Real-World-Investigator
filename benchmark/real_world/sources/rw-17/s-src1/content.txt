@@ -1,0 +1,6 @@
+Title: First Source Claim
+
+Date: 2026-08-28
+
+Content:
+Here is a paragraph that contains the relevant information. 某开源模型评测声称其推理能力全面超越GPT-4，但第三方盲测机构报告显示其得分落后 This concludes the paragraph.

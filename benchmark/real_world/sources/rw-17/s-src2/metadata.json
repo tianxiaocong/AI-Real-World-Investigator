@@ -1,0 +1,9 @@
+{
+  "url": "mock://source2.com/audit",
+  "title": "Second Source Counter-Claim",
+  "domain": "source2.com",
+  "source_tier": "AUTHORITATIVE",
+  "content_hash": "bc48dcfeb432f293b70f217d78a3422f21bb5b651349aadcd75f09043df868a3",
+  "published_at": "2024-01-01",
+  "retrieved_at": "2026-08-28"
+}
