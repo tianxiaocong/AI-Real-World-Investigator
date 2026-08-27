@@ -1,10 +1,13 @@
 import asyncio
 import logging
+import hashlib
+from urllib.parse import urlparse
 from typing import AsyncGenerator, Optional, Dict, Any, List
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
+from app.core.security import classify_source_and_credibility
 from app.models.entities import (
     InvestigationEntity, SourceEntity, EvidenceSnippetEntity,
     ClaimEntity, ClaimEvidenceLinkEntity, ReportEntity
