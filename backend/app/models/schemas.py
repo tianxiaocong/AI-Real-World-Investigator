@@ -206,6 +206,7 @@ class InvestigationSummaryResponse(BaseModel):
     verified_claims_count: int = 0
     conflicting_claims_count: int = 0
     unverified_claims_count: int = 0
+    citation_count: int = 0
     average_credibility: Optional[float] = None
     llm_provider: Optional[str] = None
     search_provider: Optional[str] = None

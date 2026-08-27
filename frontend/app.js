@@ -67,6 +67,7 @@ const badgeClaimsVerified = document.getElementById("badge-claims-verified");
 const badgeClaimsConflicts = document.getElementById("badge-claims-conflicts");
 const badgeClaimsUnverified = document.getElementById("badge-claims-unverified");
 const badgeSourcesCount = document.getElementById("badge-sources-count");
+const badgeCitationsCount = document.getElementById("badge-citations-count");
 const badgeCredibility = document.getElementById("badge-credibility");
 const dossierList = document.getElementById("dossier-list");
 
@@ -508,12 +509,18 @@ async function loadAndRenderReport(investigationId) {
         const unverifiedCount = invMeta.unverified_claims_count !== undefined
             ? invMeta.unverified_claims_count
             : currentClaimsData.filter(c => c.claim_type === "UNVERIFIED" || c.verification_status === "UNVERIFIED").length;
+        const citationCount = currentReportData.citation_map
+            ? Object.keys(currentReportData.citation_map).length
+            : (invMeta.citation_count || 0);
 
-        badgeClaimsTotal.textContent = `${totalClaims} 条主张`;
+        badgeSourcesCount.textContent = `${invMeta.sources_count || 0} 个独立信源`;
+        badgeClaimsTotal.textContent = `${totalClaims} 条原子主张`;
         badgeClaimsVerified.textContent = `${verifiedCount} 已验证`;
         badgeClaimsConflicts.textContent = `${conflictCount} 存在争议`;
         badgeClaimsUnverified.textContent = `${unverifiedCount} 未证实`;
-        badgeSourcesCount.textContent = `${invMeta.sources_count || 0} 信源`;
+        if (badgeCitationsCount) {
+            badgeCitationsCount.textContent = `${citationCount} 处报告引用`;
+        }
 
         const cred = currentReportData.credibility_breakdown?.average_credibility !== undefined
             ? currentReportData.credibility_breakdown.average_credibility
@@ -905,7 +912,7 @@ async function loadInvestigationHistory() {
             card.innerHTML = `
                 <div class="dossier-title">${escapeHtml(item.title || item.target_query)}</div>
                 <div class="dossier-meta">
-                    <span>${item.target_type} • ${item.sources_count || 0} 信源 • ${item.claims_count || 0} 事实</span>
+                    <span>${item.target_type} • ${item.sources_count || 0} 信源 • ${item.claims_count || 0} 主张 • ${item.citation_count || 0} 引用</span>
                     ${statusBadge}
                 </div>
             `;

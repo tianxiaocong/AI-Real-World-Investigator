@@ -245,27 +245,31 @@
                                 <h1 class="report-heading" id="report-heading">调查研报标题</h1>
                             </div>
                             <div class="report-stats-grid">
-                                <div class="stat-badge stat-badge-claims">
-                                    <i data-lucide="list-checks"></i>
-                                    <span id="badge-claims-total">0 条主张</span>
+                                <div class="stat-badge stat-badge-sources" title="参与支撑本次调查的独立来源网站总数">
+                                    <i data-lucide="files"></i>
+                                    <span id="badge-sources-count">0 个独立信源</span>
                                 </div>
-                                <div class="stat-badge stat-badge-verified">
+                                <div class="stat-badge stat-badge-claims" title="从全部信源正文中抽取的独立原子事实/主张总数">
+                                    <i data-lucide="list-checks"></i>
+                                    <span id="badge-claims-total">0 条原子主张</span>
+                                </div>
+                                <div class="stat-badge stat-badge-verified" title="经多源交叉比对或权威一级官方来源独立证实的事实">
                                     <i data-lucide="check-circle-2" style="color:var(--accent-emerald);"></i>
                                     <span id="badge-claims-verified">0 已验证</span>
                                 </div>
-                                <div class="stat-badge stat-badge-conflicts">
+                                <div class="stat-badge stat-badge-conflicts" title="在不同来源间存在相互对立或数据分歧的事实">
                                     <i data-lucide="alert-triangle" style="color:var(--accent-amber);"></i>
                                     <span id="badge-claims-conflicts">0 存在争议</span>
                                 </div>
-                                <div class="stat-badge stat-badge-unverified">
+                                <div class="stat-badge stat-badge-unverified" title="缺乏足够第一手信源支撑的未证实传闻/待核验假设">
                                     <i data-lucide="help-circle" style="color:var(--text-muted);"></i>
                                     <span id="badge-claims-unverified">0 未证实</span>
                                 </div>
-                                <div class="stat-badge stat-badge-sources">
-                                    <i data-lucide="files"></i>
-                                    <span id="badge-sources-count">0 信源</span>
+                                <div class="stat-badge stat-badge-citations" title="最终调查研报正文中生成的精确可回溯引用锚点数量">
+                                    <i data-lucide="link-2" style="color:var(--accent-cyan);"></i>
+                                    <span id="badge-citations-count">0 处报告引用</span>
                                 </div>
-                                <div class="stat-badge stat-badge-rating">
+                                <div class="stat-badge stat-badge-rating" title="综合全部参与信源的加权权威画像等级">
                                     <i data-lucide="award" style="color:var(--accent-cyan);"></i>
                                     <span id="badge-credibility">信源评级: --</span>
                                 </div>

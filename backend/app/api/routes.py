@@ -107,7 +107,11 @@ async def list_investigations(
     """List recent investigations with accurate metrics"""
     query = (
         select(InvestigationEntity)
-        .options(selectinload(InvestigationEntity.sources), selectinload(InvestigationEntity.claims))
+        .options(
+            selectinload(InvestigationEntity.sources),
+            selectinload(InvestigationEntity.claims),
+            selectinload(InvestigationEntity.report)
+        )
         .order_by(desc(InvestigationEntity.created_at))
         .offset(skip)
         .limit(limit)
@@ -123,6 +127,7 @@ async def list_investigations(
         v_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.MULTI_SOURCE_SUPPORTED.value, VerificationStatus.VERIFIED.value))
         cf_count = sum(1 for c in (inv.claims or []) if c.claim_type == ClaimType.CONFLICTING.value or c.verification_status == VerificationStatus.CONTRADICTED.value)
         uv_count = sum(1 for c in (inv.claims or []) if c.verification_status == VerificationStatus.UNVERIFIED.value or c.claim_type == ClaimType.UNVERIFIED.value)
+        cite_count = len(inv.report.citation_map) if (inv.report and inv.report.citation_map) else 0
         avg_cred = round(sum(s.credibility_score for s in inv.sources) / len(inv.sources), 2) if inv.sources else None
 
         cfg = inv.config or {}
@@ -144,6 +149,7 @@ async def list_investigations(
             verified_claims_count=v_count,
             conflicting_claims_count=cf_count,
             unverified_claims_count=uv_count,
+            citation_count=cite_count,
             average_credibility=avg_cred,
             llm_provider=cfg.get("llm_provider"),
             search_provider=cfg.get("search_provider")
@@ -157,7 +163,11 @@ async def get_investigation(investigation_id: str, db: AsyncSession = Depends(ge
     """Get metadata for a single investigation with true credibility & count breakdown"""
     result = await db.execute(
         select(InvestigationEntity)
-        .options(selectinload(InvestigationEntity.sources), selectinload(InvestigationEntity.claims))
+        .options(
+            selectinload(InvestigationEntity.sources),
+            selectinload(InvestigationEntity.claims),
+            selectinload(InvestigationEntity.report)
+        )
         .where(InvestigationEntity.id == investigation_id)
     )
     inv = result.scalar_one_or_none()
@@ -170,6 +180,7 @@ async def get_investigation(investigation_id: str, db: AsyncSession = Depends(ge
     v_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.MULTI_SOURCE_SUPPORTED.value, VerificationStatus.VERIFIED.value))
     cf_count = sum(1 for c in (inv.claims or []) if c.claim_type == ClaimType.CONFLICTING.value or c.verification_status == VerificationStatus.CONTRADICTED.value)
     uv_count = sum(1 for c in (inv.claims or []) if c.verification_status == VerificationStatus.UNVERIFIED.value or c.claim_type == ClaimType.UNVERIFIED.value)
+    cite_count = len(inv.report.citation_map) if (inv.report and inv.report.citation_map) else 0
     avg_cred = round(sum(s.credibility_score for s in inv.sources) / len(inv.sources), 2) if inv.sources else None
     cfg = inv.config or {}
 
@@ -191,6 +202,7 @@ async def get_investigation(investigation_id: str, db: AsyncSession = Depends(ge
         verified_claims_count=v_count,
         conflicting_claims_count=cf_count,
         unverified_claims_count=uv_count,
+        citation_count=cite_count,
         average_credibility=avg_cred,
         llm_provider=cfg.get("llm_provider"),
         search_provider=cfg.get("search_provider")
