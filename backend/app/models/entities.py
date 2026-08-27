@@ -97,6 +97,7 @@ class ClaimEntity(Base):
     confidence = Column(String(20), nullable=False)  # HIGH, MEDIUM, LOW
     verification_status = Column(String(50), nullable=False, default="UNVERIFIED")  # UNVERIFIED, SINGLE_SOURCE, MULTI_SOURCE_SUPPORTED, CONTRADICTED, VERIFIED
     reasoning = Column(Text, nullable=True)
+    claim_metadata = Column("metadata", JSON, default=dict)
     embedding_json = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     verified_at = Column(DateTime, nullable=True)

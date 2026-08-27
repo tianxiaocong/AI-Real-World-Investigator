@@ -10,11 +10,11 @@ from app.core.security import wrap_untrusted_content
 logger = logging.getLogger(__name__)
 
 class RawExtractedClaim(BaseModel):
-    statement: str = Field(..., description="An atomic factual, inferential, or opinionated assertion in concise language.")
+    statement: str = Field(..., description="An atomic factual, inferential, opinionated, or rumor assertion in concise language.")
     exact_quote: str = Field(..., description="The verbatim, word-for-word quote from the text that directly supports this claim.")
-    claim_type: ClaimType = Field(..., description="FACT (objective verifiable), INFERENCE (reasoned conclusion), OPINION (subjective viewpoint), UNVERIFIED (rumor/unsupported), CONFLICTING (disputed).")
-    confidence: ConfidenceLevel = Field(..., description="HIGH, MEDIUM, or LOW confidence in this assertion.")
-    reasoning: Optional[str] = Field(None, description="Brief explanation of why this claim type and confidence was assigned.")
+    claim_type: ClaimType = Field(..., description="FACT_STATEMENT (objective verifiable facts), OPINION (subjective viewpoints/ratings), INFERENCE (reasoned conclusions), RUMOR (unverified chatter/leaks), DISPUTED (openly disputed assertions).")
+    confidence: ConfidenceLevel = Field(..., description="HIGH, MEDIUM, or LOW confidence in this assertion extraction.")
+    reasoning: Optional[str] = Field(None, description="Brief explanation of why this claim nature and confidence was assigned.")
 
 class ClaimExtractionBatch(BaseModel):
     claims: List[RawExtractedClaim] = Field(default_factory=list)
@@ -25,12 +25,12 @@ Your job is to read raw text from a web source and extract 3-8 key atomic claims
 RULES:
 1. "exact_quote" MUST BE A VERBATIM, EXACT character-for-character substring found in the source text. Never paraphrase or alter the quote.
 2. An atomic claim is a single testable statement (e.g. "Company X was founded in 2021 by Jane Doe" rather than a 500-word paragraph).
-3. Strictly classify claim_type:
-   - FACT: Objective, verifiable statements (numbers, dates, leadership names, registered filings).
+3. Strictly classify statement nature (claim_type):
+   - FACT_STATEMENT: Objective, verifiable statements (numbers, dates, leadership names, registered filings, tech specs).
+   - OPINION: Subjective viewpoints, praise, criticism, market predictions, or sentiment.
    - INFERENCE: Analytical deductions made by authors based on observed data.
-   - OPINION: Subjective viewpoints, praise, criticism, or predictions.
-   - UNVERIFIED: Rumors, leaked information, unconfirmed anonymous assertions.
-   - CONFLICTING: Statements explicitly acknowledging opposing numbers or views.
+   - RUMOR: Rumors, leaked information, unconfirmed anonymous assertions.
+   - DISPUTED: Statements explicitly acknowledging opposing numbers, metrics, or conflicting versions.
 4. Set confidence based on clarity and specificity of the evidence.
 """
 

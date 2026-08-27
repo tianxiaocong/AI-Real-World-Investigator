@@ -252,21 +252,21 @@ class MockLLMProvider(LLMProvider):
                         RawExtractedClaim(
                             statement="宇树科技于2024年完成近10亿元人民币B2轮融资，由美团、金石投资、深创投联合领投，红杉中国跟投。",
                             exact_quote="宣布完成近10亿元人民币B2轮融资，由美团、金石投资、深创投联合领投",
-                            claim_type=ClaimType.FACT,
+                            claim_type=ClaimType.FACT_STATEMENT,
                             confidence=ConfidenceLevel.HIGH,
                             reasoning="由36氪等权威财经媒体及资方联合披露。"
                         ),
                         RawExtractedClaim(
                             statement="宇树科技由CEO王兴兴于2016年创立，核心产品线覆盖四足机器人（Go2、B2）与全尺寸通用人形机器人（H1、G1）。",
                             exact_quote="由CEO王兴兴于2016年创立，总部位于杭州。核心产品线覆盖工业级与消费级四足机器人",
-                            claim_type=ClaimType.FACT,
+                            claim_type=ClaimType.FACT_STATEMENT,
                             confidence=ConfidenceLevel.HIGH,
                             reasoning="官方公司架构与技术路线图明确记载。"
                         ),
                         RawExtractedClaim(
                             statement="宇树全尺寸通用人形机器人G1官方定价为9.9万元人民币起，开创人形机器人规模化平价量产先河。",
                             exact_quote="全尺寸人形机器人G1定价9.9万元起，实现了人形机器人行业规模化商业量产",
-                            claim_type=ClaimType.FACT,
+                            claim_type=ClaimType.FACT_STATEMENT,
                             confidence=ConfidenceLevel.HIGH,
                             reasoning="官方公开发布会及官网上线售价。"
                         ),
@@ -285,14 +285,14 @@ class MockLLMProvider(LLMProvider):
                         RawExtractedClaim(
                             statement=f"{target_name} 在 2024-2025 年间保持跨越式增长，年营收规模与商业化落地稳步推进。",
                             exact_quote="实现了核心业务跨越式增长，年营收规模与商业化落地稳步推进",
-                            claim_type=ClaimType.FACT,
+                            claim_type=ClaimType.FACT_STATEMENT,
                             confidence=ConfidenceLevel.HIGH,
                             reasoning="行业综合调研报告披露。"
                         ),
                         RawExtractedClaim(
                             statement=f"{target_name} 保持合规稳健运营，已在全球设立多处研发与运营中心。",
                             exact_quote="保持合规稳健运营，已在全球设立多处研发与运营中心",
-                            claim_type=ClaimType.FACT,
+                            claim_type=ClaimType.FACT_STATEMENT,
                             confidence=ConfidenceLevel.HIGH,
                             reasoning="官方监管与备案记录。"
                         ),
@@ -339,27 +339,27 @@ class MockLLMProvider(LLMProvider):
 - **灵巧手与高阶操作短板**：当前双足行走与奔跑跳跃表现优异，但在非结构化复杂家庭/工业场景中的精细双手抓取依然受限 [4]。
 - **价格战与毛利权衡**：9.9 万元定价对行业供应链形成颠覆性冲击，但对量产良品率与前期研发摊销提出了极高要求 [4]。
 
-## 15. 引用信源清单 (Verified Citations)
-- **[1]** [36氪 科技创投](https://www.36kr.com) - *宇树科技完成近10亿元B2轮融资，美团与深创投联合领投* (`FACT`, 状态: `MULTI_SOURCE_SUPPORTED`)
-- **[2]** [宇树科技官方架构](https://www.unitree.com) - *创始人王兴兴与产品技术路线图* (`FACT`, 状态: `VERIFIED`)
-- **[3]** [官方量产发布会](https://www.unitree.com) - *人形机器人G1定价9.9万元起* (`FACT`, 状态: `VERIFIED`)
-- **[4]** [行业技术深度评测](https://www.zhihu.com) - *人形机器人灵巧手与算法泛化短板分析* (`OPINION`, 状态: `SINGLE_SOURCE`)
+## 6. 引用信源清单 (Verified Citations)
+- **[1]** [36氪 科技创投](https://www.36kr.com) - *宇树科技完成近10亿元B2轮融资，美团与深创投联合领投* (🟢 基本确认)
+- **[2]** [宇树科技官方架构](https://www.unitree.com) - *创始人王兴兴与产品技术路线图* (🟢 已确认)
+- **[3]** [官方量产发布会](https://www.unitree.com) - *人形机器人G1定价9.9万元起* (🟢 已确认)
+- **[4]** [行业技术深度评测](https://www.zhihu.com) - *人形机器人灵巧手与算法泛化短板分析* (⚪ 观点推论)
 """
             else:
                 md = f"""# {target_name} 深度事实调查与前沿情报研报 (2025-2026)
 
 ## 1. 执行摘要与核心结论 (Executive Summary)
-本报告针对「{target_name}」完成了多源侦察、事实提取与交叉验证。综合官方备案、权威新闻报道及行业社区讨论，{target_name} 在 2024-2026 年间实现了核心业务跨越式增长 [1]，全球化合规稳健运营 [2]，并在产品交付与生态构建中持续迭代优化 [3]。
+本报告针对「{target_name}」完成了多源定向调查、事实提取与交叉验证。综合官方备案、权威新闻报道及行业社区讨论，{target_name} 在 2024-2026 年间实现了核心业务跨越式增长 [1]，全球化合规稳健运营 [2]，并在产品交付与生态构建中持续迭代优化 [3]。
 
 ## 2. 核心事实与核验证据 (Verified Facts)
 - **业务规模与增长**：权威行业调研显示其年营收规模与商业化落地稳步推进 [1]。
 - **组织治理与合规**：官方监管披露证实其保持合规稳健运营，在全球设立多处运营节点 [2]。
 - **社区与用户反馈**：社区整体评价良好，同时在高端交付周期上存在部分改进建议 [3]。
 
-## 15. 引用信源清单 (Verified Citations)
-- **[1]** [Reuters 行业综合调研](https://www.reuters.com) - *核心业务跨越式增长与商业化落地* (`FACT`, 状态: `MULTI_SOURCE_SUPPORTED`)
-- **[2]** [SEC 官方合规档案](https://www.sec.gov) - *组织治理与稳健运营* (`FACT`, 状态: `VERIFIED`)
-- **[3]** [行业社区评测与反馈](https://www.reddit.com) - *市场反馈与交付建议* (`OPINION`, 状态: `SINGLE_SOURCE`)
+## 3. 引用信源清单 (Verified Citations)
+- **[1]** [Reuters 行业综合调研](https://www.reuters.com) - *核心业务跨越式增长与商业化落地* (🟢 基本确认)
+- **[2]** [SEC 官方合规档案](https://www.sec.gov) - *组织治理与稳健运营* (🟢 已确认)
+- **[3]** [行业社区评测与反馈](https://www.reddit.com) - *市场反馈与交付建议* (⚪ 观点推论)
 """
 
             return StructuredSynthesisOutput(

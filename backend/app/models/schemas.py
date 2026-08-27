@@ -7,18 +7,27 @@ def utc_now():
     return datetime.now(timezone.utc)
 
 class ClaimType(str, Enum):
-    FACT = "FACT"
-    INFERENCE = "INFERENCE"
-    OPINION = "OPINION"
-    UNVERIFIED = "UNVERIFIED"
-    CONFLICTING = "CONFLICTING"
+    FACT_STATEMENT = "FACT_STATEMENT"  # 客观事实陈述 (时间、数字、人事、规格、法律事实)
+    OPINION = "OPINION"                # 主观观点评估 (观点、预测、评价)
+    INFERENCE = "INFERENCE"            # 逻辑分析推断 (基于证据的推导结论)
+    RUMOR = "RUMOR"                    # 传闻/未经证实消息 (匿名爆料、坊间传言)
+    DISPUTED = "DISPUTED"              # 争议性主张 (多方表述严重不一的主张)
+    
+    # Backward compatibility alias
+    FACT = "FACT_STATEMENT"
 
 class VerificationStatus(str, Enum):
-    UNVERIFIED = "UNVERIFIED"
-    SINGLE_SOURCE = "SINGLE_SOURCE"
-    MULTI_SOURCE_SUPPORTED = "MULTI_SOURCE_SUPPORTED"
-    CONTRADICTED = "CONTRADICTED"
-    VERIFIED = "VERIFIED"
+    CONFIRMED = "CONFIRMED"            # 🟢 已确认 (多独立权威来源交叉印证，或官方明确披露且无反证)
+    PROBABLE = "PROBABLE"              # 🟢 基本确认 (有可靠主流信源，逻辑自洽，暂无反证)
+    SINGLE_SOURCE = "SINGLE_SOURCE"    # 🟠 单一来源 (仅单一信源提及，缺乏独立交叉验证)
+    DISPUTED = "DISPUTED"              # 🔴 存在争议 (不同来源在核心事实/数据上存在直接冲突)
+    UNVERIFIED = "UNVERIFIED"          # ⚪ 无法确认 (缺乏证据或仅为孤立传言)
+    OPINION_ONLY = "OPINION_ONLY"      # ⚪ 仅为观点/推论 (主观观点，不作为客观事实采信)
+
+    # Backward compatibility aliases
+    MULTI_SOURCE_SUPPORTED = "CONFIRMED"
+    VERIFIED = "CONFIRMED"
+    CONTRADICTED = "DISPUTED"
 
 class ConfidenceLevel(str, Enum):
     HIGH = "HIGH"
@@ -129,6 +138,10 @@ class ClaimBase(BaseModel):
     confidence: ConfidenceLevel
     verification_status: VerificationStatus = VerificationStatus.UNVERIFIED
     reasoning: Optional[str] = None
+    verdict_summary: Optional[str] = Field(None, description="核验结论摘要，例如 '🟢 已确认 (2个独立信源)'")
+    verdict_reasons: List[str] = Field(default_factory=list, description="结构化核验依据要点清单")
+    independent_sources_count: int = Field(default=1, description="独立根域名信源数量")
+    source_tiers_summary: Dict[str, int] = Field(default_factory=dict, description="支持信源梯队统计")
 
 class ClaimCreate(ClaimBase):
     investigation_id: str
@@ -139,6 +152,7 @@ class ClaimResponse(ClaimBase):
     created_at: datetime
     verified_at: Optional[datetime] = None
     evidence_links: List[ClaimEvidenceLinkResponse] = Field(default_factory=list)
+    contradictions: List[Dict[str, Any]] = Field(default_factory=list)
     contradicting_claims: List[Dict[str, Any]] = Field(default_factory=list)
 
     model_config = ConfigDict(from_attributes=True)
@@ -203,9 +217,14 @@ class InvestigationSummaryResponse(BaseModel):
     sources_count: int = 0
     scraped_sources_count: int = 0
     claims_count: int = 0
+    confirmed_claims_count: int = 0
+    probable_claims_count: int = 0
+    single_source_claims_count: int = 0
+    disputed_claims_count: int = 0
+    unverified_claims_count: int = 0
+    # Backward-compatible aliases
     verified_claims_count: int = 0
     conflicting_claims_count: int = 0
-    unverified_claims_count: int = 0
     citation_count: int = 0
     average_credibility: Optional[float] = None
     llm_provider: Optional[str] = None

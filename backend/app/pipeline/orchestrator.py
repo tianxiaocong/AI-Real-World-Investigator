@@ -275,34 +275,34 @@ class InvestigationOrchestrator:
                             investigation_id=investigation_id,
                             url="https://www.36kr.com/p/unitree-robotics-2024-funding",
                             domain="36kr.com",
-                            title="宇树科技完成近10亿元B2轮融资，美团与深创投联合领投",
+                            title="[演示数据] 宇树科技完成近10亿元B2轮融资，美团与深创投联合领投",
                             source_type="NEWS",
                             credibility_score=0.88,
                             clean_text="杭州宇树科技有限公司（Unitree Robotics）宣布完成近10亿元人民币B2轮融资，由美团、金石投资、深创投联合领投，老股东红杉中国跟投。公司投后估值大幅攀升。本轮融资资金将重点用于人形机器人核心零部件研发及四足机器人产能扩建。",
                             content_hash="mock_unitree_36kr",
-                            source_metadata={}
+                            source_metadata={"is_synthetic": True}
                         ),
                         SourceEntity(
                             investigation_id=investigation_id,
                             url="https://www.unitree.com/about/corporate-overview",
                             domain="unitree.com",
-                            title="宇树科技官方架构：创始人王兴兴与产品技术路线图",
+                            title="[演示数据] 宇树科技官方架构：创始人王兴兴与产品技术路线图",
                             source_type="OFFICIAL",
                             credibility_score=0.95,
                             clean_text="宇树科技由CEO王兴兴于2016年创立，总部位于杭州。核心产品线覆盖工业级与消费级四足机器人（Unitree Go2、B2）以及全尺寸通用人形机器人（Unitree H1、Unitree G1）。其中全尺寸人形机器人G1定价9.9万元起，实现了人形机器人行业规模化商业量产。",
                             content_hash="mock_unitree_official",
-                            source_metadata={}
+                            source_metadata={"is_synthetic": True}
                         ),
                         SourceEntity(
                             investigation_id=investigation_id,
                             url="https://www.zhihu.com/question/unitree-humanoid-robot-evaluation",
                             domain="zhihu.com",
-                            title="行业专家深度评测：宇树人形机器人 H1 与 G1 技术能力及真实竞争短板",
+                            title="[演示数据] 行业专家深度评测：宇树人形机器人 H1 与 G1 技术能力及真实竞争短板",
                             source_type="FORUM",
                             credibility_score=0.60,
                             clean_text="行业评测指出，宇树在四足动力学与关节电机自研成本控制上具有全球领先优势，但在双足人形机器人复杂灵巧手抓取操作与具身大模型算法泛化上，仍面临数据收集不足与产业场景落地较慢的挑战。部分业内人士对9.9万元低价策略的毛利率表示关注。",
                             content_hash="mock_unitree_zhihu",
-                            source_metadata={}
+                            source_metadata={"is_synthetic": True}
                         )
                     ]
                 else:
@@ -311,34 +311,34 @@ class InvestigationOrchestrator:
                             investigation_id=investigation_id,
                             url=f"https://www.reuters.com/business/{inv.target_query.lower().replace(' ', '-')}-analysis",
                             domain="reuters.com",
-                            title=f"关于 {inv.target_query} 的最新业务与财务综合调研",
+                            title=f"[演示数据] 关于 {inv.target_query} 的最新业务与财务综合调研",
                             source_type="NEWS",
                             credibility_score=0.88,
                             clean_text=f"权威行业调研显示，{inv.target_query} 在 2024-2025 年间实现了核心业务跨越式增长，年营收规模与商业化落地稳步推进，核心管理层持续加大在关键技术研发与供应链布局方面的投入。",
                             content_hash=f"mock_reuters_{inv.target_query}",
-                            source_metadata={}
+                            source_metadata={"is_synthetic": True}
                         ),
                         SourceEntity(
                             investigation_id=investigation_id,
                             url=f"https://www.sec.gov/edgar/data/{inv.target_query.lower().replace(' ', '_')}",
                             domain="sec.gov",
-                            title=f"{inv.target_query} 官方合规与组织信息档案",
+                            title=f"[演示数据] {inv.target_query} 官方合规与组织信息档案",
                             source_type="GOVERNMENT",
                             credibility_score=0.95,
                             clean_text=f"官方监管披露显示，{inv.target_query} 保持合规稳健运营，已在全球设立多处研发与运营中心，未发现重大未决行政处罚，核心专利储备持续增加。",
                             content_hash=f"mock_gov_{inv.target_query}",
-                            source_metadata={}
+                            source_metadata={"is_synthetic": True}
                         ),
                         SourceEntity(
                             investigation_id=investigation_id,
                             url=f"https://www.reddit.com/r/technology/comments/{inv.target_query.lower().replace(' ', '_')}_discussion",
                             domain="reddit.com",
-                            title=f"行业社区对 {inv.target_query} 的实测评测与市场争议",
+                            title=f"[演示数据] 行业社区对 {inv.target_query} 的实测评测与市场争议",
                             source_type="FORUM",
                             credibility_score=0.50,
                             clean_text=f"社区用户与行业分析师对 {inv.target_query} 的产品性价比给予积极评价，但针对其高端产品交付周期与售后支持生态提出了部分改进建议。",
                             content_hash=f"mock_forum_{inv.target_query}",
-                            source_metadata={}
+                            source_metadata={"is_synthetic": True}
                         )
                     ]
                 for s in fallback_sources:
@@ -455,16 +455,25 @@ class InvestigationOrchestrator:
                     confidence=vc["confidence"].value if hasattr(vc["confidence"], "value") else str(vc["confidence"]),
                     verification_status=vc["verification_status"].value if hasattr(vc["verification_status"], "value") else str(vc["verification_status"]),
                     reasoning=vc.get("reasoning"),
+                    claim_metadata={
+                        "verdict_summary": vc.get("verdict_summary"),
+                        "verdict_reasons": vc.get("verdict_reasons", []),
+                        "independent_sources_count": vc.get("independent_sources_count", 1),
+                        "source_tiers_summary": vc.get("source_tiers_summary", {}),
+                        "contradictions": vc.get("contradictions", [])
+                    },
                     embedding_json=vc.get("embedding")
                 )
                 self.db.add(claim_entity)
                 await self.db.flush()
 
-                # Add evidence snippets and link
+                # Add evidence snippets and links for all supporting sources
                 for src_info in vc.get("sources", []):
+                    if not src_info.get("id"):
+                        continue
                     snippet_entity = EvidenceSnippetEntity(
                         source_id=src_info["id"],
-                        exact_quote=src_info["exact_quote"],
+                        exact_quote=src_info.get("exact_quote") or vc["statement"],
                         char_start=src_info.get("char_start"),
                         char_end=src_info.get("char_end"),
                         context_prefix=src_info.get("context_prefix"),
@@ -499,6 +508,8 @@ class InvestigationOrchestrator:
                             "claim_type": claim_entity.claim_type,
                             "confidence": claim_entity.confidence,
                             "verification_status": claim_entity.verification_status,
+                            "verdict_summary": vc.get("verdict_summary"),
+                            "independent_sources_count": vc.get("independent_sources_count", 1),
                             "source_domain": vc.get("sources", [{}])[0].get("domain")
                         }
                     )
@@ -526,10 +537,17 @@ class InvestigationOrchestrator:
                 for s in persisted_sources
             ]
 
+            target_type_enum = TargetType.COMPANY
+            try:
+                target_type_enum = TargetType(inv.target_type)
+            except Exception:
+                pass
+
             report_data = await self.synthesizer.synthesize_report(
                 target_name=inv.target_query,
                 claims=persisted_claims_map,
-                sources=sources_dicts
+                sources=sources_dicts,
+                target_type=target_type_enum
             )
 
             # Calculate authentic credibility breakdown

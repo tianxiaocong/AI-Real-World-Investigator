@@ -864,7 +864,7 @@ body.dark-theme {
     font-weight: 700;
 }
 
-/* Inspector Card */
+/* Inspector Card & Dual-Dimension Presentation */
 .inspector-card {
     display: flex;
     flex-direction: column;
@@ -872,52 +872,151 @@ body.dark-theme {
     animation: fadeIn 0.25s ease;
 }
 
-.claim-statement-box {
+.verdict-banner-box {
     background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.verdict-tag-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.verdict-pill {
+    font-family: var(--font-sans);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+}
+
+.verdict-confirmed,
+.verdict-tag.verdict-confirmed {
+    background: rgba(16, 185, 129, 0.16);
+    color: var(--accent-emerald);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.verdict-probable,
+.verdict-tag.verdict-probable {
+    background: rgba(52, 211, 153, 0.14);
+    color: #34d399;
+    border: 1px solid rgba(52, 211, 153, 0.35);
+}
+
+.verdict-single,
+.verdict-tag.verdict-single {
+    background: rgba(245, 158, 11, 0.16);
+    color: var(--accent-amber);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.verdict-disputed,
+.verdict-tag.verdict-disputed {
+    background: rgba(244, 63, 94, 0.16);
+    color: var(--accent-rose);
+    border: 1px solid rgba(244, 63, 94, 0.4);
+}
+
+.verdict-opinion,
+.verdict-tag.verdict-opinion {
+    background: rgba(148, 163, 184, 0.14);
+    color: var(--text-secondary);
+    border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.verdict-unverified,
+.verdict-tag.verdict-unverified {
+    background: rgba(100, 116, 139, 0.14);
+    color: var(--text-muted);
+    border: 1px solid rgba(100, 116, 139, 0.3);
+}
+
+.nature-pill,
+.nature-tag {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: rgba(30, 41, 59, 0.7);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+/* Verdict Reasons Checklist */
+.verdict-reasons-section {
+    background: rgba(15, 23, 42, 0.6);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 14px;
 }
 
-.tag-pill {
-    display: inline-block;
-    font-size: 0.68rem;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 4px;
-    margin-right: 6px;
+.verdict-reasons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.verdict-reason-item {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    background: rgba(30, 41, 59, 0.5);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    border-left: 3px solid var(--accent-cyan);
+}
+
+.sources-stat-mini-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+}
+
+.source-header-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 8px;
 }
 
-.tag-pill.FACT {
-    background: rgba(16, 185, 129, 0.2);
-    color: var(--accent-emerald);
-    border: 1px solid rgba(16, 185, 129, 0.4);
+.domain-label {
+    font-size: 0.76rem;
+    font-family: var(--font-mono);
+    color: var(--accent-cyan);
+    font-weight: 600;
 }
 
-.tag-pill.CONFLICTING {
-    background: rgba(244, 63, 94, 0.2);
-    color: var(--accent-rose);
-    border: 1px solid rgba(244, 63, 94, 0.4);
+.claim-reasons-preview {
+    margin: 8px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.tag-pill.OPINION {
-    background: rgba(245, 158, 11, 0.2);
-    color: var(--accent-amber);
-    border: 1px solid rgba(245, 158, 11, 0.4);
-}
-
-.tag-pill.UNVERIFIED {
-    background: rgba(148, 163, 184, 0.2);
+.reason-bullet {
+    font-size: 0.75rem;
     color: var(--text-secondary);
-    border: 1px solid rgba(148, 163, 184, 0.4);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .claim-statement-text {
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     font-weight: 600;
     color: var(--text-primary);
-    line-height: 1.5;
+    line-height: 1.55;
 }
 
 /* Quote Box */

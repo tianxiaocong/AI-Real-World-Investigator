@@ -7,14 +7,19 @@ from app.models.schemas import (
 def test_claim_model_validation():
     claim = ClaimBase(
         statement="Company X raised $15M in Series A",
-        claim_type=ClaimType.FACT,
+        claim_type=ClaimType.FACT_STATEMENT,
         confidence=ConfidenceLevel.HIGH,
-        verification_status=VerificationStatus.MULTI_SOURCE_SUPPORTED,
-        reasoning="Corroborated by TechCrunch and official filing."
+        verification_status=VerificationStatus.CONFIRMED,
+        reasoning="Corroborated by TechCrunch and official filing.",
+        verdict_summary="🟢 已确认 (2个独立信源)",
+        verdict_reasons=["✓ 官方来源证实", "✓ 媒体独立印证"],
+        independent_sources_count=2
     )
-    assert claim.claim_type == "FACT"
-    assert claim.verification_status == "MULTI_SOURCE_SUPPORTED"
+    assert claim.claim_type == "FACT_STATEMENT"
+    assert claim.verification_status == "CONFIRMED"
     assert claim.confidence == "HIGH"
+    assert claim.independent_sources_count == 2
+    assert len(claim.verdict_reasons) == 2
 
 def test_research_plan_schema():
     plan = ResearchPlan(

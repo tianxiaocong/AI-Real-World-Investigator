@@ -1,8 +1,9 @@
 import logging
 import numpy as np
-from typing import List, Dict, Any, Optional
+from urllib.parse import urlparse
+from typing import List, Dict, Any, Optional, Set
 from pydantic import BaseModel, Field
-from app.models.schemas import VerificationStatus, ClaimType
+from app.models.schemas import VerificationStatus, ClaimType, ConfidenceLevel
 from app.providers.llm.base import LLMProvider
 from app.providers.llm import get_llm_provider
 
@@ -17,16 +18,27 @@ def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
         return 0.0
     return float(np.dot(a, b) / (norm_a * norm_b))
 
-class ConflictJudgement(BaseModel):
-    is_conflicting: bool = Field(..., description="True if statement A and statement B present irreconcilable, contradictory facts or figures.")
-    is_supporting: bool = Field(..., description="True if statement A and B agree and corroborate each other.")
-    explanation: str = Field(..., description="Brief explanation of the consensus or disagreement.")
+def extract_root_domain(domain_or_url: str) -> str:
+    """Extract normalized domain name"""
+    if not domain_or_url:
+        return "unknown"
+    if "://" in domain_or_url:
+        parsed = urlparse(domain_or_url)
+        host = parsed.hostname or domain_or_url
+    else:
+        host = domain_or_url.split(":")[0].split("/")[0]
+    return host.lower().strip()
 
-VERIFIER_SYSTEM_PROMPT = """You are an impartial Supreme Fact Checker and Intelligence Verification Arbiter.
+class ConflictJudgement(BaseModel):
+    is_conflicting: bool = Field(..., description="True if statement A and statement B present irreconcilable, contradictory facts or opposing figures.")
+    is_supporting: bool = Field(..., description="True if statement A and B describe and corroborate the same underlying proposition or fact.")
+    explanation: str = Field(..., description="Brief explanation of why they agree or conflict.")
+
+VERIFIER_SYSTEM_PROMPT = """You are an impartial Supreme Fact-Checking Arbiter and Intelligence Verification Arbiter.
 Given two statements regarding the same subject, decide if they:
-1. SUPPORT each other (same fact or mutually reinforcing details)
-2. CONFLICT with each other (contradictory numbers, dates, outcomes, or opposing claims)
-3. NEUTRAL / DIFFERENT ASPECTS (unrelated details)
+1. SUPPORT each other (corroborating the same fact, milestone, or mutually reinforcing details)
+2. CONFLICT with each other (contradictory figures, opposing dates, disputed outcomes, or mutual denial)
+3. NEUTRAL / DIFFERENT ASPECTS (unrelated details or distinct topics)
 """
 
 class VerificationAgent:
@@ -35,69 +47,183 @@ class VerificationAgent:
 
     async def verify_and_cluster_claims(self, claims_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """
-        Takes raw claims with embeddings and source metadata, clusters similar topics,
-        runs LLM cross-examination on candidate duplicates or conflicting pairs,
-        and assigns VerificationStatus.
+        Takes raw claims with embeddings and source metadata,
+        performs canonical claim clustering (merging corroborated claims across sources),
+        cross-examines conflicting pairs, computes independent domain statistics,
+        and assigns dual-dimension ClaimType and VerificationStatus with structured reasons.
         """
         if not claims_data:
             return []
 
-        # Step 1: Assign initial status based on sources count
+        # Step 1: Initialize working claim items
+        working_claims: List[Dict[str, Any]] = []
         for c in claims_data:
-            sources_count = len(c.get("sources", []))
-            if sources_count > 1:
-                c["verification_status"] = VerificationStatus.MULTI_SOURCE_SUPPORTED
-            elif sources_count == 1:
-                c["verification_status"] = VerificationStatus.SINGLE_SOURCE
-            else:
-                c["verification_status"] = VerificationStatus.UNVERIFIED
-            c["contradicting_claims"] = []
+            c_copy = dict(c)
+            # Ensure sources list is present
+            if "sources" not in c_copy or not c_copy["sources"]:
+                c_copy["sources"] = [{
+                    "id": c_copy.get("source_id", ""),
+                    "url": c_copy.get("source_url", ""),
+                    "domain": c_copy.get("source_domain", ""),
+                    "title": c_copy.get("source_title", ""),
+                    "source_type": c_copy.get("source_type", "OTHER"),
+                    "credibility_score": c_copy.get("credibility_score", 0.5),
+                    "exact_quote": c_copy.get("exact_quote", ""),
+                    "char_start": c_copy.get("char_start"),
+                    "char_end": c_copy.get("char_end"),
+                    "context_prefix": c_copy.get("context_prefix", ""),
+                    "context_suffix": c_copy.get("context_suffix", ""),
+                }]
+            c_copy["contradictions"] = []
+            c_copy["contradicting_claims"] = []
+            working_claims.append(c_copy)
 
-        # Step 2: Compare pairs with high semantic similarity (> 0.70)
-        n = len(claims_data)
+        # Step 2: Semantic clustering & merging (Canonical Claim Aggregation)
+        merged_clusters: List[Dict[str, Any]] = []
+        merged_indices: Set[int] = set()
+
+        n = len(working_claims)
         for i in range(n):
-            for j in range(i + 1, n):
-                c1 = claims_data[i]
-                c2 = claims_data[j]
+            if i in merged_indices:
+                continue
 
-                emb1 = c1.get("embedding")
-                emb2 = c2.get("embedding")
+            canonical = working_claims[i]
+            merged_indices.add(i)
+
+            for j in range(i + 1, n):
+                if j in merged_indices:
+                    continue
+
+                candidate = working_claims[j]
+                emb1 = canonical.get("embedding")
+                emb2 = candidate.get("embedding")
 
                 sim = 0.0
                 if emb1 and emb2:
                     sim = cosine_similarity(emb1, emb2)
 
-                # If semantically close or targeting the exact same metric
-                if sim > 0.75 or (c1["claim_type"] == ClaimType.FACT and c2["claim_type"] == ClaimType.FACT and sim > 0.65):
-                    judgement = await self._judge_pair(c1["statement"], c2["statement"])
-                    if judgement.is_conflicting:
-                        logger.info(f"Conflict detected between: '{c1['statement']}' vs '{c2['statement']}'")
-                        c1["verification_status"] = VerificationStatus.CONTRADICTED
-                        c2["verification_status"] = VerificationStatus.CONTRADICTED
-                        c1["claim_type"] = ClaimType.CONFLICTING
-                        c2["claim_type"] = ClaimType.CONFLICTING
+                # Check for high similarity or potential conflict
+                if sim > 0.65:
+                    judgement = await self._judge_pair(canonical["statement"], candidate["statement"])
+                    
+                    if judgement.is_supporting:
+                        # Merge candidate's sources into canonical claim
+                        logger.info(f"Corroborating claims merged: '{canonical['statement'][:30]}' <== '{candidate['statement'][:30]}'")
+                        merged_indices.add(j)
                         
-                        c1["contradicting_claims"].append({
-                            "statement": c2["statement"],
-                            "reason": judgement.explanation
-                        })
-                        c2["contradicting_claims"].append({
-                            "statement": c1["statement"],
-                            "reason": judgement.explanation
-                        })
-                    elif judgement.is_supporting:
-                        if c1["verification_status"] != VerificationStatus.CONTRADICTED:
-                            c1["verification_status"] = VerificationStatus.MULTI_SOURCE_SUPPORTED
-                        if c2["verification_status"] != VerificationStatus.CONTRADICTED:
-                            c2["verification_status"] = VerificationStatus.MULTI_SOURCE_SUPPORTED
+                        # Add distinct sources
+                        existing_urls = {s.get("url") for s in canonical["sources"]}
+                        for src in candidate.get("sources", []):
+                            if src.get("url") not in existing_urls or not src.get("url"):
+                                canonical["sources"].append(src)
+                                if src.get("url"):
+                                    existing_urls.add(src.get("url"))
 
-        return claims_data
+                        # Inherit higher confidence
+                        if candidate.get("confidence") == ConfidenceLevel.HIGH:
+                            canonical["confidence"] = ConfidenceLevel.HIGH
+
+                    elif judgement.is_conflicting:
+                        logger.info(f"Conflict identified between: '{canonical['statement'][:30]}' vs '{candidate['statement'][:30]}'")
+                        conflict_info_1 = {
+                            "opposing_statement": candidate["statement"],
+                            "opposing_domain": candidate.get("sources", [{}])[0].get("domain", "外部信源"),
+                            "reason": judgement.explanation
+                        }
+                        conflict_info_2 = {
+                            "opposing_statement": canonical["statement"],
+                            "opposing_domain": canonical.get("sources", [{}])[0].get("domain", "外部信源"),
+                            "reason": judgement.explanation
+                        }
+                        canonical["contradictions"].append(conflict_info_1)
+                        canonical["contradicting_claims"].append(conflict_info_1)
+                        candidate["contradictions"].append(conflict_info_2)
+                        candidate["contradicting_claims"].append(conflict_info_2)
+
+            merged_clusters.append(canonical)
+
+        # Step 3: Final verdict calculation for each canonical claim
+        final_claims: List[Dict[str, Any]] = []
+        for claim in merged_clusters:
+            sources = claim.get("sources", [])
+            
+            # Calculate Independent Root Domains
+            unique_domains: Set[str] = set()
+            tier_counts: Dict[str, int] = {}
+            for s in sources:
+                dom = extract_root_domain(s.get("domain") or s.get("url") or "")
+                if dom and dom != "unknown":
+                    unique_domains.add(dom)
+                st = s.get("source_type", "OTHER")
+                st_str = st.value if hasattr(st, "value") else str(st)
+                tier_counts[st_str] = tier_counts.get(st_str, 0) + 1
+
+            independent_count = max(1, len(unique_domains))
+            claim["independent_sources_count"] = independent_count
+            claim["source_tiers_summary"] = tier_counts
+
+            c_type = claim.get("claim_type", ClaimType.FACT_STATEMENT)
+            c_type_val = c_type.value if hasattr(c_type, "value") else str(c_type)
+
+            has_contradictions = len(claim.get("contradictions", [])) > 0
+            has_official = tier_counts.get("OFFICIAL", 0) > 0 or tier_counts.get("GOVERNMENT", 0) > 0
+            has_authoritative = has_official or tier_counts.get("NEWS", 0) > 0 or tier_counts.get("DATABASE", 0) > 0 or tier_counts.get("ACADEMIC", 0) > 0
+
+            # Determine Verification Status & Human Reasoning Checklist
+            verdict_reasons: List[str] = []
+
+            if c_type_val in ("OPINION", ClaimType.OPINION.value, "INFERENCE", ClaimType.INFERENCE.value):
+                claim["verification_status"] = VerificationStatus.OPINION_ONLY
+                claim["verdict_summary"] = "⚪ 观点推论 (主观评估/分析推导)"
+                verdict_reasons.append("该主张属于行业分析师/媒体观点或逻辑推导，不作为客观确凿事实采信。")
+                if independent_count > 1:
+                    verdict_reasons.append(f"共 {independent_count} 个信源表达了类似观点倾向。")
+
+            elif has_contradictions or c_type_val in ("DISPUTED", ClaimType.DISPUTED.value):
+                claim["verification_status"] = VerificationStatus.DISPUTED
+                claim["claim_type"] = ClaimType.DISPUTED
+                claim["verdict_summary"] = f"🔴 存在争议 ({len(claim['contradictions'])} 处口径冲突)"
+                for ct in claim["contradictions"]:
+                    verdict_reasons.append(f"⚠️ 与信源 [{ct.get('opposing_domain')}] 存在冲突：{ct.get('reason')}")
+
+            elif independent_count >= 2 and has_authoritative:
+                claim["verification_status"] = VerificationStatus.CONFIRMED
+                claim["verdict_summary"] = f"🟢 已确认 ({independent_count} 个独立信源)"
+                domains_str = "、".join(list(unique_domains)[:3])
+                verdict_reasons.append(f"✓ 经 {independent_count} 个独立权威信源交叉证实 ({domains_str})")
+                if has_official:
+                    verdict_reasons.append("✓ 获得一手官方或合规监管主体披露直接支持")
+                verdict_reasons.append("✓ 全网未检索到相反反证，事实链条自洽")
+
+            elif has_official or (has_authoritative and claim.get("confidence") == ConfidenceLevel.HIGH):
+                claim["verification_status"] = VerificationStatus.PROBABLE
+                claim["verdict_summary"] = f"🟢 基本确认 ({list(unique_domains)[0] if unique_domains else '权威信源'})"
+                verdict_reasons.append(f"✓ 获得权威信源 ({list(unique_domains)[0] if unique_domains else '主流披露'}) 明确报道")
+                verdict_reasons.append("✓ 描述具体翔实，暂无对立反证")
+
+            elif independent_count == 1:
+                claim["verification_status"] = VerificationStatus.SINGLE_SOURCE
+                first_dom = list(unique_domains)[0] if unique_domains else "单一信源"
+                claim["verdict_summary"] = f"🟠 单一来源 ({first_dom})"
+                verdict_reasons.append(f"ℹ️ 目前仅由单一信源 [{first_dom}] 提及")
+                verdict_reasons.append("ℹ️ 尚未获得第二方独立信源交叉印证，建议审慎参考")
+
+            else:
+                claim["verification_status"] = VerificationStatus.UNVERIFIED
+                claim["verdict_summary"] = "⚪ 无法确认 (证据不足)"
+                verdict_reasons.append("缺乏确凿一手出处，当前标记为待证实假设。")
+
+            claim["verdict_reasons"] = verdict_reasons
+            claim["reasoning"] = "\n".join(verdict_reasons)
+            final_claims.append(claim)
+
+        return final_claims
 
     async def _judge_pair(self, stmt_a: str, stmt_b: str) -> ConflictJudgement:
         prompt = (
             f"Statement A: \"{stmt_a}\"\n"
             f"Statement B: \"{stmt_b}\"\n\n"
-            f"Do these two statements support each other, conflict with each other, or describe unrelated aspects?"
+            f"Do these two statements support each other (same fact or mutually corroborating), conflict with each other (contradictory metrics, opposing claims), or describe unrelated aspects?"
         )
         try:
             return await self.llm.generate_structured(

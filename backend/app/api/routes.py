@@ -124,9 +124,13 @@ async def list_investigations(
         s_count = len(inv.sources) if inv.sources else 0
         scraped_count = sum(1 for s in (inv.sources or []) if s.clean_text and len(s.clean_text) > 30)
         c_count = len(inv.claims) if inv.claims else 0
-        v_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.MULTI_SOURCE_SUPPORTED.value, VerificationStatus.VERIFIED.value))
-        cf_count = sum(1 for c in (inv.claims or []) if c.claim_type == ClaimType.CONFLICTING.value or c.verification_status == VerificationStatus.CONTRADICTED.value)
-        uv_count = sum(1 for c in (inv.claims or []) if c.verification_status == VerificationStatus.UNVERIFIED.value or c.claim_type == ClaimType.UNVERIFIED.value)
+        
+        conf_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.CONFIRMED.value, "MULTI_SOURCE_SUPPORTED", "VERIFIED"))
+        prob_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.PROBABLE.value,))
+        sing_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.SINGLE_SOURCE.value,))
+        disp_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.DISPUTED.value, "CONTRADICTED") or c.claim_type in (ClaimType.DISPUTED.value, "CONFLICTING"))
+        unver_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.UNVERIFIED.value, "UNVERIFIED") or c.claim_type in (ClaimType.RUMOR.value, "RUMOR"))
+        
         cite_count = len(inv.report.citation_map) if (inv.report and inv.report.citation_map) else 0
         avg_cred = round(sum(s.credibility_score for s in inv.sources) / len(inv.sources), 2) if inv.sources else None
 
@@ -146,9 +150,13 @@ async def list_investigations(
             sources_count=s_count,
             scraped_sources_count=scraped_count,
             claims_count=c_count,
-            verified_claims_count=v_count,
-            conflicting_claims_count=cf_count,
-            unverified_claims_count=uv_count,
+            confirmed_claims_count=conf_count,
+            probable_claims_count=prob_count,
+            single_source_claims_count=sing_count,
+            disputed_claims_count=disp_count,
+            unverified_claims_count=unver_count,
+            verified_claims_count=conf_count + prob_count,
+            conflicting_claims_count=disp_count,
             citation_count=cite_count,
             average_credibility=avg_cred,
             llm_provider=cfg.get("llm_provider"),
@@ -177,9 +185,13 @@ async def get_investigation(investigation_id: str, db: AsyncSession = Depends(ge
     s_count = len(inv.sources) if inv.sources else 0
     scraped_count = sum(1 for s in (inv.sources or []) if s.clean_text and len(s.clean_text) > 30)
     c_count = len(inv.claims) if inv.claims else 0
-    v_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.MULTI_SOURCE_SUPPORTED.value, VerificationStatus.VERIFIED.value))
-    cf_count = sum(1 for c in (inv.claims or []) if c.claim_type == ClaimType.CONFLICTING.value or c.verification_status == VerificationStatus.CONTRADICTED.value)
-    uv_count = sum(1 for c in (inv.claims or []) if c.verification_status == VerificationStatus.UNVERIFIED.value or c.claim_type == ClaimType.UNVERIFIED.value)
+    
+    conf_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.CONFIRMED.value, "MULTI_SOURCE_SUPPORTED", "VERIFIED"))
+    prob_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.PROBABLE.value,))
+    sing_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.SINGLE_SOURCE.value,))
+    disp_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.DISPUTED.value, "CONTRADICTED") or c.claim_type in (ClaimType.DISPUTED.value, "CONFLICTING"))
+    unver_count = sum(1 for c in (inv.claims or []) if c.verification_status in (VerificationStatus.UNVERIFIED.value, "UNVERIFIED") or c.claim_type in (ClaimType.RUMOR.value, "RUMOR"))
+    
     cite_count = len(inv.report.citation_map) if (inv.report and inv.report.citation_map) else 0
     avg_cred = round(sum(s.credibility_score for s in inv.sources) / len(inv.sources), 2) if inv.sources else None
     cfg = inv.config or {}
@@ -199,9 +211,13 @@ async def get_investigation(investigation_id: str, db: AsyncSession = Depends(ge
         sources_count=s_count,
         scraped_sources_count=scraped_count,
         claims_count=c_count,
-        verified_claims_count=v_count,
-        conflicting_claims_count=cf_count,
-        unverified_claims_count=uv_count,
+        confirmed_claims_count=conf_count,
+        probable_claims_count=prob_count,
+        single_source_claims_count=sing_count,
+        disputed_claims_count=disp_count,
+        unverified_claims_count=unver_count,
+        verified_claims_count=conf_count + prob_count,
+        conflicting_claims_count=disp_count,
         citation_count=cite_count,
         average_credibility=avg_cred,
         llm_provider=cfg.get("llm_provider"),
@@ -323,6 +339,7 @@ async def get_investigation_claims(
                     "rationale": l.rationale
                 })
 
+        meta = c.claim_metadata or {}
         responses.append(
             ClaimResponse(
                 id=c.id,
@@ -332,6 +349,12 @@ async def get_investigation_claims(
                 confidence=c.confidence,  # type: ignore
                 verification_status=c.verification_status,  # type: ignore
                 reasoning=c.reasoning,
+                verdict_summary=meta.get("verdict_summary") or c.verification_status,
+                verdict_reasons=meta.get("verdict_reasons", []),
+                independent_sources_count=meta.get("independent_sources_count", 1),
+                source_tiers_summary=meta.get("source_tiers_summary", {}),
+                contradictions=meta.get("contradictions", []),
+                contradicting_claims=meta.get("contradictions", []),
                 created_at=c.created_at,
                 verified_at=c.verified_at,
                 evidence_links=links  # type: ignore

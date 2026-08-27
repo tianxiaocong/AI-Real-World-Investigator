@@ -24,9 +24,16 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 async def init_db():
-    """Initialize database tables"""
+    """Initialize database tables and auto-migrate missing columns"""
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        def _migrate(sync_conn):
+            from sqlalchemy import text
+            try:
+                sync_conn.execute(text("ALTER TABLE claims ADD COLUMN metadata JSON DEFAULT '{}'"))
+            except Exception:
+                pass
+        await conn.run_sync(_migrate)
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """Dependency for obtaining DB session"""

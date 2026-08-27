@@ -107,7 +107,7 @@
                         </div>
 
                         <button type="submit" class="submit-btn" id="btn-launch">
-                            <i data-lucide="play"></i> 启动全网深度侦察
+                            <i data-lucide="play"></i> 启动多源定向调查
                         </button>
                     </form>
                 </div>
@@ -245,31 +245,31 @@
                                 <h1 class="report-heading" id="report-heading">调查研报标题</h1>
                             </div>
                             <div class="report-stats-grid">
-                                <div class="stat-badge stat-badge-sources" title="参与支撑本次调查的独立来源网站总数">
+                                <div class="stat-badge stat-badge-sources" title="参与支撑本次调查的独立信源域名总数">
                                     <i data-lucide="files"></i>
                                     <span id="badge-sources-count">0 个独立信源</span>
                                 </div>
-                                <div class="stat-badge stat-badge-claims" title="从全部信源正文中抽取的独立原子事实/主张总数">
+                                <div class="stat-badge stat-badge-claims" title="经聚合核验的原子主张总数">
                                     <i data-lucide="list-checks"></i>
-                                    <span id="badge-claims-total">0 条原子主张</span>
+                                    <span id="badge-claims-total">0 条核验主张</span>
                                 </div>
-                                <div class="stat-badge stat-badge-verified" title="经多源交叉比对或权威一级官方来源独立证实的事实">
+                                <div class="stat-badge stat-badge-verified" title="多源独立印证或官方权威披露的事实">
                                     <i data-lucide="check-circle-2" style="color:var(--accent-emerald);"></i>
-                                    <span id="badge-claims-verified">0 已验证</span>
+                                    <span id="badge-claims-verified">0 已确认</span>
                                 </div>
-                                <div class="stat-badge stat-badge-conflicts" title="在不同来源间存在相互对立或数据分歧的事实">
-                                    <i data-lucide="alert-triangle" style="color:var(--accent-amber);"></i>
+                                <div class="stat-badge stat-badge-conflicts" title="在不同来源间存在相互矛盾或数据对立的事实">
+                                    <i data-lucide="alert-triangle" style="color:var(--accent-rose);"></i>
                                     <span id="badge-claims-conflicts">0 存在争议</span>
                                 </div>
-                                <div class="stat-badge stat-badge-unverified" title="缺乏足够第一手信源支撑的未证实传闻/待核验假设">
+                                <div class="stat-badge stat-badge-unverified" title="仅单一信源或未经证实的主观观点/传闻">
                                     <i data-lucide="help-circle" style="color:var(--text-muted);"></i>
-                                    <span id="badge-claims-unverified">0 未证实</span>
+                                    <span id="badge-claims-unverified">0 单一/未证实</span>
                                 </div>
                                 <div class="stat-badge stat-badge-citations" title="最终调查研报正文中生成的精确可回溯引用锚点数量">
                                     <i data-lucide="link-2" style="color:var(--accent-cyan);"></i>
                                     <span id="badge-citations-count">0 处报告引用</span>
                                 </div>
-                                <div class="stat-badge stat-badge-rating" title="综合全部参与信源的加权权威画像等级">
+                                <div class="stat-badge stat-badge-rating" title="综合参与信源的权威评级">
                                     <i data-lucide="award" style="color:var(--accent-cyan);"></i>
                                     <span id="badge-credibility">信源评级: --</span>
                                 </div>
@@ -292,22 +292,23 @@
 
                         <!-- Claim Category Filter Bar -->
                         <div class="claim-filter-bar">
-                            <span class="filter-label"><i data-lucide="filter"></i> 事实状态筛选:</span>
+                            <span class="filter-label"><i data-lucide="filter"></i> 核验状态筛选:</span>
                             <button class="filter-btn active" data-filter="ALL">全部主张</button>
-                            <button class="filter-btn" data-filter="FACT">客观事实 (FACT)</button>
-                            <button class="filter-btn" data-filter="CONFLICTING">存在争议/冲突 (CONFLICTING)</button>
-                            <button class="filter-btn" data-filter="UNVERIFIED">未证实传闻 (UNVERIFIED)</button>
+                            <button class="filter-btn" data-filter="CONFIRMED">🟢 已确认/基本确认</button>
+                            <button class="filter-btn" data-filter="DISPUTED">🔴 存在争议/冲突</button>
+                            <button class="filter-btn" data-filter="SINGLE_SOURCE">🟠 单一来源</button>
+                            <button class="filter-btn" data-filter="UNVERIFIED">⚪ 观点/无法确认</button>
                         </div>
 
                         <!-- Executive Summary Card -->
                         <div class="executive-summary-card">
-                            <div class="summary-badge"><i data-lucide="sparkles"></i> 调查核心结论与执行摘要</div>
+                            <div class="summary-badge"><i data-lucide="sparkles"></i> 调查核心结论与真伪裁决</div>
                             <div class="executive-summary-body" id="executive-summary-body">
                                 正在加载执行摘要...
                             </div>
                         </div>
 
-                        <!-- Full 15-Section Markdown Dossier View -->
+                        <!-- Full Markdown Dossier View -->
                         <div class="markdown-body" id="markdown-body">
                             <!-- Report markdown rendered here -->
                         </div>
@@ -327,8 +328,8 @@
     <aside class="evidence-drawer" id="evidence-drawer">
         <div class="drawer-header">
             <div class="drawer-title-group">
-                <i data-lucide="file-check-2"></i>
-                <h3 class="drawer-title">证据详情</h3>
+                <i data-lucide="shield-check"></i>
+                <h3 class="drawer-title">事实核验透视镜</h3>
             </div>
             <button class="icon-btn" id="btn-close-drawer" title="关闭"><i data-lucide="x"></i></button>
         </div>
@@ -336,43 +337,47 @@
         <div class="drawer-content" id="drawer-content">
             <div class="drawer-empty-state">
                 <i data-lucide="mouse-pointer-click"></i>
-                <p>点击报告中的引用角标 <span class="cite-sample">[1]</span> 或主张卡片，在此处按需查看原始网页精确引文与多源交叉印证。</p>
+                <p>点击研报中的引用角标 <span class="cite-sample">[1]</span> 或主张卡片，查看结论裁决、判定依据、独立信源及原始网页精确引文。</p>
             </div>
 
             <!-- Active Citation Inspector Card -->
             <div class="inspector-card" id="inspector-card" style="display: none;">
-                <div class="claim-statement-box">
-                    <div class="claim-tags-row">
-                        <span class="tag-pill" id="insp-claim-type">FACT</span>
-                        <span class="tag-pill" id="insp-verif-status">MULTI_SOURCE</span>
+                <!-- 1. Verdict Banner -->
+                <div class="verdict-banner-box">
+                    <div class="verdict-tag-row">
+                        <span class="verdict-pill" id="insp-verdict-pill">🟢 已确认</span>
+                        <span class="nature-pill" id="insp-claim-nature">事实陈述</span>
                     </div>
                     <h4 class="claim-statement-text" id="insp-claim-statement">--</h4>
                 </div>
 
-                <!-- Evidence Quote with Context Window -->
+                <!-- 2. Why this verdict? (核验判定依据) -->
+                <div class="verdict-reasons-section">
+                    <div class="section-label"><i data-lucide="check-circle-2"></i> 为什么这样判断？(核验依据)</div>
+                    <div class="verdict-reasons-list" id="insp-verdict-reasons">
+                        <!-- Filled dynamically -->
+                    </div>
+                </div>
+
+                <!-- 3. Independent Sources Breakdown -->
+                <div class="sources-stat-mini-card">
+                    <div class="meta-row">
+                        <span class="meta-k"><i data-lucide="layers"></i> 独立信源统计</span>
+                        <span class="meta-v" id="insp-independent-count">2 个独立信源</span>
+                    </div>
+                </div>
+
+                <!-- 4. Primary Evidence Quote with Context Window -->
                 <div class="evidence-context-section">
-                    <div class="section-label"><i data-lucide="quote"></i> 原始网页精确锚定引文</div>
+                    <div class="section-label"><i data-lucide="quote"></i> 首要信源原始引文</div>
+                    <div class="source-header-inline">
+                        <span class="tier-badge" id="insp-tier-badge">★★★★★ 官方信源</span>
+                        <span class="domain-label" id="insp-source-domain">--</span>
+                    </div>
                     <div class="evidence-quote-box">
                         <span class="ctx-prefix" id="insp-ctx-prefix"></span>
                         <mark class="exact-quote-highlight" id="insp-exact-quote"></mark>
                         <span class="ctx-suffix" id="insp-ctx-suffix"></span>
-                    </div>
-                </div>
-
-                <!-- Source Metadata Card -->
-                <div class="source-metadata-card">
-                    <div class="section-label"><i data-lucide="shield-check"></i> 首要信源权威画像</div>
-                    <div class="meta-row">
-                        <span class="meta-k">信源等级</span>
-                        <span class="meta-v tier-badge" id="insp-tier-badge">★★★★★ 官方信源</span>
-                    </div>
-                    <div class="meta-row">
-                        <span class="meta-k">信源域名</span>
-                        <span class="meta-v" id="insp-source-domain">--</span>
-                    </div>
-                    <div class="meta-row">
-                        <span class="meta-k">文章标题</span>
-                        <span class="meta-v title-v" id="insp-source-title">--</span>
                     </div>
                     <div class="source-link-action">
                         <a href="#" target="_blank" rel="noopener noreferrer" class="visit-source-btn" id="insp-visit-url">
@@ -381,17 +386,17 @@
                     </div>
                 </div>
 
-                <!-- Multi-source Corroboration Matrix -->
+                <!-- 5. Multi-source Corroboration Matrix -->
                 <div class="corroboration-section" id="insp-corroboration-section">
-                    <div class="section-label"><i data-lucide="check-check"></i> 多源交叉印证来源</div>
+                    <div class="section-label"><i data-lucide="check-check"></i> 其他独立交叉印证来源</div>
                     <div class="corroboration-list" id="insp-corroboration-list">
                         <!-- Filled dynamically -->
                     </div>
                 </div>
 
-                <!-- Contradicting / Opposing Claims (if any) -->
+                <!-- 6. Contradicting / Opposing Claims (if any) -->
                 <div class="contradictions-section" id="insp-contradictions-section" style="display: none;">
-                    <div class="section-label warning-label"><i data-lucide="alert-triangle"></i> 存在相互矛盾的冲突记录</div>
+                    <div class="section-label warning-label"><i data-lucide="alert-triangle"></i> 存在相互矛盾的对立记录</div>
                     <div class="contradiction-box" id="insp-contradiction-box">
                         <!-- Filled dynamically -->
                     </div>
