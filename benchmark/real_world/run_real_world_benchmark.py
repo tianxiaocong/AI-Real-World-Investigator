@@ -184,6 +184,12 @@ async def run_e2e_benchmark_async():
         
     extractor = ClaimExtractorAgent(llm_provider=llm)
     
+    stats = {
+        "extracted_claims": 0,
+        "grounded_claims": 0,
+        "validated_claims": 0,
+    }
+    
     # --- PHASE 1: PIPELINE EXECUTION (NO GOLD STATE VISIBILITY) ---
     for c_data in claims:
         c_id = c_data["id"]
@@ -203,6 +209,10 @@ async def run_e2e_benchmark_async():
         sources = []
         evidences = []
         provenances = []
+        
+        has_extracted = False
+        has_grounded = False
+        has_validated = False
         
         snapshots = load_source_snapshots(benchmark_dir, c_id)
         if not snapshots:
@@ -237,6 +247,8 @@ async def run_e2e_benchmark_async():
                 failure_logs[c_id].append(f"EXTRACTION_FAILURE: Agent found no quotes for source {source.id}")
                 continue
                 
+            has_extracted = True
+                
             for res in extracted_results:
                 quote = res["exact_quote"]
                 tier = res["quote_match"]
@@ -245,8 +257,11 @@ async def run_e2e_benchmark_async():
                     failure_logs[c_id].append(f"QUOTE_GROUNDING_FAILURE: Quote not found in source {source.id}")
                     continue
                     
+                has_grounded = True
+                    
                 # TRUE E2E: Run the LLM Evaluator to map generic quote to specific claim
                 eval_res = await evaluate_quote_against_target_claim(quote, statement, llm)
+                has_validated = True
                 
                 evidences.append(Evidence(
                     id=f"e-{source.id}",
@@ -273,11 +288,16 @@ async def run_e2e_benchmark_async():
         assessment = assess_evidence_for_claim(claim, sources, evidences, provenances)
         pred_state = compute_evidence_state(assessment, claim.verifiability)
         predictions[c_id] = pred_state.value
+        
+        if has_extracted: stats["extracted_claims"] += 1
+        if has_grounded: stats["grounded_claims"] += 1
+        if has_validated: stats["validated_claims"] += 1
 
     # --- PHASE 2: GOLD COMPARISON (LOADING GOLD ANNOTATIONS) ---
     gold_annotations = load_gold_annotations(benchmark_dir)
     
     correct_verdicts = 0
+    overclaims = 0
     total_cases = len(claims)
     confusion_matrix = defaultdict(lambda: defaultdict(int))
     
@@ -292,6 +312,8 @@ async def run_e2e_benchmark_async():
             correct_verdicts += 1
         else:
             failure_logs[c_id].append(f"VERDICT_FAILURE: Pred={pred_val} Gold={gold_state}")
+            if STATE_WEIGHT.get(pred_val, 0) > STATE_WEIGHT.get(gold_state, 0):
+                overclaims += 1
                 
         status_flag = "PASS" if is_match else "FAIL"
         print(f"[{status_flag}] {c_id}: {c_data['claim'][:26]}... -> Pred: {pred_val:<12} | Gold: {gold_state}")
@@ -301,7 +323,17 @@ async def run_e2e_benchmark_async():
                 print(f"    -> {log}")
 
     accuracy = (correct_verdicts / total_cases) * 100.0
-    print(f"\n Overall Accuracy: {accuracy:.1f}% ({correct_verdicts}/{total_cases})")
+    
+    print("\n============================================================")
+    print(" Pipeline Success Rate Metrics")
+    print("============================================================")
+    print(f" Total Claims                     : {total_cases}")
+    print(f" Extraction Success Rate          : {stats['extracted_claims']}/{total_cases} ({(stats['extracted_claims']/total_cases)*100:.1f}%)")
+    print(f" Quote Grounding Rate             : {stats['grounded_claims']}/{total_cases} ({(stats['grounded_claims']/total_cases)*100:.1f}%)")
+    print(f" Evidence Validation Success Rate : {stats['validated_claims']}/{total_cases} ({(stats['validated_claims']/total_cases)*100:.1f}%)")
+    print(f" Verdict Accuracy                 : {correct_verdicts}/{total_cases} ({accuracy:.1f}%)")
+    print(f" Overclaim Rate                   : {overclaims}/{total_cases} ({(overclaims/total_cases)*100:.1f}%)")
+    print("============================================================\n")
 
 if __name__ == "__main__":
     asyncio.run(run_e2e_benchmark_async())
