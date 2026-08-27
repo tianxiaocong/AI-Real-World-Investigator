@@ -205,7 +205,7 @@ async def run_e2e_benchmark_async():
             claim_index=0,
             verifiability=Verifiability.PUBLICLY_VERIFIABLE,
             verifiability_reason="E2E Evaluation",
-            verified_as_of="2026-08-28"
+            verified_as_of=c_data.get("evaluation_time", "2026-08-28")
         )
         
         sources = []
