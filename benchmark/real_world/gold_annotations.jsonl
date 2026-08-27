@@ -18,3 +18,13 @@
 {"id": "rw-18", "gold_state": "UNSUPPORTED"}
 {"id": "rw-19", "gold_state": "UNSUPPORTED"}
 {"id": "rw-20", "gold_state": "NOT_ASSESSABLE"}
+{"id": "p5-01", "gold_state": "INSUFFICIENT"}
+{"id": "p5-02", "gold_state": "INSUFFICIENT"}
+{"id": "p5-03", "gold_state": "INSUFFICIENT", "independent_source_count": 1, "provenance_cluster_count": 1}
+{"id": "p5-04", "gold_state": "INSUFFICIENT"}
+{"id": "p5-05", "gold_state": "INSUFFICIENT"}
+{"id": "p5-06", "gold_state": "CONFLICTING"}
+{"id": "p5-07", "gold_state": "UNSUPPORTED"}
+{"id": "p5-08", "gold_state": "UNSUPPORTED"}
+{"id": "p5-09", "gold_state": "INSUFFICIENT"}
+{"id": "p5-10", "gold_state": "CONFLICTING"}

@@ -1,0 +1,10 @@
+<main>
+  <section>
+    <h2>iPhone 15 Pro</h2>
+    <p>The device features a stunning 120Hz display.</p>
+  </section>
+  <section>
+    <h2>iPhone 16 Pro</h2>
+    <p>For the upcoming model, specs remain unconfirmed.</p>
+  </section>
+</main>

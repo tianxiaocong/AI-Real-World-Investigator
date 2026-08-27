@@ -1,0 +1,9 @@
+{
+  "url": "mock://stock-news.com/p5-08/s-01",
+  "domain": "stock-news.com",
+  "title": "Nvidia Q2 Earnings Report",
+  "source_tier": "MAINSTREAM",
+  "published_at": "2026-07-30T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "8cd9a3ddd083c1cf7da3a313b1a441056261b02bae5679b48e85787f2ffd66bc"
+}

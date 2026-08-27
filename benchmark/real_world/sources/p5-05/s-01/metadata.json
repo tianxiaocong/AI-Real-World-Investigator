@@ -1,0 +1,9 @@
+{
+  "url": "mock://finance-transcripts.com/p5-05/s-01",
+  "domain": "finance-transcripts.com",
+  "title": "Company Q3 Earnings Call",
+  "source_tier": "OFFICIAL",
+  "published_at": "2026-07-20T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "2159f2854f9a33eff35794521ca86e42615800a2aa9c5b1065b0d07853bc622f"
+}

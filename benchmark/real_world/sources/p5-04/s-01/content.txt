@@ -1,0 +1,1 @@
+<main><p>We tested the chip. The new X-Processor is up to 50% faster in specific AI matrix multiplication workloads compared to the previous generation. General tasks see a 10% uplift.</p></main>

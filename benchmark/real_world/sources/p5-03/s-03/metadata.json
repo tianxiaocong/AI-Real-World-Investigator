@@ -1,0 +1,10 @@
+{
+  "url": "mock://daily-digest.com/p5-03/s-03",
+  "domain": "daily-digest.com",
+  "title": "Coffee and Cancer",
+  "source_tier": "MAINSTREAM",
+  "published_at": "2025-12-03T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "0ca963d3454b20e337a986cbf28d0684e95d27c8d407c393d4ff654fc45f4170",
+  "republishes_source_id": "s-02"
+}

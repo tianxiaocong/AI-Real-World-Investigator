@@ -1,0 +1,9 @@
+{
+  "url": "mock://hardware-reviews.com/p5-04/s-01",
+  "domain": "hardware-reviews.com",
+  "title": "X-Processor Review",
+  "source_tier": "INDUSTRY",
+  "published_at": "2026-07-15T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "0c25fd9f22226575a020571797a6664300ed15acfc50b3ba6df575876fa0c64e"
+}

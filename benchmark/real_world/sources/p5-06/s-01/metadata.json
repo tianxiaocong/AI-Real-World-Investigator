@@ -1,0 +1,9 @@
+{
+  "url": "mock://company-x.com/p5-06/s-01",
+  "domain": "company-x.com",
+  "title": "Company X Crypto Statement",
+  "source_tier": "OFFICIAL",
+  "published_at": "2026-07-25T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "91c6f21bd2a6f9325a125ad102499bfcc4f981b8770d015e22fed8f0e6a93b2e"
+}

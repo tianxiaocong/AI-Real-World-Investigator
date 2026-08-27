@@ -1,0 +1,11 @@
+<main>
+  <h1>Nvidia reports record revenue</h1>
+  <p>The company saw huge growth this quarter...</p>
+</main>
+<aside>
+  <h3>Recommended Reading</h3>
+  <ul>
+    <li><a href="#">Did Nvidia acquire Company Z?</a></li>
+    <li><a href="#">Top 10 Stocks to Buy</a></li>
+  </ul>
+</aside>

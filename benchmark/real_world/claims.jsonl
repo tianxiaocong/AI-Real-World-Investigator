@@ -18,3 +18,13 @@
 {"id": "rw-18", "claim": "某上市公司创始人因涉及重大证券欺诈已秘密被引渡出境", "category": "GOV_OFFICIAL_REFUTED", "notes": "最高人民检察院与外交部例行通报明确辟谣否定"}
 {"id": "rw-19", "claim": "联合国宣布取消所有常任理事国一票否决权", "category": "AUTHORITATIVE_REFUTATION", "notes": "联合国官方宪章与安全理事会官方会议记录明确否定"}
 {"id": "rw-20", "claim": "某知名投资人上周五晚上在北京某私房菜馆与朋友讨论了下一期基金策略", "category": "PRIVATE_UNDISCLOSED_MATTER", "notes": "私人非公开行程，互联网无公开资料可供核验"}
+{"id": "p5-01", "claim": "OpenAI released GPT-5 in 2024.", "evaluation_time": "2024-05-01"}
+{"id": "p5-02", "claim": "Tesla Model Y is the best-selling car globally in 2024.", "evaluation_time": "2024-06-01"}
+{"id": "p5-03", "claim": "A new study claims coffee cures cancer.", "evaluation_time": "2026-01-01"}
+{"id": "p5-04", "claim": "The new X-Processor is 50% faster than the previous generation.", "evaluation_time": "2026-08-01"}
+{"id": "p5-05", "claim": "The CEO stated they will never lay off employees.", "evaluation_time": "2026-08-01"}
+{"id": "p5-06", "claim": "Company X has officially supported Bitcoin payments.", "evaluation_time": "2026-08-01"}
+{"id": "p5-07", "claim": "The iPhone 16 Pro features a 120Hz display.", "evaluation_time": "2024-08-01"}
+{"id": "p5-08", "claim": "Nvidia acquired Company Z.", "evaluation_time": "2026-08-01"}
+{"id": "p5-09", "claim": "Drug Z cures Disease Y in 99% of patients.", "evaluation_time": "2026-08-01"}
+{"id": "p5-10", "claim": "Elon Musk is the CEO of Twitter.", "evaluation_time": "2023-08-01"}

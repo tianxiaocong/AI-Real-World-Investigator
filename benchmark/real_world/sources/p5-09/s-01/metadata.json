@@ -1,0 +1,9 @@
+{
+  "url": "mock://medical-journals.org/p5-09/s-01",
+  "domain": "medical-journals.org",
+  "title": "Medical Trial Results for Drug Z",
+  "source_tier": "AUTHORITATIVE",
+  "published_at": "2026-06-01T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "daa65525a133a6767dfab6d8843cbaeb198961cc97739acefc9d8dcdefcd8686"
+}

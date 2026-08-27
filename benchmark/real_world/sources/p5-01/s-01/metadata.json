@@ -1,0 +1,9 @@
+{
+  "url": "mock://tech-news.com/p5-01/s-01",
+  "domain": "tech-news.com",
+  "title": "OpenAI Future Plans",
+  "source_tier": "MAINSTREAM",
+  "published_at": "2023-12-15T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "6de3a52bdf6a5ea65219b1f844d70fa15e4a1a9f24a12708dcd67a995dd72114"
+}

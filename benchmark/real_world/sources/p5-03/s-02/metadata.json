@@ -1,0 +1,10 @@
+{
+  "url": "mock://news-aggregator.com/p5-03/s-02",
+  "domain": "news-aggregator.com",
+  "title": "Blog Claims Coffee Cures Cancer",
+  "source_tier": "MAINSTREAM",
+  "published_at": "2025-12-02T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "d7087050a3babfbd79ba780de6d207916866fc3dde372eb41edfb956e68bb95f",
+  "republishes_source_id": "s-01"
+}

@@ -1,0 +1,9 @@
+{
+  "url": "mock://news.com/p5-10/s-01",
+  "domain": "news.com",
+  "title": "Musk Takes Over",
+  "source_tier": "MAINSTREAM",
+  "published_at": "2022-10-28T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "f3817a1a31972cf75a3f066937c7d6d99d9faa1483bac938697c86ff8ae35516"
+}

@@ -1,0 +1,9 @@
+{
+  "url": "mock://auto-europe.eu/p5-02/s-01",
+  "domain": "auto-europe.eu",
+  "title": "European Auto Sales Q1",
+  "source_tier": "INDUSTRY",
+  "published_at": "2024-04-10T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "36918f2e8c21ede247671a9e75fabfbbf8ce4391514dc92dbe23492529ed771b"
+}

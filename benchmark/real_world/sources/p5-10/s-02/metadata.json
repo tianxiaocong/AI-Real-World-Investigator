@@ -1,0 +1,9 @@
+{
+  "url": "mock://business-news.com/p5-10/s-02",
+  "domain": "business-news.com",
+  "title": "New Leadership at X",
+  "source_tier": "MAINSTREAM",
+  "published_at": "2023-06-05T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z",
+  "content_hash": "ed45c402eabeb5caee633d5212ad7f807e6b5579acb21d0a8604afd66e1f4853"
+}
