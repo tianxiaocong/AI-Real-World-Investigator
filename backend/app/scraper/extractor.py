@@ -98,6 +98,8 @@ class WebScraper:
             return None, None, None, None, "UNVERIFIED"
 
         raw_quote = quote.strip()
+        if not raw_quote:
+            return None, None, None, None, "UNVERIFIED"
 
         # 1. True verbatim EXACT match directly on raw clean_text
         idx_raw = clean_text.find(raw_quote)
@@ -108,36 +110,36 @@ class WebScraper:
             suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
             return char_start, char_end, prefix, suffix, "EXACT"
 
-        # 2. Case-insensitive match on raw clean_text
-        idx_raw_lower = clean_text.lower().find(raw_quote.lower())
-        if idx_raw_lower != -1:
-            char_start = idx_raw_lower
-            char_end = idx_raw_lower + len(raw_quote)
-            prefix = clean_text[max(0, char_start - 120):char_start]
-            suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
-            return char_start, char_end, prefix, suffix, "FUZZY"
+        import re
+        escaped_parts = [re.escape(w) for w in raw_quote.split()]
 
-        # 3. Normalized whitespace match
-        clean_text_norm = " ".join(clean_text.split())
-        quote_norm = " ".join(raw_quote.split())
+        # 2. Regex-based FUZZY match (handles case-insensitive and varying whitespace simultaneously)
+        if escaped_parts:
+            pattern = r'\s+'.join(escaped_parts)
+            try:
+                match = re.search(pattern, clean_text, flags=re.IGNORECASE)
+                if match:
+                    char_start = match.start()
+                    char_end = match.end()
+                    prefix = clean_text[max(0, char_start - 120):char_start]
+                    suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
+                    return char_start, char_end, prefix, suffix, "FUZZY"
+            except Exception as e:
+                logger.warning(f"Regex error in quote matching: {e}")
 
-        idx_norm = clean_text_norm.find(quote_norm)
-        if idx_norm != -1:
-            char_start = idx_norm
-            char_end = idx_norm + len(quote_norm)
-            prefix = clean_text_norm[max(0, char_start - 120):char_start]
-            suffix = clean_text_norm[char_end:min(len(clean_text_norm), char_end + 120)]
-            return char_start, char_end, prefix, suffix, "FUZZY"
-
-        # 4. Fuzzy prefix anchor match
-        if len(quote_norm) > 30:
-            prefix_sub = quote_norm[:30]
-            idx_sub = clean_text_norm.find(prefix_sub)
-            if idx_sub != -1:
-                char_start = idx_sub
-                char_end = idx_sub + len(quote_norm)
-                prefix = clean_text_norm[max(0, char_start - 100):char_start]
-                suffix = clean_text_norm[min(len(clean_text_norm), char_end):min(len(clean_text_norm), char_end + 100)]
-                return char_start, char_end, prefix, suffix, "FUZZY"
+        # 3. Fuzzy prefix anchor match
+        if len(escaped_parts) > 4:
+            prefix_parts = escaped_parts[:5]
+            pattern = r'\s+'.join(prefix_parts)
+            try:
+                match = re.search(pattern, clean_text, flags=re.IGNORECASE)
+                if match:
+                    char_start = match.start()
+                    char_end = min(len(clean_text), char_start + len(raw_quote))
+                    prefix = clean_text[max(0, char_start - 100):char_start]
+                    suffix = clean_text[char_end:min(len(clean_text), char_end + 100)]
+                    return char_start, char_end, prefix, suffix, "FUZZY"
+            except Exception as e:
+                pass
 
         return None, None, None, None, "UNVERIFIED"

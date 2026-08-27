@@ -53,3 +53,30 @@ def test_quote_anchoring_phantom_quote_unverified():
     assert tier == "UNVERIFIED"
     assert start is None
     assert end is None
+
+
+def test_quote_anchoring_offset_correctness():
+    # Double space in raw text, single space in target quote
+    raw_text = "This is an AI  Investigator example."
+    target_quote = "AI Investigator"
+
+    start, end, prefix, suffix, tier = WebScraper.locate_quote_spans(raw_text, target_quote)
+
+    assert tier == "FUZZY"
+    # Offsets should map exactly to the raw text, meaning they capture the double space
+    assert start == 11
+    assert end == 27
+    assert raw_text[start:end] == "AI  Investigator"
+
+
+def test_quote_anchoring_repeated_quote():
+    raw_text = "The AI Investigator tool is great. I love the AI Investigator tool."
+    target_quote = "AI Investigator"
+
+    start, end, prefix, suffix, tier = WebScraper.locate_quote_spans(raw_text, target_quote)
+
+    # Should match the FIRST occurrence perfectly
+    assert tier == "EXACT"
+    assert start == 4
+    assert end == 19
+    assert raw_text[start:end] == target_quote

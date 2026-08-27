@@ -38,7 +38,6 @@ def build_real_world_fixture(item: dict) -> tuple[Claim, list[Source], list[Evid
     c_id = item["id"]
     statement = item["claim"]
     gold_state = item["gold_state"]
-    category = item.get("category", "")
 
     verifiability = (
         Verifiability.NOT_PUBLICLY_VERIFIABLE if gold_state == "NOT_ASSESSABLE"
@@ -57,58 +56,35 @@ def build_real_world_fixture(item: dict) -> tuple[Claim, list[Source], list[Evid
     )
 
     sources = []
-    evidences = []
-    provenances = []
+    for s_data in item.get("sources", []):
+        sources.append(Source(
+            id=s_data["id"],
+            url=s_data["url"],
+            domain=s_data["domain"],
+            title=s_data["title"],
+            source_tier=SourceTier[s_data["source_tier"]]
+        ))
 
-    if gold_state == "SUFFICIENT":
-        # 2+ independent sources + official direct confirm + no credible contradiction
-        sources = [
-            Source(id="s-off", url="mock://official.com/press", domain="official.com", title="Official Company Announcement", source_tier=SourceTier.OFFICIAL),
-            Source(id="s-reu", url="mock://reuters.com/news", domain="reuters.com", title="Reuters Financial Desk", source_tier=SourceTier.AUTHORITATIVE)
-        ]
-        evidences = [
-            Evidence(id="e-1", source_id="s-off", claim_id=c_id, exact_quote=statement, supports_claim=True, directness=EvidenceDirectness.DIRECT, scope_match=True),
-            Evidence(id="e-2", source_id="s-reu", claim_id=c_id, exact_quote=statement, supports_claim=True, directness=EvidenceDirectness.DIRECT, scope_match=True)
-        ]
-    elif gold_state == "STRONG":
-        # 2+ independent authoritative sources + no credible contradiction (no official)
-        sources = [
-            Source(id="s-reu", url="mock://reuters.com/report", domain="reuters.com", title="Reuters Report", source_tier=SourceTier.AUTHORITATIVE),
-            Source(id="s-blm", url="mock://bloomberg.com/news", domain="bloomberg.com", title="Bloomberg News", source_tier=SourceTier.AUTHORITATIVE)
-        ]
-        evidences = [
-            Evidence(id="e-1", source_id="s-reu", claim_id=c_id, exact_quote=statement, supports_claim=True, directness=EvidenceDirectness.DIRECT, scope_match=True),
-            Evidence(id="e-2", source_id="s-blm", claim_id=c_id, exact_quote=statement, supports_claim=True, directness=EvidenceDirectness.DIRECT, scope_match=True)
-        ]
-    elif gold_state == "CONFLICTING":
-        # Credible support vs credible contradiction
-        sources = [
-            Source(id="s-src1", url="mock://source1.com/statement", domain="source1.com", title="First Source Claim", source_tier=SourceTier.AUTHORITATIVE),
-            Source(id="s-src2", url="mock://source2.com/audit", domain="source2.com", title="Second Source Counter-Claim", source_tier=SourceTier.AUTHORITATIVE)
-        ]
-        evidences = [
-            Evidence(id="e-1", source_id="s-src1", claim_id=c_id, exact_quote=statement, supports_claim=True, directness=EvidenceDirectness.DIRECT, scope_match=True),
-            Evidence(id="e-2", source_id="s-src2", claim_id=c_id, exact_quote="独立审计与实测报告证实数据存在重大出入与冲突", contradicts_claim=True, directness=EvidenceDirectness.DIRECT, scope_match=True)
-        ]
-    elif gold_state == "UNSUPPORTED":
-        # Credible official/authoritative contradiction with no credible direct support
-        sources = [
-            Source(id="s-gov", url="mock://gov.org/denial", domain="gov.org", title="Official Regulatory Denial", source_tier=SourceTier.OFFICIAL)
-        ]
-        evidences = [
-            Evidence(id="e-1", source_id="s-gov", claim_id=c_id, exact_quote="监管通报与官方档案明确辟谣并否定该陈述", contradicts_claim=True, directness=EvidenceDirectness.DIRECT, scope_match=True)
-        ]
-    elif gold_state == "INSUFFICIENT":
-        if category == "SYNDICATED_PROPAGATION":
-            sources = [Source(id=f"s-{i}", url=f"mock://blog{i}.com", domain=f"blog{i}.com", title=f"Blog {i}", source_tier=SourceTier.COMMUNITY) for i in range(8)]
-            provenances = [SourceProvenance(source_id=f"s-{i}", origin_source_id="s-0", provenance_type=ProvenanceType.REPUBLISHES) for i in range(1, 8)]
-            evidences = [Evidence(id=f"e-{i}", source_id=f"s-{i}", claim_id=c_id, exact_quote=statement, supports_claim=True, directness=EvidenceDirectness.INDIRECT, scope_match=True) for i in range(8)]
-        else:
-            sources = [Source(id="s-anon", url="mock://forum.com/post", domain="forum.com", title="Forum Post", source_tier=SourceTier.COMMUNITY)]
-            evidences = [Evidence(id="e-anon", source_id="s-anon", claim_id=c_id, exact_quote=statement, supports_claim=True, directness=EvidenceDirectness.INDIRECT, scope_match=True)]
-    elif gold_state == "NOT_ASSESSABLE":
-        sources = []
-        evidences = []
+    evidences = []
+    for e_data in item.get("evidences", []):
+        evidences.append(Evidence(
+            id=e_data["id"],
+            source_id=e_data["source_id"],
+            claim_id=c_id,
+            exact_quote=e_data["exact_quote"],
+            supports_claim=e_data["supports_claim"],
+            contradicts_claim=e_data.get("contradicts_claim", False),
+            directness=EvidenceDirectness[e_data["directness"]],
+            scope_match=e_data["scope_match"]
+        ))
+
+    provenances = []
+    for p_data in item.get("provenances", []):
+        provenances.append(SourceProvenance(
+            source_id=p_data["source_id"],
+            origin_source_id=p_data["origin_source_id"],
+            provenance_type=ProvenanceType[p_data["provenance_type"]]
+        ))
 
     return claim, sources, evidences, provenances
 
