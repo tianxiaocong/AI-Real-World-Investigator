@@ -263,9 +263,9 @@ class InvestigationOrchestrator:
                         self.db.add(src_entity)
                         persisted_sources.append(src_entity)
 
-            # If still empty, generate dynamic, target-tailored intelligence sources
-            if not persisted_sources:
-                logger.info(f"Using target-tailored investigation source data for '{inv.target_query}'.")
+            # If search provider is explicitly Mock, generate mock test intelligence sources for offline testing
+            if not persisted_sources and is_mock_search:
+                logger.info(f"Using mock test investigation source data for '{inv.target_query}'.")
                 
                 is_unitree = any(k in inv.target_query for k in ["宇树", "Unitree", "机器人", "王兴兴"])
                 
@@ -343,6 +343,8 @@ class InvestigationOrchestrator:
                     ]
                 for s in fallback_sources:
                     self.db.add(s)
+            elif not persisted_sources:
+                logger.warning(f"No web sources found for '{inv.target_query}' in live search mode. Will not fabricate fake sources.")
 
             await self.db.commit()
 

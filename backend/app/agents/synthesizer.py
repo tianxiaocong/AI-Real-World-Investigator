@@ -157,9 +157,9 @@ class SynthesizerAgent:
             "inference": sum(1 for c in claims if c.get("claim_type") in ("INFERENCE", ClaimType.INFERENCE)),
         }
         
-        avg_cred = (sum(s.get("credibility_score", 0.5) for s in sources) / len(sources)) if sources else 0.5
+        avg_cred = round(sum(s.get("credibility_score", 0.0) for s in sources) / len(sources), 2) if sources else None
         return {
-            "average_credibility": round(avg_cred, 2),
+            "average_credibility": avg_cred,
             "sources_by_type": types_count,
             "claims_distribution": claims_stat
         }
@@ -172,7 +172,10 @@ class SynthesizerAgent:
         citation_map: Dict[str, Any]
     ) -> Dict[str, Any]:
         title = f"{target_name} 事实调查与情报核验报告"
-        exec_summary = f"本报告针对目标「{target_name}」完成了多源侦察、事实提取与交叉验证。共汇总 {len(sources)} 个权威信源，提取并核验 {len(claims)} 条原子主张。"
+        if not sources:
+            exec_summary = f"本次调查针对目标「{target_name}」发起了针对性全网多源检索，但未能从公开互联网检索到足够且具备权威性的事实信源。根据 Evidence-First 零造假原则，系统未生成推测性结论，所有规划假设当前标记为未证实状态。"
+        else:
+            exec_summary = f"本报告针对目标「{target_name}」完成了多源侦察、事实提取与交叉验证。共汇总 {len(sources)} 个权威信源，提取并核验 {len(claims)} 条原子主张。"
         
         md_lines = [
             f"# {title}",

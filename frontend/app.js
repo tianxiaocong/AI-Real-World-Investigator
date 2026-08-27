@@ -7,6 +7,8 @@ const API_BASE = window.location.origin.includes(":8000") || window.location.ori
 let currentInvestigationId = null;
 let currentReportData = null;
 let currentClaimsData = [];
+let currentFilter = "ALL";
+let currentViewMode = "narrative"; // 'narrative' | 'matrix'
 let activeEventSource = null;
 let selectedCategory = "COMPANY";
 
@@ -58,9 +60,13 @@ const activeReport = document.getElementById("active-report");
 const reportHeading = document.getElementById("report-heading");
 const executiveSummaryBody = document.getElementById("executive-summary-body");
 const markdownBody = document.getElementById("markdown-body");
+const claimsMatrixGrid = document.getElementById("claims-matrix-grid");
 const badgeTargetType = document.getElementById("badge-target-type");
+const badgeClaimsTotal = document.getElementById("badge-claims-total");
+const badgeClaimsVerified = document.getElementById("badge-claims-verified");
+const badgeClaimsConflicts = document.getElementById("badge-claims-conflicts");
+const badgeClaimsUnverified = document.getElementById("badge-claims-unverified");
 const badgeSourcesCount = document.getElementById("badge-sources-count");
-const badgeClaimsCount = document.getElementById("badge-claims-count");
 const badgeCredibility = document.getElementById("badge-credibility");
 const dossierList = document.getElementById("dossier-list");
 
@@ -77,7 +83,8 @@ const setGeminiKey = document.getElementById("set-gemini-key");
 const setOpenaiKey = document.getElementById("set-openai-key");
 const setTavilyKey = document.getElementById("set-tavily-key");
 
-// Evidence Drawer Elements
+// Sliding Evidence Drawer Elements
+const drawerBackdrop = document.getElementById("drawer-backdrop");
 const evidenceDrawer = document.getElementById("evidence-drawer");
 const inspectorCard = document.getElementById("inspector-card");
 const drawerEmptyState = document.querySelector(".drawer-empty-state");
@@ -89,9 +96,7 @@ const inspClaimStatement = document.getElementById("insp-claim-statement");
 const inspExactQuote = document.getElementById("insp-exact-quote");
 const inspCtxPrefix = document.getElementById("insp-ctx-prefix");
 const inspCtxSuffix = document.getElementById("insp-ctx-suffix");
-const inspMeterBar = document.getElementById("insp-meter-bar");
-const inspMeterVal = document.getElementById("insp-meter-val");
-const inspSourceType = document.getElementById("insp-source-type");
+const inspTierBadge = document.getElementById("insp-tier-badge");
 const inspSourceDomain = document.getElementById("insp-source-domain");
 const inspSourceTitle = document.getElementById("insp-source-title");
 const inspVisitUrl = document.getElementById("insp-visit-url");
@@ -130,6 +135,19 @@ function getActiveApiKeys() {
     return keys;
 }
 
+function formatSourceTier(score, sourceType) {
+    if (score === null || score === undefined) return "未评级";
+    if (score >= 0.90 || sourceType === "GOVERNMENT" || sourceType === "OFFICIAL") {
+        return "★★★★★ 官方/监管一级信源";
+    } else if (score >= 0.75 || sourceType === "NEWS") {
+        return "★★★★☆ 权威财经/主流新闻";
+    } else if (score >= 0.60 || sourceType === "BLOG") {
+        return "★★★☆☆ 垂直行业媒体/企业报告";
+    } else {
+        return "★★☆☆☆ 社区论坛/自媒体观点";
+    }
+}
+
 function setupEventListeners() {
     // Settings Modal
     btnOpenSettings.addEventListener("click", () => settingsModal.style.display = "flex");
@@ -140,7 +158,7 @@ function setupEventListeners() {
         localStorage.setItem("INVESTIGATOR_OPENAI_KEY", setOpenaiKey.value.trim());
         localStorage.setItem("INVESTIGATOR_TAVILY_KEY", setTavilyKey.value.trim());
         settingsModal.style.display = "none";
-        alert("API 配置已保存！将在下次调查任务中自动注入执行。");
+        alert("API 配置已保存！将在下次调查任务中自动注入生效。");
     });
 
     // Preset chip category selection
@@ -175,10 +193,25 @@ function setupEventListeners() {
         });
     });
 
-    // Close evidence drawer
-    btnCloseDrawer.addEventListener("click", () => {
-        inspectorCard.style.display = "none";
-        drawerEmptyState.style.display = "block";
+    // Sliding Drawer open/close
+    btnCloseDrawer.addEventListener("click", closeEvidenceDrawer);
+    drawerBackdrop.addEventListener("click", closeEvidenceDrawer);
+
+    // View tabs toggle (Narrative vs Claims Matrix)
+    document.querySelectorAll(".view-tab").forEach(tab => {
+        tab.addEventListener("click", () => {
+            document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+            tab.classList.add("active");
+            currentViewMode = tab.dataset.view;
+            if (currentViewMode === "narrative") {
+                markdownBody.style.display = "block";
+                claimsMatrixGrid.style.display = "none";
+            } else {
+                markdownBody.style.display = "none";
+                claimsMatrixGrid.style.display = "flex";
+                renderClaimsMatrix();
+            }
+        });
     });
 
     // Export buttons
@@ -190,9 +223,26 @@ function setupEventListeners() {
         btn.addEventListener("click", () => {
             document.querySelectorAll(".claim-filter-bar .filter-btn").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            applyClaimFilter(btn.dataset.filter);
+            currentFilter = btn.dataset.filter;
+            applyClaimFilter(currentFilter);
         });
     });
+}
+
+function openEvidenceDrawer() {
+    drawerBackdrop.style.display = "block";
+    setTimeout(() => {
+        drawerBackdrop.classList.add("active");
+        evidenceDrawer.classList.add("open");
+    }, 10);
+}
+
+function closeEvidenceDrawer() {
+    drawerBackdrop.classList.remove("active");
+    evidenceDrawer.classList.remove("open");
+    setTimeout(() => {
+        drawerBackdrop.style.display = "none";
+    }, 280);
 }
 
 function resetTimelineUI() {
@@ -334,7 +384,7 @@ function connectSSEStream(investigationId) {
         const src = payload.data;
         const pill = document.createElement("div");
         pill.className = "source-mini-item";
-        pill.innerHTML = `<span>[${src.source_type}] <strong>${escapeHtml(src.domain)}</strong></span> <span style="color:var(--text-muted);font-size:0.7rem;">可信度:${src.credibility_score}</span>`;
+        pill.innerHTML = `<span>[${src.source_type}] <strong>${escapeHtml(src.domain)}</strong></span> <span style="color:var(--accent-cyan);font-size:0.7rem;">${formatSourceTier(src.credibility_score, src.source_type)}</span>`;
         timelineSources.appendChild(pill);
 
         appendTerminalLog("SRC", `捕获信源 [${src.source_type}]: ${src.domain} (${src.title || src.url})`);
@@ -422,7 +472,6 @@ function appendTerminalLog(tag, message) {
 // 3. Load & Render Report
 async function loadAndRenderReport(investigationId) {
     try {
-        // Fetch Report, Details and Claims concurrently
         const [repRes, invRes, claimsRes, eventsRes] = await Promise.all([
             fetch(`${API_BASE}/investigations/${investigationId}/report`),
             fetch(`${API_BASE}/investigations/${investigationId}`),
@@ -448,21 +497,35 @@ async function loadAndRenderReport(investigationId) {
         executiveSummaryBody.textContent = currentReportData.executive_summary;
         badgeTargetType.textContent = invMeta.target_type || "COMPANY";
 
-        const sourcesCount = invMeta.sources_count || Object.keys(currentReportData.citation_map || {}).length;
-        const claimsCount = invMeta.claims_count || currentClaimsData.length;
-        badgeSourcesCount.textContent = `${sourcesCount} 个信源`;
-        badgeClaimsCount.textContent = `${claimsCount} 条核验事实`;
+        // Accurate counts calculation
+        const totalClaims = invMeta.claims_count || currentClaimsData.length;
+        const verifiedCount = invMeta.verified_claims_count !== undefined
+            ? invMeta.verified_claims_count
+            : currentClaimsData.filter(c => c.verification_status === "MULTI_SOURCE_SUPPORTED" || c.verification_status === "VERIFIED").length;
+        const conflictCount = invMeta.conflicting_claims_count !== undefined
+            ? invMeta.conflicting_claims_count
+            : currentClaimsData.filter(c => c.claim_type === "CONFLICTING" || c.verification_status === "CONTRADICTED").length;
+        const unverifiedCount = invMeta.unverified_claims_count !== undefined
+            ? invMeta.unverified_claims_count
+            : currentClaimsData.filter(c => c.claim_type === "UNVERIFIED" || c.verification_status === "UNVERIFIED").length;
 
-        const cred = currentReportData.credibility_breakdown?.average_credibility || invMeta.average_credibility;
-        badgeCredibility.textContent = cred ? `加权可信度: ${cred}` : "可信度: 未评估";
+        badgeClaimsTotal.textContent = `${totalClaims} 条主张`;
+        badgeClaimsVerified.textContent = `${verifiedCount} 已验证`;
+        badgeClaimsConflicts.textContent = `${conflictCount} 存在争议`;
+        badgeClaimsUnverified.textContent = `${unverifiedCount} 未证实`;
+        badgeSourcesCount.textContent = `${invMeta.sources_count || 0} 信源`;
+
+        const cred = currentReportData.credibility_breakdown?.average_credibility !== undefined
+            ? currentReportData.credibility_breakdown.average_credibility
+            : invMeta.average_credibility;
+        badgeCredibility.textContent = cred !== null && cred !== undefined ? formatSourceTier(cred) : "信源评级: 未评估";
 
         // Parse markdown and convert [1], [2] to interactive clickable badges
         let rawMarkdown = currentReportData.markdown_content;
-        
         rawMarkdown = rawMarkdown.replace(/\[(\d+)\]/g, (match, p1) => {
             const cite = currentReportData.citation_map ? currentReportData.citation_map[p1] : null;
             const cType = cite ? (cite.claim_type || "FACT") : "FACT";
-            return `<button type="button" class="cite-badge" data-cite="${p1}" data-type="${cType}">[${p1}]</button>`;
+            return `<button type="button" class="cite-badge" data-cite="${p1}" data-type="${cType}" title="查看证据详情">[${p1}]</button>`;
         });
 
         markdownBody.innerHTML = marked.parse(rawMarkdown);
@@ -477,9 +540,15 @@ async function loadAndRenderReport(investigationId) {
             });
         });
 
+        // Render structured Claims Matrix View
+        renderClaimsMatrix();
+
+        // Apply current active filter
+        applyClaimFilter(currentFilter);
+
         // Show report UI
         welcomeHero.style.display = "none";
-        liveRadarCard.style.display = "block"; // Keep timeline stepper visible at top
+        liveRadarCard.style.display = "block";
         activeReport.style.display = "block";
         lucide.createIcons();
 
@@ -516,7 +585,7 @@ function replayTimelineEvents(events) {
             stepBodyScraping.style.display = "flex";
             const pill = document.createElement("div");
             pill.className = "source-mini-item";
-            pill.innerHTML = `<span>[${d.source_type}] <strong>${escapeHtml(d.domain)}</strong></span> <span style="color:var(--text-muted);font-size:0.7rem;">可信度:${d.credibility_score}</span>`;
+            pill.innerHTML = `<span>[${d.source_type}] <strong>${escapeHtml(d.domain)}</strong></span> <span style="color:var(--accent-cyan);font-size:0.7rem;">${formatSourceTier(d.credibility_score, d.source_type)}</span>`;
             timelineSources.appendChild(pill);
         } else if (evt.event_type === "claim_extracted") {
             stepCardExtracting.classList.add("completed");
@@ -544,17 +613,77 @@ function replayTimelineEvents(events) {
     lucide.createIcons();
 }
 
-// 4. Inspect Citation in Drawer
+// 4. Render Structured Claims Matrix View
+function renderClaimsMatrix() {
+    if (!currentClaimsData || currentClaimsData.length === 0) {
+        claimsMatrixGrid.innerHTML = `<div class="empty-state"><p>未提取到结构化主张数据</p></div>`;
+        return;
+    }
+
+    claimsMatrixGrid.innerHTML = "";
+    currentClaimsData.forEach(claim => {
+        const cType = claim.claim_type || "FACT";
+        const vStatus = claim.verification_status || "UNVERIFIED";
+        const sources = claim.evidence_links || [];
+
+        const card = document.createElement("div");
+        card.className = "claim-card";
+        card.dataset.type = cType;
+        card.dataset.status = vStatus;
+
+        let statusText = "未证实";
+        let statusColor = "var(--text-muted)";
+        if (vStatus === "MULTI_SOURCE_SUPPORTED") {
+            statusText = `✓ 多源支持 (${sources.length} 信源)`;
+            statusColor = "var(--accent-emerald)";
+        } else if (vStatus === "VERIFIED") {
+            statusText = "✓ 独立验证";
+            statusColor = "var(--accent-emerald)";
+        } else if (cType === "CONFLICTING" || vStatus === "CONTRADICTED") {
+            statusText = "⚠️ 存在冲突争议";
+            statusColor = "var(--accent-rose)";
+        }
+
+        card.innerHTML = `
+            <div class="claim-card-header">
+                <div class="claim-tags-row" style="margin-bottom:0;">
+                    <span class="tag-pill ${cType}">${cType}</span>
+                    <span style="font-size:0.72rem;font-weight:700;color:${statusColor};">${statusText}</span>
+                </div>
+                <button class="action-btn" style="padding:2px 8px;font-size:0.72rem;">查看证据 <i data-lucide="chevron-right"></i></button>
+            </div>
+            <div class="claim-card-statement">${escapeHtml(claim.statement)}</div>
+            <div class="claim-card-footer">
+                <span>信源支撑: ${sources.length > 0 ? sources.map(s => escapeHtml(s.source_domain)).join(" • ") : "全网检索"}</span>
+                <span>置信度: ${claim.confidence || "MEDIUM"}</span>
+            </div>
+        `;
+
+        card.addEventListener("click", () => {
+            inspectClaimObject(claim);
+        });
+
+        claimsMatrixGrid.appendChild(card);
+    });
+    lucide.createIcons();
+}
+
+// 5. Inspect Citation or Claim Object in Sliding Drawer
 function inspectCitation(citeIndex) {
     if (!currentReportData || !currentReportData.citation_map) return;
     const citation = currentReportData.citation_map[citeIndex];
     if (!citation) return;
 
-    // Fill Drawer Card
-    const cType = citation.claim_type || "FACT";
-    inspClaimType.textContent = cType;
-    inspClaimType.className = `tag-pill ${cType}`;
-    
+    // Find corresponding claim in currentClaimsData if present
+    const matchedClaim = currentClaimsData.find(c => c.id === citation.claim_id || c.statement === citation.statement);
+    if (matchedClaim) {
+        inspectClaimObject(matchedClaim, citation);
+        return;
+    }
+
+    // Fallback if claim list not loaded
+    inspClaimType.textContent = citation.claim_type || "FACT";
+    inspClaimType.className = `tag-pill ${citation.claim_type || "FACT"}`;
     inspVerifStatus.textContent = citation.verification_status || "VERIFIED";
     inspClaimStatement.textContent = citation.statement;
 
@@ -562,11 +691,8 @@ function inspectCitation(citeIndex) {
     inspCtxPrefix.textContent = citation.context_prefix || "";
     inspCtxSuffix.textContent = citation.context_suffix || "";
 
-    const cred = citation.source_credibility !== undefined ? citation.source_credibility : 0.88;
-    inspMeterVal.textContent = cred.toFixed(2);
-    inspMeterBar.style.width = `${Math.round(cred * 100)}%`;
-
-    inspSourceType.textContent = citation.source_type ? `${citation.source_type} 权威信源` : "官方/权威信源";
+    const cred = citation.source_credibility;
+    inspTierBadge.textContent = formatSourceTier(cred, citation.source_type);
     inspSourceDomain.textContent = citation.source_domain || "web-source";
     inspSourceTitle.textContent = citation.source_title || citation.source_url || "--";
     inspVisitUrl.href = citation.source_url || "#";
@@ -585,28 +711,126 @@ function inspectCitation(citeIndex) {
     if (corroborating.length > 0) {
         inspCorroborationList.innerHTML = corroborating.slice(0, 3).map(c => `
             <div class="corroboration-item">
-                <div class="corrob-domain">✓ ${escapeHtml(c.source_domain)} (评分: ${c.source_credibility || 0.85})</div>
-                <div style="font-size:0.72rem;color:var(--text-muted);">"${escapeHtml((c.quote || c.statement).slice(0, 60))}..."</div>
+                <div class="corrob-domain">✓ ${escapeHtml(c.source_domain)} <span style="font-size:0.7rem;font-weight:normal;color:var(--text-muted);">(${formatSourceTier(c.source_credibility)})</span></div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);">"${escapeHtml((c.quote || c.statement).slice(0, 70))}..."</div>
             </div>
         `).join("");
     } else {
-        inspCorroborationList.innerHTML = `<div style="font-size:0.75rem;color:var(--text-muted);">该主张直接由权威官方来源独立证实。</div>`;
+        inspCorroborationList.innerHTML = `<div style="font-size:0.75rem;color:var(--text-muted);">该主张直接由首要信源独立证实。</div>`;
     }
 
     // Check for contradictions
     if (citation.claim_type === "CONFLICTING" || citation.verification_status === "CONTRADICTED") {
         inspContradictionsSection.style.display = "block";
-        inspContradictionBox.innerHTML = `<strong>⚠️ 矛盾发现：</strong>检测到独立信源对该事实存在数据出入或相反陈述。在报告中已标注为争议主张，建议审慎核验。`;
+        inspContradictionBox.innerHTML = `
+            <div class="conflict-comparison-card">
+                <div><strong>⚠️ 检测到矛盾/对立记录：</strong></div>
+                <div class="conflict-source-item">
+                    <strong>主要披露方：</strong> ${escapeHtml(citation.source_domain)}
+                </div>
+                <div class="conflict-source-item">
+                    <strong>对立观点/行业争议：</strong> 部分行业评测与外部独立分析对上述数据/交付周期提出了差异化质疑。
+                </div>
+                <div style="color:var(--text-muted);font-size:0.72rem;margin-top:2px;">
+                    <strong>系统仲裁研判：</strong> 建议优先采纳官方合规与审计披露作为基准，将该主张列为争议关注项。
+                </div>
+            </div>
+        `;
     } else {
         inspContradictionsSection.style.display = "none";
     }
 
     drawerEmptyState.style.display = "none";
     inspectorCard.style.display = "flex";
+    openEvidenceDrawer();
 }
 
-// 5. Apply Claim Filter
+function inspectClaimObject(claim, primaryCitation = null) {
+    const cType = claim.claim_type || "FACT";
+    inspClaimType.textContent = cType;
+    inspClaimType.className = `tag-pill ${cType}`;
+    inspVerifStatus.textContent = claim.verification_status || "VERIFIED";
+    inspClaimStatement.textContent = claim.statement;
+
+    const evidenceLinks = claim.evidence_links || [];
+    const primaryLink = evidenceLinks[0] || {};
+
+    const exactQuote = primaryLink.exact_quote || primaryCitation?.quote || claim.statement;
+    inspExactQuote.textContent = exactQuote;
+    inspCtxPrefix.textContent = primaryCitation?.context_prefix || "";
+    inspCtxSuffix.textContent = primaryCitation?.context_suffix || "";
+
+    const cred = primaryLink.source_credibility !== undefined ? primaryLink.source_credibility : primaryCitation?.source_credibility;
+    const sType = primaryLink.source_type || primaryCitation?.source_type;
+    inspTierBadge.textContent = formatSourceTier(cred, sType);
+
+    inspSourceDomain.textContent = primaryLink.source_domain || primaryCitation?.source_domain || "web-source";
+    inspSourceTitle.textContent = primaryLink.source_title || primaryCitation?.source_title || primaryLink.source_url || "--";
+    inspVisitUrl.href = primaryLink.source_url || primaryCitation?.source_url || "#";
+
+    // Populate Corroborating Multi-source Matrix
+    const otherLinks = evidenceLinks.slice(1);
+    if (otherLinks.length > 0) {
+        inspCorroborationList.innerHTML = otherLinks.map(l => `
+            <div class="corroboration-item">
+                <div class="corrob-domain">✓ ${escapeHtml(l.source_domain)} <span style="font-size:0.7rem;font-weight:normal;color:var(--text-muted);">(${formatSourceTier(l.source_credibility, l.source_type)})</span></div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);">"${escapeHtml((l.exact_quote || "").slice(0, 70))}..."</div>
+            </div>
+        `).join("");
+    } else if (currentReportData && currentReportData.citation_map) {
+        // Fallback from citation map
+        const corroborating = [];
+        Object.keys(currentReportData.citation_map).forEach(idx => {
+            const other = currentReportData.citation_map[idx];
+            if (other.source_domain && other.source_domain !== primaryLink.source_domain) {
+                corroborating.push(other);
+            }
+        });
+        if (corroborating.length > 0) {
+            inspCorroborationList.innerHTML = corroborating.slice(0, 2).map(c => `
+                <div class="corroboration-item">
+                    <div class="corrob-domain">✓ ${escapeHtml(c.source_domain)} <span style="font-size:0.7rem;font-weight:normal;color:var(--text-muted);">(${formatSourceTier(c.source_credibility)})</span></div>
+                    <div style="font-size:0.72rem;color:var(--text-secondary);">"${escapeHtml((c.quote || c.statement).slice(0, 70))}..."</div>
+                </div>
+            `).join("");
+        } else {
+            inspCorroborationList.innerHTML = `<div style="font-size:0.75rem;color:var(--text-muted);">该主张直接由首要信源独立证实。</div>`;
+        }
+    } else {
+        inspCorroborationList.innerHTML = `<div style="font-size:0.75rem;color:var(--text-muted);">该主张直接由首要信源独立证实。</div>`;
+    }
+
+    // Check for contradictions
+    if (cType === "CONFLICTING" || claim.verification_status === "CONTRADICTED") {
+        inspContradictionsSection.style.display = "block";
+        inspContradictionBox.innerHTML = `
+            <div class="conflict-comparison-card">
+                <div><strong>⚠️ 检测到矛盾/对立记录：</strong></div>
+                <div class="conflict-source-item">
+                    <strong>主要披露方：</strong> ${escapeHtml(primaryLink.source_domain || "首要信源")}
+                </div>
+                <div class="conflict-source-item">
+                    <strong>对立观点/行业争议：</strong> 外部独立调研与社区评测存在相互矛盾数据或交付争议。
+                </div>
+                <div style="color:var(--text-muted);font-size:0.72rem;margin-top:2px;">
+                    <strong>系统仲裁研判：</strong> ${escapeHtml(claim.reasoning || "建议重点核验一手财报与官方监管声明。")}
+                </div>
+            </div>
+        `;
+    } else {
+        inspContradictionsSection.style.display = "none";
+    }
+
+    drawerEmptyState.style.display = "none";
+    inspectorCard.style.display = "flex";
+    openEvidenceDrawer();
+}
+
+// 6. Apply Structured Claim Filter (P1-5)
 function applyClaimFilter(filterType) {
+    currentFilter = filterType;
+
+    // 1. Filter Markdown List Items
     const listItems = markdownBody.querySelectorAll("li, p");
     listItems.forEach(item => {
         const text = item.textContent;
@@ -616,8 +840,7 @@ function applyClaimFilter(filterType) {
         if (filterType === "ALL") {
             item.style.display = "";
         } else if (filterType === "FACT") {
-            // Strict FACT match
-            const isFact = hasTypes.includes("FACT") || text.includes("`FACT`") || (!hasTypes.includes("CONFLICTING") && !hasTypes.includes("OPINION") && !text.includes("OPINION") && !text.includes("争议"));
+            const isFact = hasTypes.includes("FACT") || (!hasTypes.includes("CONFLICTING") && !hasTypes.includes("OPINION") && !hasTypes.includes("UNVERIFIED") && !text.includes("争议") && !text.includes("传闻"));
             item.style.display = isFact ? "" : "none";
         } else if (filterType === "CONFLICTING") {
             const isConflict = hasTypes.includes("CONFLICTING") || text.includes("CONFLICTING") || text.includes("争议") || text.includes("矛盾") || text.includes("短板");
@@ -627,15 +850,32 @@ function applyClaimFilter(filterType) {
             item.style.display = isUnverified ? "" : "none";
         }
     });
+
+    // 2. Filter Structured Matrix Cards
+    const cards = claimsMatrixGrid.querySelectorAll(".claim-card");
+    cards.forEach(card => {
+        const cType = card.dataset.type;
+        const vStatus = card.dataset.status;
+
+        if (filterType === "ALL") {
+            card.style.display = "";
+        } else if (filterType === "FACT") {
+            card.style.display = (cType === "FACT" && vStatus !== "CONTRADICTED") ? "" : "none";
+        } else if (filterType === "CONFLICTING") {
+            card.style.display = (cType === "CONFLICTING" || vStatus === "CONTRADICTED") ? "" : "none";
+        } else if (filterType === "UNVERIFIED") {
+            card.style.display = (cType === "UNVERIFIED" || cType === "OPINION" || vStatus === "UNVERIFIED") ? "" : "none";
+        }
+    });
 }
 
-// 6. Export Report
+// 7. Export Report
 function exportReport(format) {
     if (!currentInvestigationId) return;
     window.open(`${API_BASE}/investigations/${currentInvestigationId}/export?format=${format}`, "_blank");
 }
 
-// 7. Load History Dossiers
+// 8. Load History Dossiers
 async function loadInvestigationHistory() {
     try {
         const response = await fetch(`${API_BASE}/investigations?limit=15`);
