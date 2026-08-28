@@ -27,32 +27,42 @@ from app.models.verification_models import (
 
 def resolve_provenance_target(target_ref: Optional[str], sources: List[Source]) -> Optional[str]:
     """
-    Canonical resolver: maps referenced_url or cited_entity to a source_id in the current manifest.
-    Strict Identity principle: if no reliable match is found, returns None (never guess).
+    Canonical resolver: maps referenced_url or explicit source identifier to a source_id in the current manifest.
+    Strict Identity Principle:
+    1. Exact source_id match (case-insensitive) -> Returns source.id
+    2. Exact canonical URL match (normalized protocol, www, trailing slashes) -> Returns source.id
+    3. Domain-only, title fuzzy, or author fuzzy matches are STRICTLY DISALLOWED to prevent accidental merges of different articles.
+    Returns None if no unambiguous identity match is found (Strict Isolation).
     """
     if not target_ref:
         return None
     target_clean = target_ref.strip().lower()
     
-    # 1. Direct match with source_id
+    # 1. Exact direct match with source_id (e.g. "s-01", "s-02", "src-1")
     for src in sources:
         if src.id.lower() == target_clean:
             return src.id
             
-    # 2. Match with URL or domain
-    for src in sources:
-        if src.url and (target_clean in src.url.lower() or src.url.lower() in target_clean):
-            return src.id
-        if src.domain and (target_clean == src.domain.lower() or src.domain.lower() in target_clean or target_clean in src.domain.lower()):
-            return src.id
-            
-    # 3. Match with source title / author
-    for src in sources:
-        if src.title and (target_clean in src.title.lower() or src.title.lower() in target_clean):
-            return src.id
-        if src.author and (target_clean == src.author.lower()):
-            return src.id
-            
+    def _normalize_url(u: str) -> str:
+        u_clean = u.strip().lower()
+        if u_clean.startswith("http://"):
+            u_clean = u_clean[7:]
+        elif u_clean.startswith("https://"):
+            u_clean = u_clean[8:]
+        elif u_clean.startswith("mock://"):
+            u_clean = u_clean[7:]
+        if u_clean.startswith("www."):
+            u_clean = u_clean[4:]
+        return u_clean.rstrip("/")
+
+    target_norm_url = _normalize_url(target_clean)
+    
+    # 2. Exact Canonical URL match (requires path/article specificity; pure root domain is rejected)
+    if "/" in target_norm_url:
+        for src in sources:
+            if src.url and _normalize_url(src.url) == target_norm_url:
+                return src.id
+
     return None
 
 

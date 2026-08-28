@@ -215,19 +215,36 @@ class VerificationAgent:
                         )
                 
                 # Construct Evidence
-                exact_quote = s.get("exact_quote") or s.get("title") or ""
-                evidence_objects.append(
-                    Evidence(
-                        id=f"e-{claim.get('id', 'c')}-{idx}",
-                        source_id=s_id,
-                        claim_id=claim.get("id", "c"),
-                        exact_quote=exact_quote,
-                        supports_claim=True,
-                        contradicts_claim=False,
-                        directness=EvidenceDirectness.DIRECT if exact_quote else EvidenceDirectness.CONTEXTUAL,
-                        scope_match=True
+                exact_quote = (s.get("exact_quote") or "").strip()
+                if exact_quote:
+                    # Valid exact quote extracted from source
+                    evidence_objects.append(
+                        Evidence(
+                            id=f"e-{claim.get('id', 'c')}-{idx}",
+                            source_id=s_id,
+                            claim_id=claim.get("id", "c"),
+                            exact_quote=exact_quote,
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True
+                        )
                     )
-                )
+                else:
+                    # No quote extracted -> Strictly non-supporting background context
+                    evidence_objects.append(
+                        Evidence(
+                            id=f"e-{claim.get('id', 'c')}-{idx}",
+                            source_id=s_id,
+                            claim_id=claim.get("id", "c"),
+                            exact_quote="",
+                            supports_claim=False,
+                            contradicts_claim=False,
+                            directness=EvidenceDirectness.CONTEXTUAL,
+                            scope_match=False,
+                            evidence_note="No exact verbatim quote anchored; treated strictly as non-supporting background context."
+                        )
+                    )
 
             # Contradicting Evidence
             for c_idx, ct in enumerate(claim.get("contradictions", [])):
