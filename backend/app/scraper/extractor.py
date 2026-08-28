@@ -85,21 +85,50 @@ class WebScraper:
             return None
 
     @staticmethod
-    def locate_quote_spans(clean_text: str, quote: str) -> Tuple[Optional[int], Optional[int], Optional[str], Optional[str], str]:
+    def locate_quote_spans(clean_text: str, quote: str) -> Tuple[Optional[int], Optional[int], Optional[str], Optional[str], str, str, str]:
         """
         Locates the character position of a quote in the source text,
         along with surrounding context window for UI evidence inspection and match tier.
-        Returns (char_start, char_end, prefix, suffix, match_tier: EXACT|FUZZY|UNVERIFIED)
+        Returns (char_start, char_end, prefix, suffix, match_tier, element_role, block_id)
         - EXACT: True verbatim raw substring match directly on clean_text where clean_text[start:end] == quote.
         - FUZZY: Normalized whitespace or case-insensitive match on normalized text.
         - UNVERIFIED: No reliable anchor found.
         """
         if not clean_text or not quote:
-            return None, None, None, None, "UNVERIFIED"
+            return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""
 
         raw_quote = quote.strip()
         if not raw_quote:
-            return None, None, None, None, "UNVERIFIED"
+            return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""
+
+        # --- NEW: DOM Provenance Extraction ---
+        element_role = "MAIN"
+        block_id = ""
+        
+        # Only parse if it looks like HTML
+        if "<" in clean_text and ">" in clean_text:
+            soup = BeautifulSoup(clean_text, "html.parser")
+            found_element = None
+            for text_node in soup.find_all(string=True):
+                if raw_quote in text_node or raw_quote.lower() in text_node.lower():
+                    found_element = text_node.parent
+                    break
+            
+            if found_element:
+                curr = found_element
+                while curr and curr.name != '[document]':
+                    if curr.name in ['aside', 'nav', 'footer', 'header']:
+                        element_role = curr.name.upper()
+                        b_id = curr.get('id')
+                        b_class = curr.get('class')
+                        if b_id:
+                            block_id = f"{curr.name}#{b_id}"
+                        elif b_class:
+                            block_id = f"{curr.name}.{b_class[0]}"
+                        else:
+                            block_id = curr.name
+                        break
+                    curr = curr.parent
 
         # 1. True verbatim EXACT match directly on raw clean_text
         idx_raw = clean_text.find(raw_quote)
@@ -108,7 +137,7 @@ class WebScraper:
             char_end = idx_raw + len(raw_quote)
             prefix = clean_text[max(0, char_start - 120):char_start]
             suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
-            return char_start, char_end, prefix, suffix, "EXACT"
+            return char_start, char_end, prefix, suffix, "EXACT", element_role, block_id
 
         import re
         escaped_parts = [re.escape(w) for w in raw_quote.split()]
@@ -123,7 +152,7 @@ class WebScraper:
                     char_end = match.end()
                     prefix = clean_text[max(0, char_start - 120):char_start]
                     suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
-                    return char_start, char_end, prefix, suffix, "FUZZY"
+                    return char_start, char_end, prefix, suffix, "FUZZY", element_role, block_id
             except Exception as e:
                 logger.warning(f"Regex error in quote matching: {e}")
 
@@ -138,8 +167,8 @@ class WebScraper:
                     char_end = min(len(clean_text), char_start + len(raw_quote))
                     prefix = clean_text[max(0, char_start - 100):char_start]
                     suffix = clean_text[char_end:min(len(clean_text), char_end + 100)]
-                    return char_start, char_end, prefix, suffix, "FUZZY"
+                    return char_start, char_end, prefix, suffix, "FUZZY", element_role, block_id
             except Exception as e:
                 pass
 
-        return None, None, None, None, "UNVERIFIED"
+        return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""

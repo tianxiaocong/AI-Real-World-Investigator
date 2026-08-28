@@ -244,3 +244,99 @@ def test_overall_coverage_logic():
     assert coverage.insufficient_count == 1
     assert coverage.conflicting_count == 1
     assert "包含 3 个可验证事实点" in coverage.coverage_summary
+
+def test_provenance_invariants():
+    from app.engine.verdict_rules import _resolve_ultimate_origin
+    
+    # 1. Same domain != same origin
+    s1 = Source(id="s1", url="http://nyt.com/1", domain="nyt.com", title="", source_tier=SourceTier.MAINSTREAM)
+    s2 = Source(id="s2", url="http://nyt.com/2", domain="nyt.com", title="", source_tier=SourceTier.MAINSTREAM)
+    source_map = {"s1": s1, "s2": s2}
+    provenance_map = {}
+    
+    assert _resolve_ultimate_origin("s1", provenance_map, source_map) == "s1"
+    assert _resolve_ultimate_origin("s2", provenance_map, source_map) == "s2"
+    
+    # 2. Different URL = dependent origin WHEN explicit republication exists
+    s3 = Source(id="s3", url="http://other.com", domain="other.com", title="", source_tier=SourceTier.MAINSTREAM)
+    source_map["s3"] = s3
+    provenance_map["s3"] = SourceProvenance(source_id="s3", origin_source_id="s1", provenance_type=ProvenanceType.REPUBLISHES)
+    
+    assert _resolve_ultimate_origin("s3", provenance_map, source_map) == "s1"
+    
+    # 3. Cyclic provenance must trigger defensive isolation
+    provenance_map["s1"] = SourceProvenance(source_id="s1", origin_source_id="s2", provenance_type=ProvenanceType.CITES)
+    provenance_map["s2"] = SourceProvenance(source_id="s2", origin_source_id="s1", provenance_type=ProvenanceType.CITES)
+    
+    # Resolving s1 should detect cycle and isolate to s1
+    resolved = _resolve_ultimate_origin("s1", provenance_map, source_map)
+    assert resolved == "s1"
+
+
+# Test 14: 限定性范围反驳 (Scope Restriction: 仅限兽用 vs 已获批用于人体) → CONFLICTING / CONTRADICTION
+def test_boundary_14_scope_restriction_contradicts():
+    claim = Claim(
+        id="c-fda",
+        original_input="该新药已获批用于人体临床治疗",
+        input_type=InputType.TEXT,
+        statement="该新药已获批用于人体临床治疗",
+        claim_index=0,
+        verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+        verifiability_reason="新药审批情况具备官方公开记录",
+        verified_as_of="2026-08-28"
+    )
+    src_fda = Source(id="s-fda", url="https://fda.gov/news", domain="fda.gov", title="FDA", source_tier=SourceTier.OFFICIAL)
+    
+    # 证据显式说明严格仅限动物模型，直接构成对人体获批主张的反驳
+    ev_fda = Evidence(
+        id="e-fda",
+        source_id="s-fda",
+        claim_id="c-fda",
+        exact_quote="该药目前严格仅限兽医动物模型研究，绝未获准用于人体临床试验或治疗",
+        supports_claim=False,
+        contradicts_claim=True,
+        directness=EvidenceDirectness.DIRECT,
+        scope_match=True
+    )
+    
+    assessment = assess_evidence_for_claim(claim, [src_fda], [ev_fda])
+    state = compute_evidence_state(assessment, claim.verifiability)
+    
+    assert assessment.has_credible_contradicting_evidence is True
+    assert assessment.has_direct_support is False
+    assert state == EvidenceState.UNSUPPORTED or state == EvidenceState.CONFLICTING
+
+
+# Test 15: 否定性辟谣反驳 (Explicit Denial: 明确否认辞职 vs CEO已辞职) → CONFLICTING / CONTRADICTION
+def test_boundary_15_explicit_denial_contradicts():
+    claim = Claim(
+        id="c-ceo",
+        original_input="公司首席执行官已正式确认辞职",
+        input_type=InputType.TEXT,
+        statement="公司首席执行官已正式确认辞职",
+        claim_index=0,
+        verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+        verifiability_reason="高管任免属于公开事实",
+        verified_as_of="2026-08-28"
+    )
+    src_corp = Source(id="s-corp", url="https://company.com/press", domain="company.com", title="Company Press", source_tier=SourceTier.OFFICIAL)
+    
+    # 官方发言人明确辟谣，构成直接反驳
+    ev_corp = Evidence(
+        id="e-corp",
+        source_id="s-corp",
+        claim_id="c-ceo",
+        exact_quote="董事会与首席执行官本人已明确否认离职传闻，确认其将继续留任",
+        supports_claim=False,
+        contradicts_claim=True,
+        directness=EvidenceDirectness.DIRECT,
+        scope_match=True
+    )
+    
+    assessment = assess_evidence_for_claim(claim, [src_corp], [ev_corp])
+    state = compute_evidence_state(assessment, claim.verifiability)
+    
+    assert assessment.has_credible_contradicting_evidence is True
+    assert assessment.has_direct_support is False
+    assert state in [EvidenceState.UNSUPPORTED, EvidenceState.CONFLICTING]
+

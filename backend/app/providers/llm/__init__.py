@@ -25,7 +25,7 @@ def get_llm_provider(
         return MockLLMProvider()
 
     elif p_name in ("openai", "deepseek"):
-        model = "gpt-4o" if tier == "reasoning" else "gpt-4o-mini"
+        model = settings.OPENAI_MODEL or ("gpt-4o" if tier == "reasoning" else "gpt-4o-mini")
         if p_name == "deepseek":
             model = "deepseek-chat"
         key = api_key or settings.OPENAI_API_KEY or settings.DEEPSEEK_API_KEY

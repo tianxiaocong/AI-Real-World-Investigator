@@ -1,0 +1,8 @@
+{
+  "url": "mock://news.com/cal-01",
+  "domain": "news.com",
+  "title": "Quarterly Report",
+  "source_tier": "OFFICIAL",
+  "published_at": "2026-07-30T10:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z"
+}

@@ -1,5 +1,7 @@
 import json
 import logging
+import asyncio
+import random
 from typing import Optional, Type, TypeVar
 import httpx
 from pydantic import BaseModel
@@ -21,6 +23,33 @@ class OpenAICompatibleProvider(LLMProvider):
         self.api_key = api_key or settings.OPENAI_API_KEY or settings.DEEPSEEK_API_KEY
         self.base_url = (base_url or settings.OPENAI_BASE_URL or "https://api.openai.com/v1").rstrip("/")
         self.model = model or "gpt-4o-mini"
+
+        self._client: Optional[httpx.AsyncClient] = None
+        self._semaphore = asyncio.Semaphore(2)
+        self.stats = {
+            "total_requests": 0,
+            "successful_requests": 0,
+            "timeouts": 0,
+            "connect_errors": 0,
+            "retries": 0,
+            "permanent_failures": 0
+        }
+
+    async def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(
+                timeout=90.0,
+                limits=httpx.Limits(max_keepalive_connections=4, max_connections=8)
+            )
+        return self._client
+
+    async def _invalidate_client(self):
+        if self._client and not self._client.is_closed:
+            try:
+                await self._client.aclose()
+            except Exception:
+                pass
+        self._client = None
 
     async def generate_text(
         self,
@@ -50,11 +79,49 @@ class OpenAICompatibleProvider(LLMProvider):
             "max_tokens": max_tokens or 4096
         }
 
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(url, headers=headers, json=payload)
-            response.raise_for_status()
-            data = response.json()
-            return data["choices"][0]["message"]["content"].strip()
+        self.stats["total_requests"] += 1
+
+        async with self._semaphore:
+            for attempt in range(3):
+                try:
+                    client = await self._get_client()
+                    response = await client.post(url, headers=headers, json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+                    self.stats["successful_requests"] += 1
+                    return data["choices"][0]["message"]["content"].strip()
+                except httpx.TimeoutException as e:
+                    self.stats["timeouts"] += 1
+                    self.stats["retries"] += 1
+                    await self._invalidate_client()
+                    logger.warning(f"HTTPX Timeout: {e}. Retrying {attempt+1}/3 with jitter...")
+                    if attempt == 2:
+                        self.stats["permanent_failures"] += 1
+                        raise
+                    jitter = random.uniform(1.0, 2.5)
+                    await asyncio.sleep(2.0 * (1.5 ** attempt) + jitter)
+                except httpx.RequestError as e:
+                    self.stats["connect_errors"] += 1
+                    self.stats["retries"] += 1
+                    await self._invalidate_client()
+                    logger.warning(f"HTTPX RequestError: {type(e).__name__} - {e}. Reconnecting & Retrying {attempt+1}/3...")
+                    if attempt == 2:
+                        self.stats["permanent_failures"] += 1
+                        raise
+                    jitter = random.uniform(1.0, 2.0)
+                    await asyncio.sleep(2.0 * (1.5 ** attempt) + jitter)
+                except httpx.HTTPStatusError as e:
+                    if e.response.status_code in [429, 502, 503, 504]:
+                        self.stats["retries"] += 1
+                        logger.warning(f"HTTP Status {e.response.status_code}. Retrying {attempt+1}/3...")
+                        if attempt == 2:
+                            self.stats["permanent_failures"] += 1
+                            raise
+                        jitter = random.uniform(1.0, 3.0)
+                        await asyncio.sleep(3.0 * (1.5 ** attempt) + jitter)
+                    else:
+                        self.stats["permanent_failures"] += 1
+                        raise
 
     async def generate_structured(
         self,
@@ -89,7 +156,7 @@ class OpenAICompatibleProvider(LLMProvider):
                 f"Invalid JSON:\n{clean_json}\n"
                 f"Schema:\n{json.dumps(schema, indent=2)}"
             )
-            fixed_text = await self.generate_text(prompt=repair_prompt, temperature=0.0)
+            fixed_text = await self.generate_text(prompt=repair_prompt, temperature=0.1)
             fixed_json = fixed_text.strip().strip("`").removeprefix("json").strip()
             return response_model.model_validate(json.loads(fixed_json))
 

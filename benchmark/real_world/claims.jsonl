@@ -28,3 +28,8 @@
 {"id": "p5-08", "claim": "Nvidia acquired Company Z.", "evaluation_time": "2026-08-01"}
 {"id": "p5-09", "claim": "Drug Z cures Disease Y in 99% of patients.", "evaluation_time": "2026-08-01"}
 {"id": "p5-10", "claim": "Elon Musk is the CEO of Twitter.", "evaluation_time": "2023-08-01"}
+{"id": "cal-01", "claim": "Company X reported record revenue in its quarterly report.", "evaluation_time": "2026-08-01"}
+{"id": "cal-02", "claim": "The company launched the new product line.", "evaluation_time": "2026-08-01"}
+{"id": "cal-03", "claim": "The new algorithm is 50% faster than previous baselines.", "evaluation_time": "2026-08-01"}
+{"id": "cal-04", "claim": "The airline guarantees flights will never be cancelled.", "evaluation_time": "2026-08-01"}
+{"id": "cal-05", "claim": "Treatment K cured 95% of patients with lung disease.", "evaluation_time": "2026-08-01"}

@@ -1,0 +1,1 @@
+<main><p>The new algorithm is up to 50% faster than previous baselines in specialized synthetic benchmarks.</p></main>

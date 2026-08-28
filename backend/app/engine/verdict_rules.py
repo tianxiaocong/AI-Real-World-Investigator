@@ -25,6 +25,28 @@ from app.models.verification_models import (
     InputType
 )
 
+def _resolve_ultimate_origin(source_id: str, provenance_map: Dict[str, SourceProvenance], source_map: Dict[str, Source]) -> str:
+    """
+    Traverse the provenance graph to find the root origin of a source.
+    Resolves multi-level republication chains (S3 -> S2 -> S1) to a single cluster.
+    """
+    visited = set()
+    curr = source_id
+    
+    while curr in provenance_map:
+        if curr in visited:
+            import logging
+            logging.warning(f"CyclicProvenanceWarning: Cyclic provenance detected involving '{curr}'. Isolating origin to '{source_id}'.")
+            return source_id
+            
+        visited.add(curr)
+        prov = provenance_map[curr]
+        if prov.provenance_type in (ProvenanceType.REPUBLISHES, ProvenanceType.CITES) and prov.origin_source_id:
+            curr = prov.origin_source_id
+        else:
+            break
+            
+    return curr
 
 def assess_evidence_for_claim(
     claim: Claim,
@@ -49,18 +71,12 @@ def assess_evidence_for_claim(
 
     for s in sources:
         prov = provenance_map.get(s.id)
-        if prov:
-            if prov.provenance_type == ProvenanceType.ORIGINAL or not prov.origin_source_id:
-                origin_sources.add(s.id)
-                original_count += 1
-            elif prov.provenance_type in (ProvenanceType.REPUBLISHES, ProvenanceType.CITES):
-                origin_sources.add(prov.origin_source_id)
-                republish_count += 1
-            else:
-                origin_sources.add(s.id)
+        origin_key = _resolve_ultimate_origin(s.id, provenance_map, source_map)
+        origin_sources.add(origin_key)
+        
+        if prov and prov.provenance_type in (ProvenanceType.REPUBLISHES, ProvenanceType.CITES):
+            republish_count += 1
         else:
-            # 默认自身作为一个源
-            origin_sources.add(s.domain if s.domain else s.id)
             original_count += 1
 
     independent_count = len(origin_sources)
@@ -82,9 +98,43 @@ def assess_evidence_for_claim(
         src_tier = src.source_tier if src else SourceTier.UNKNOWN
 
         # 检查是否为同源归属
-        prov = provenance_map.get(ev.source_id)
-        origin_key = (prov.origin_source_id if (prov and prov.origin_source_id) 
-                      else (src.domain if src else ev.source_id))
+        origin_key = _resolve_ultimate_origin(ev.source_id, provenance_map, source_map)
+        # --- DETERMINISTIC RULE 1: Evidence Role Admissibility Filter ---
+        evidence_role_val = getattr(ev, "evidence_role", None)
+        ev_role_str = evidence_role_val.name if hasattr(evidence_role_val, "name") else str(evidence_role_val)
+        
+        element_role = getattr(ev, "element_role", "MAIN")
+        
+        is_non_evidentiary = False
+        if ev_role_str in ("NAVIGATION_OR_LINK", "BOILERPLATE", "SPECULATION_OR_QUESTION"):
+            is_non_evidentiary = True
+        elif element_role in ("ASIDE", "NAV", "FOOTER") and ev_role_str != "FACTUAL_ASSERTION":
+            is_non_evidentiary = True
+            
+        if is_non_evidentiary:
+            ev.is_admissible_factual_evidence = False
+            ev.supports_claim = False
+            ev.contradicts_claim = False
+            ev.directness = EvidenceDirectness.CONTEXTUAL
+            note = f"Non-evidentiary excluded (Role: {ev_role_str}, DOM: {element_role})"
+            ev.evidence_note = f"{ev.evidence_note} | {note}" if ev.evidence_note else note
+
+        # --- DETERMINISTIC RULE 2: Scope Integrity Filter ---
+        if getattr(ev, "is_admissible_factual_evidence", True) is True:
+            scope_issues = getattr(ev, "scope_issues", [])
+            high_severity_issues = [issue for issue in scope_issues if (hasattr(issue.severity, 'name') and issue.severity.name == "HIGH") or issue.severity == "HIGH"]
+            low_severity_issues = [issue for issue in scope_issues if (hasattr(issue.severity, 'name') and issue.severity.name == "LOW") or issue.severity == "LOW"]
+            
+            if high_severity_issues:
+                ev.supports_claim = False
+                ev.directness = EvidenceDirectness.CONTEXTUAL
+                issue_descs = [f"[{i.issue_type.name if hasattr(i.issue_type, 'name') else str(i.issue_type)}]" for i in high_severity_issues]
+                note = f"HIGH severity scope overclaim: {', '.join(issue_descs)}"
+                ev.evidence_note = f"{ev.evidence_note} | {note}" if ev.evidence_note else note
+            elif low_severity_issues:
+                issue_descs = [f"[{i.issue_type.name if hasattr(i.issue_type, 'name') else str(i.issue_type)}]" for i in low_severity_issues]
+                note = f"LOW severity benign variation: {', '.join(issue_descs)}"
+                ev.evidence_note = f"{ev.evidence_note} | {note}" if ev.evidence_note else note
 
         if ev.supports_claim is True and ev.scope_match:
             supporting_count += 1

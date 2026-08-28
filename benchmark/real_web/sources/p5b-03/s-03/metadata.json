@@ -1,0 +1,8 @@
+{
+  "id": "s-03",
+  "url": "mock://blog.com/fed",
+  "domain": "blog.com",
+  "title": "Fed Rate Blog",
+  "source_tier": "COMMUNITY",
+  "republishes_source_id": "s-02"
+}

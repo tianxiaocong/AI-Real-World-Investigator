@@ -61,6 +61,35 @@ class EvidenceDirectness(str, Enum):
     CONTEXTUAL = "CONTEXTUAL"       # 相关背景信息，但不直接证实/反驳
 
 
+class ScopeIssueType(str, Enum):
+    QUANTIFIER = "QUANTIFIER"
+    CONDITION = "CONDITION"
+    EXCEPTION = "EXCEPTION"
+    POPULATION = "POPULATION"
+    TEMPORAL = "TEMPORAL"
+    ENTITY_VERSION = "ENTITY_VERSION"
+
+
+class ScopeSeverity(str, Enum):
+    HIGH = "HIGH"
+    LOW = "LOW"
+
+
+class ScopeIssue(BaseModel):
+    issue_type: ScopeIssueType
+    severity: ScopeSeverity
+    source_fragment: str = ""
+    claim_fragment: str = ""
+    explanation: str = ""
+
+
+class EvidenceRole(str, Enum):
+    FACTUAL_ASSERTION = "FACTUAL_ASSERTION"
+    NAVIGATION_OR_LINK = "NAVIGATION_OR_LINK"
+    SPECULATION_OR_QUESTION = "SPECULATION_OR_QUESTION"
+    BOILERPLATE = "BOILERPLATE"
+
+
 class EvidenceState(str, Enum):
     """面向用户的证据状态判断（6 级）。"""
     SUFFICIENT = "SUFFICIENT"         # 🟢 证据充分
@@ -164,6 +193,17 @@ class Evidence(BaseModel):
     scope_match: bool = True               # False = 证据说的不是同一件事
 
     evidence_note: str = ""                # "该来源确认融资事实，但金额描述为8亿而非10亿"
+    
+    # Scope Metadata
+    scope_issues: list[ScopeIssue] = []
+    
+    # Admissibility & Roles
+    evidence_role: EvidenceRole = EvidenceRole.FACTUAL_ASSERTION
+    is_admissible_factual_evidence: bool = True
+    
+    # DOM Provenance Metadata
+    element_role: str = "MAIN"             # MAIN, ASIDE, NAV, FOOTER, HEADER, etc.
+    block_id: str = ""                     # e.g., "aside.related-links"
 
 
 # ──────────────────────────────────────────────

@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: Optional[str] = None
     OPENAI_API_KEY: Optional[str] = None
     OPENAI_BASE_URL: Optional[str] = None
+    OPENAI_MODEL: Optional[str] = None
     DEEPSEEK_API_KEY: Optional[str] = None
     
     FAST_LLM_MODEL: str = "gemini-1.5-flash"

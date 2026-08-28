@@ -9,29 +9,34 @@ from app.core.security import wrap_untrusted_content
 
 logger = logging.getLogger(__name__)
 
+class ExtractedProvenance(BaseModel):
+    relation: str = Field(..., description="REPUBLISHES, CITES, or NONE.")
+    target_source_id: Optional[str] = Field(None, description="The origin_source_id if relation is not NONE.")
+    evidence_quote: Optional[str] = Field(None, description="The verbatim quote proving the relation.")
+
 class RawExtractedClaim(BaseModel):
     statement: str = Field(..., description="An atomic factual, inferential, opinionated, or rumor assertion in concise language.")
     exact_quote: str = Field(..., description="The verbatim, word-for-word quote from the text that directly supports this claim.")
     claim_type: ClaimType = Field(..., description="FACT_STATEMENT (objective verifiable facts), OPINION (subjective viewpoints/ratings), INFERENCE (reasoned conclusions), RUMOR (unverified chatter/leaks), DISPUTED (openly disputed assertions).")
     confidence: ConfidenceLevel = Field(..., description="HIGH, MEDIUM, or LOW confidence in this assertion extraction.")
     reasoning: Optional[str] = Field(None, description="Brief explanation of why this claim nature and confidence was assigned.")
+    provenance: Optional[ExtractedProvenance] = Field(None, description="If this text explicitly republished or cites another URL as the ultimate origin of this statement.")
 
 class ClaimExtractionBatch(BaseModel):
     claims: List[RawExtractedClaim] = Field(default_factory=list)
 
 CLAIM_EXTRACTOR_SYSTEM_PROMPT = """You are an expert Forensic Intelligence Analyst and Claim Extractor.
-Your job is to read raw text from a web source and extract 3-8 key atomic claims.
+Your job is to read raw text (which may be HTML or text) from a web source and extract key atomic claims, focusing heavily on exactly citing the source.
 
 RULES:
 1. "exact_quote" MUST BE A VERBATIM, EXACT character-for-character substring found in the source text. Never paraphrase or alter the quote.
-2. An atomic claim is a single testable statement (e.g. "Company X was founded in 2021 by Jane Doe" rather than a 500-word paragraph).
-3. Strictly classify statement nature (claim_type):
-   - FACT_STATEMENT: Objective, verifiable statements (numbers, dates, leadership names, registered filings, tech specs).
-   - OPINION: Subjective viewpoints, praise, criticism, market predictions, or sentiment.
-   - INFERENCE: Analytical deductions made by authors based on observed data.
-   - RUMOR: Rumors, leaked information, unconfirmed anonymous assertions.
-   - DISPUTED: Statements explicitly acknowledging opposing numbers, metrics, or conflicting versions.
-4. Set confidence based on clarity and specificity of the evidence.
+2. An atomic claim is a single testable statement.
+3. Strictly classify statement nature (claim_type).
+4. Extract PROVENANCE. If the text explicitly states it is republishing from, or citing another specific URL or source name as the ultimate origin of this statement, fill out the `provenance` object.
+   - Set relation to "REPUBLISHES" if it is a direct syndication or republication.
+   - Set relation to "CITES" if it attributes the claim to another specific article or report.
+   - Set relation to "NONE" if it is original reporting or no explicit citation is found.
+5. Set confidence based on clarity and specificity of the evidence.
 """
 
 class ClaimExtractorAgent:
@@ -78,12 +83,12 @@ class ClaimExtractorAgent:
                 continue
 
             # Verify and locate the span in original text with 3-tier precision matching
-            start, end, prefix, suffix, match_tier = WebScraper.locate_quote_spans(clean_text, quote)
+            start, end, prefix, suffix, match_tier, element_role, block_id = WebScraper.locate_quote_spans(clean_text, quote)
             
             if match_tier == "UNVERIFIED":
                 logger.debug(f"Quote not verifiable in source text: {quote[:40]}")
             
-            validated_results.append({
+            res_dict = {
                 "statement": raw.statement,
                 "claim_type": raw.claim_type,
                 "confidence": raw.confidence,
@@ -94,6 +99,16 @@ class ClaimExtractorAgent:
                 "char_end": end,
                 "context_prefix": prefix,
                 "context_suffix": suffix,
-            })
+                "element_role": element_role,
+                "block_id": block_id,
+            }
+            if raw.provenance:
+                res_dict["provenance"] = {
+                    "relation": raw.provenance.relation,
+                    "target_source_id": raw.provenance.target_source_id,
+                    "evidence_quote": raw.provenance.evidence_quote
+                }
+            
+            validated_results.append(res_dict)
 
         return validated_results

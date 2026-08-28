@@ -1,0 +1,8 @@
+{
+  "url": "mock://news2.com/cal-01-2",
+  "domain": "news2.com",
+  "title": "Quarterly Report 2",
+  "source_tier": "MAINSTREAM",
+  "published_at": "2026-07-30T11:00:00Z",
+  "retrieved_at": "2026-08-28T00:00:00Z"
+}
