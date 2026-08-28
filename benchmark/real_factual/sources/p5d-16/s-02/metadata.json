@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-16",
+  "source_url": "https://www.healthline.com/nutrition/green-tea-and-diabetes",
+  "canonical_url": "https://www.healthline.com/nutrition/green-tea-and-diabetes",
+  "domain": "healthline.com",
+  "title": "Green Tea and Diabetes: Benefits and Evidence",
+  "published_at": "2023-10-12T00:00:00Z",
+  "content_hash": "sha256:48ad949a1c74e16833ec73f050e6d7858c3bca8309d1b405891b09c5125180c2",
+  "raw_text_hash": "sha256:b7ad8a4aa7e8ba4d5397d19f063822c39d5eda8b8fed86d39e40cfeb6ef978b1",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 618,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "MAINSTREAM"
+}

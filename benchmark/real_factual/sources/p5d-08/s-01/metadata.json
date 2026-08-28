@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-08",
+  "source_url": "https://ir.tesla.com/press-release/tesla-releases-fourth-quarter-and-full-year-2023-financial-results",
+  "canonical_url": "https://ir.tesla.com/press-release/tesla-releases-fourth-quarter-and-full-year-2023-financial-results",
+  "domain": "ir.tesla.com",
+  "title": "Tesla Releases Fourth Quarter and Full Year 2023 Financial Results",
+  "published_at": "2024-01-24T00:00:00Z",
+  "content_hash": "sha256:89620210411fba03fccdd236b181e3b3d6f5fbf3dea328fb426792847e638d01",
+  "raw_text_hash": "sha256:372156609702f93a31ae817a539b4e1ab1104caac5417f5a19e5c7e023341f78",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 671,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

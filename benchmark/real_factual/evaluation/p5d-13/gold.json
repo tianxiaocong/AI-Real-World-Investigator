@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-13",
+  "claim": "The base model iPhone 15 features the A17 Pro processor and supports Apple Intelligence.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Official Apple technical specifications confirm the base iPhone 15 features the A16 Bionic chip, whereas the A17 Pro is exclusive to the iPhone 15 Pro."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "iPhone 15 Chip: A16 Bionic chip with 6-core CPU and 5-core GPU.",
+      "quote_start": 99,
+      "quote_end": 162,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "iPhone 15 Pro Chip: A17 Pro chip with 6-core CPU and 6-core GPU.",
+      "quote_start": 103,
+      "quote_end": 167,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

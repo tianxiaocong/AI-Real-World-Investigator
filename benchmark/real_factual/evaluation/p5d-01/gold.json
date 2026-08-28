@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-01",
+  "claim": "OpenAI ChatGPT Plus subscription costs $20 per month.",
+  "gold_state": "SUFFICIENT",
+  "derived_state_from_rules": "SUFFICIENT",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Both official OpenAI pricing pages directly confirm that ChatGPT Plus is priced at $20/month."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "ChatGPT Plus is an experimental subscription plan that costs $20/month.",
+      "quote_start": 82,
+      "quote_end": 153,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Plus $20 / month Access to advanced reasoning models and web browsing.",
+      "quote_start": 92,
+      "quote_end": 162,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 2,
+    "contradicting_origins": 0
+  }
+}

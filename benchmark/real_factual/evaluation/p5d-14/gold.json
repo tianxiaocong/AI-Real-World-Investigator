@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-14",
+  "claim": "The Boston Celtics basketball franchise was originally founded by robotics company Boston Dynamics.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Entity confusion: NBA official history proves the Boston Celtics was founded in 1946 by Walter Brown, while Boston Dynamics was founded in 1992 by Marc Raibert."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "The Boston Celtics franchise was founded in 1946 by Walter A. Brown as a charter member of the BAA.",
+      "quote_start": 88,
+      "quote_end": 187,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Boston Dynamics was founded in 1992 by Marc Raibert as an engineering spinoff from MIT.",
+      "quote_start": 85,
+      "quote_end": 172,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

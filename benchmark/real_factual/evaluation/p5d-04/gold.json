@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-04",
+  "claim": "The European Union AI Act establishes binding safety requirements for AI systems placed on the EU market.",
+  "gold_state": "SUFFICIENT",
+  "derived_state_from_rules": "SUFFICIENT",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Both European Parliament and European Commission official notices confirm the EU AI Act establishes binding safety requirements in EU territory."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "Parliament on Wednesday approved the Artificial Intelligence Act, ensuring safety and compliance with fundamental rights for AI systems on the EU market.",
+      "quote_start": 116,
+      "quote_end": 269,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "The European Artificial Intelligence Act enters into force today, introducing harmonised rules across EU Member States.",
+      "quote_start": 91,
+      "quote_end": 210,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 2,
+    "contradicting_origins": 0
+  }
+}

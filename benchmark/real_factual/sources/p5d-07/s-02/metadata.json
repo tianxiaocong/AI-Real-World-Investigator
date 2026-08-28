@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-07",
+  "source_url": "https://www.anandtech.com/show/21111/apple-m3-max-performance-review",
+  "canonical_url": "https://www.anandtech.com/show/21111/apple-m3-max-performance-review",
+  "domain": "anandtech.com",
+  "title": "Apple M3 Max In-Depth Architecture & Benchmark Review",
+  "published_at": "2023-11-06T00:00:00Z",
+  "content_hash": "sha256:7bfd15ed3a7c4fb30003b23547e6818c65060a5f805e5233ba6772f0470d5f05",
+  "raw_text_hash": "sha256:eedaf00c5075618c4e9f08430f19ab5da8e26508fb4d86666e9d167b3bc81865",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 628,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "INDUSTRY"
+}

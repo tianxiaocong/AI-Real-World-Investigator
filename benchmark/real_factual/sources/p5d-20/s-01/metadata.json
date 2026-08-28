@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-20",
+  "source_url": "https://www.gov.uk/transition",
+  "canonical_url": "https://www.gov.uk/transition",
+  "domain": "gov.uk",
+  "title": "The UK has left the EU Single Market and Customs Union",
+  "published_at": "2021-01-01T00:00:00Z",
+  "content_hash": "sha256:b96745ee81ad5a9f1436c8ed9cd2d004bc1ead6fd48b1cedadae311f391f5de5",
+  "raw_text_hash": "sha256:1701e9b5b97597d5612b8e0e19c860014ec81bd4c838c80d6914bcde56f6462a",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 581,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

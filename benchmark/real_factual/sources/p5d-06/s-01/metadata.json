@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-06",
+  "source_url": "https://www.aboutamazon.com/news/company-news/amazon-anthropic-ai-investment",
+  "canonical_url": "https://www.aboutamazon.com/news/company-news/amazon-anthropic-ai-investment",
+  "domain": "aboutamazon.com",
+  "title": "Amazon completes full $4B investment in Anthropic",
+  "published_at": "2024-03-27T00:00:00Z",
+  "content_hash": "sha256:d2f29f5b54cbd4990b4af2e348c35a4faac9e643d0df9bc416f602b6c97d2386",
+  "raw_text_hash": "sha256:49b0e3d954fcecebb07ac500a6d9d3edfbc934fef4d97bdbb5c97d77d38d65c3",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 604,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

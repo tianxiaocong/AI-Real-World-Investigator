@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-01",
+  "source_url": "https://openai.com/chatgpt/pricing/",
+  "canonical_url": "https://openai.com/chatgpt/pricing/",
+  "domain": "openai.com",
+  "title": "ChatGPT Pricing & Subscription Plans",
+  "published_at": "2024-06-01T00:00:00Z",
+  "content_hash": "sha256:a86276551b112d6d89774633b29e4f99e45ea4e5e67f9e0af6e38031652358d6",
+  "raw_text_hash": "sha256:ec03ff27c9d65fac89b7e2e8332430c7ea030bff9071508cd10ab2b2b6e8d51c",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 518,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

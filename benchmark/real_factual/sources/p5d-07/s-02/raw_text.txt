@@ -1,0 +1,1 @@
+Apple M3 Max In-Depth Architecture & Benchmark Review Published on 2023-11-06T00:00:00Z | Source: anandtech.com Across standard productivity and single-threaded workloads, the M3 Max measures 15% to 25% faster than M2 Max.

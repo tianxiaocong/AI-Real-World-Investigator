@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-09",
+  "claim": "GitHub Copilot is completely free for all commercial enterprise software developers.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Official GitHub documentation explicitly contradicts the claim: Copilot is paid for commercial enterprises and only free under narrow exceptions (verified students/open source maintainers)."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "GitHub Copilot requires a paid subscription for commercial use, costing $19 per user/month for Copilot Business.",
+      "quote_start": 93,
+      "quote_end": 205,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Copilot is free for verified students and maintainers of popular open source projects, while commercial plans require paid seats.",
+      "quote_start": 112,
+      "quote_end": 241,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

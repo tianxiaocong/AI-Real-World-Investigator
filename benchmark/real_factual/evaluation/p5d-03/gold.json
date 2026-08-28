@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-03",
+  "claim": "California SB 1047 AI Safety Law is legally enacted across the entire United States.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "SB 1047 was a state bill limited strictly to California, and was furthermore vetoed by Governor Newsom; it was never federal law."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "An act to add Chapter 22.2 to Division 8 of the Business and Professions Code of the State of California.",
+      "quote_start": 154,
+      "quote_end": 259,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Governor Gavin Newsom today announced that he has vetoed Senate Bill 1047.",
+      "quote_start": 86,
+      "quote_end": 160,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

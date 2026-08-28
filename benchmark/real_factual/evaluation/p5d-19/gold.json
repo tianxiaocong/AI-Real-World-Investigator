@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-19",
+  "claim": "Nvidia generated $30.0 billion in total revenue during the single calendar month of July 2024.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "The $30.0 billion figure was generated over the full three-month fiscal quarter (Q2), not within the single month of July."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "NVIDIA reported revenue for the second quarter ended July 28, 2024, of $30.0 billion, up 122% from a year ago.",
+      "quote_start": 132,
+      "quote_end": 242,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Three Months Ended July 28, 2024: Revenue $30,040 million.",
+      "quote_start": 91,
+      "quote_end": 149,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-20",
+  "claim": "The United Kingdom is currently a full voting member of the European Union Single Market.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Both UK Gov (gov.uk) and European Commission confirm the UK formally departed the EU single market and customs union as of December 31, 2020."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "The transition period ended on 31 December 2020 and the UK has left the EU single market and customs union.",
+      "quote_start": 106,
+      "quote_end": 213,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Since 1 January 2021, the UK is a third country and no longer participates in the EU Single Market.",
+      "quote_start": 99,
+      "quote_end": 198,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

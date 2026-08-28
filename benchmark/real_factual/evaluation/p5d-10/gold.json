@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-10",
+  "claim": "Capital One has legally finalized and completed its merger with Discover Financial as of early 2024.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "The merger agreement was announced subject to ongoing regulatory approvals and has not been completed in early 2024."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "The transaction is expected to close in late 2024 or early 2025, subject to satisfaction of customary closing conditions, including regulatory approvals.",
+      "quote_start": 123,
+      "quote_end": 276,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "The proposed deal remains subject to approval by the Federal Reserve and the Office of the Comptroller of the Currency.",
+      "quote_start": 116,
+      "quote_end": 235,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

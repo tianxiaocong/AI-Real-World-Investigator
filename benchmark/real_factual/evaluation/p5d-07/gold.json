@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-07",
+  "claim": "The Apple M3 Max chip provides exactly 50% faster CPU performance across all computer programs compared to M2 Max.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "The original claim claimed an absolute 50% gain in all programs, whereas Apple officially qualified it as 'up to 50% in select benchmarks' and independent benchmarks confirmed 15-25% in typical workloads."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "M3 Max features CPU performance that is up to 50 percent faster than M2 Max in select benchmark tasks.",
+      "quote_start": 91,
+      "quote_end": 193,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Across standard productivity and single-threaded workloads, the M3 Max measures 15% to 25% faster than M2 Max.",
+      "quote_start": 112,
+      "quote_end": 222,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

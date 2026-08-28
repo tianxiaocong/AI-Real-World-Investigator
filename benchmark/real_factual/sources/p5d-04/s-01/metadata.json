@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-04",
+  "source_url": "https://www.europarl.europa.eu/news/en/press-room/20240308IPR19015/artificial-intelligence-act-meps-adopt-landmark-law",
+  "canonical_url": "https://www.europarl.europa.eu/news/en/press-room/20240308IPR19015/artificial-intelligence-act-meps-adopt-landmark-law",
+  "domain": "europarl.europa.eu",
+  "title": "Artificial Intelligence Act: MEPs adopt landmark law",
+  "published_at": "2024-03-13T00:00:00Z",
+  "content_hash": "sha256:848e4d7ababa4d155acb44f3bdbe5bf45cf96268482448f54624a62037b15a04",
+  "raw_text_hash": "sha256:0526cca5e42bf1ab3e2d97759676bb21d5b194965ec1c5afb60a4f1fa5805ad6",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 724,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

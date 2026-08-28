@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-08",
+  "source_url": "https://www.sec.gov/ix?doc=/Archives/edgar/data/1318605/000162828024002390/tsla-20231231.htm",
+  "canonical_url": "https://www.sec.gov/ix?doc=/Archives/edgar/data/1318605/000162828024002390/tsla-20231231.htm",
+  "domain": "sec.gov",
+  "title": "Tesla Inc. Form 10-K Annual Report 2023",
+  "published_at": "2024-01-29T00:00:00Z",
+  "content_hash": "sha256:96f1ca7df99196dcc36259e0e546e6378ff8940b9ca10582016e8cd05c129499",
+  "raw_text_hash": "sha256:fa6bbb540efed58660a95ea10fdeee5ab884beadb866fe6d5ae91516a8c04e13",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 573,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

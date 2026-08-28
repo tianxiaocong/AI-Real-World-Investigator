@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-05",
+  "source_url": "https://www.theinformation.com/articles/anthropic-in-talks-for-new-funding",
+  "canonical_url": "https://www.theinformation.com/articles/anthropic-in-talks-for-new-funding",
+  "domain": "theinformation.com",
+  "title": "Anthropic in Early Discussions for New Funding",
+  "published_at": "2024-03-01T00:00:00Z",
+  "content_hash": "sha256:532bee0457dea4f7e9e948175ab86d518df8d9aade25c5a58cf340ca12d4c744",
+  "raw_text_hash": "sha256:314a72e9963fd8b0b70d5afeda6f87dbc87490e8d64b6b85a2253603a0f87825",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 653,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "AUTHORITATIVE"
+}

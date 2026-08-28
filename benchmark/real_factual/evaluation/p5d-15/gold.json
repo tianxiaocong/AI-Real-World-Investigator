@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-15",
+  "claim": "Nvidia officially confirmed it cancelled all shipments of next-generation Blackwell AI chips.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Official Nvidia press releases and industry reporting confirm Blackwell is ramping production and shipping in Q4, refuting cancellation rumors that appear in clickbait sidebars."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "Blackwell production ramp is scheduled to begin in the fourth quarter and continue into fiscal 2026.",
+      "quote_start": 132,
+      "quote_end": 232,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Nvidia CEO Jensen Huang confirmed Blackwell GPU sampling is underway with major volume deliveries starting in Q4.",
+      "quote_start": 115,
+      "quote_end": 228,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

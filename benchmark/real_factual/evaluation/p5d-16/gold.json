@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-16",
+  "claim": "Drinking green tea is clinically certified by the NIH to permanently cure diabetes in 3 days without medication.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "NIH clinical guidance and medical disclaimers confirm there is no instant cure for diabetes, refuting deceptive commercial health claims."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "There is no instant cure for diabetes; managing diabetes involves lifestyle changes and prescribed medications.",
+      "quote_start": 147,
+      "quote_end": 258,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Disclaimer: Green tea may support metabolic health, but it is not a cure for diabetes and cannot replace prescription drugs.",
+      "quote_start": 105,
+      "quote_end": 229,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-14",
+  "source_url": "https://www.nba.com/celtics/history",
+  "canonical_url": "https://www.nba.com/celtics/history",
+  "domain": "nba.com",
+  "title": "Boston Celtics Championship History",
+  "published_at": "2024-01-01T00:00:00Z",
+  "content_hash": "sha256:29c0761db5e311d1b4ee0872ee4a0bcf8e467ebee1dca69560e7c556840c5db9",
+  "raw_text_hash": "sha256:975d3f32dcac7def6c7246f01870178913333bc5247640d6c90796c414750706",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 542,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

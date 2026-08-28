@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-13",
+  "source_url": "https://support.apple.com/en-us/111831",
+  "canonical_url": "https://support.apple.com/en-us/111831",
+  "domain": "support.apple.com",
+  "title": "iPhone 15 - Technical Specifications",
+  "published_at": "2023-09-12T00:00:00Z",
+  "content_hash": "sha256:ed2e195e4da15f99a9558f4952a11871d34bd3000aad964ca8645e5346aee075",
+  "raw_text_hash": "sha256:20552f349ce06329b273db5b4485fcd552658757afd1168d8486ee08e2aca61c",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 521,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

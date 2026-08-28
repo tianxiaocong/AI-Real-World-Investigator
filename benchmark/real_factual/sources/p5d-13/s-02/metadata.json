@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-13",
+  "source_url": "https://support.apple.com/en-us/111830",
+  "canonical_url": "https://support.apple.com/en-us/111830",
+  "domain": "support.apple.com",
+  "title": "iPhone 15 Pro - Technical Specifications",
+  "published_at": "2023-09-12T00:00:00Z",
+  "content_hash": "sha256:f2fb021c61d9cb43b7edd00378a1255850dbaa576202604487cdd206129c1dfd",
+  "raw_text_hash": "sha256:821dd0168be75ed789e815fc2b197a0037dc185993c3a872838b83e4024ce6d0",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 530,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

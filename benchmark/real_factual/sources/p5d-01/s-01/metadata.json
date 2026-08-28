@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-01",
+  "source_url": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus",
+  "canonical_url": "https://help.openai.com/en/articles/6950777-what-is-chatgpt-plus",
+  "domain": "help.openai.com",
+  "title": "What is ChatGPT Plus?",
+  "published_at": "2024-01-15T00:00:00Z",
+  "content_hash": "sha256:d1bdf4756abf1a7e3f3ad59bb951cb22c482ae2274d2e8ad2ca706e5118e6bc9",
+  "raw_text_hash": "sha256:794ea0140c6b3645243e556795da3de5be8c622214b07003264d92853b20de50",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 523,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

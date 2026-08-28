@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-18",
+  "claim": "The US Department of Veterans Affairs 0% down-payment home loan program is universally accessible to all civilian US citizens.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Official VA.gov and CFPB guidelines establish that VA loans are restricted to military service members and veterans with a Certificate of Eligibility, not civilian citizens."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "To be eligible for a VA home loan, you must be a qualifying Veteran, active-duty service member, or surviving spouse with a Certificate of Eligibility.",
+      "quote_start": 102,
+      "quote_end": 253,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "VA loans are guaranteed by the federal government specifically for military service members, veterans, and their families.",
+      "quote_start": 103,
+      "quote_end": 225,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

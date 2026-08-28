@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-03",
+  "source_url": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202320240SB1047",
+  "canonical_url": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202320240SB1047",
+  "domain": "leginfo.legislature.ca.gov",
+  "title": "SB-1047 Safe and Secure Innovation for Frontier Artificial Intelligence Models Act",
+  "published_at": "2024-08-29T00:00:00Z",
+  "content_hash": "sha256:eb5cddaf779f115376979fd88ab175d0af9d22d0bf8036bf66eed103722cfb05",
+  "raw_text_hash": "sha256:da05978d30f04782cf1a1266319c2fd10c9148fc257cd377469d2f47b7e1c9ee",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 710,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

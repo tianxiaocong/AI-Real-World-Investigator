@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-11",
+  "source_url": "https://www.apple.com/leadership/tim-cook/",
+  "canonical_url": "https://www.apple.com/leadership/tim-cook/",
+  "domain": "apple.com",
+  "title": "Apple Leadership - Tim Cook",
+  "published_at": "2024-05-01T00:00:00Z",
+  "content_hash": "sha256:f70fe88697b8d115aa37df0e0dc4c33f6bf9d3ecb3ee87d6fa92572341c26924",
+  "raw_text_hash": "sha256:cbf9720933350704de92734c3dbed931cb7484498af8111f101292ed01bdb0fe",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 120909,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

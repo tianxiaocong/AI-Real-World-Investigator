@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-17",
+  "source_url": "https://www.alz.org/alzheimers-dementia/research_progress/treatment-pipeline",
+  "canonical_url": "https://www.alz.org/alzheimers-dementia/research_progress/treatment-pipeline",
+  "domain": "alz.org",
+  "title": "Alzheimer's Association Treatment Pipeline Overview",
+  "published_at": "2024-05-01T00:00:00Z",
+  "content_hash": "sha256:6ada75f52e4362979c57bff5af74f8a76fdba0a410cc535ab8ffa675155a8fe9",
+  "raw_text_hash": "sha256:553f8c98eaf824dcea3e233b8d9fcc9d11166c6f2b8120ab377c1e0469c02c9a",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 651,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "INDUSTRY"
+}

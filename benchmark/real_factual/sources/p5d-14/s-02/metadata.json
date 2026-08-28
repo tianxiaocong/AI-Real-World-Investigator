@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-14",
+  "source_url": "https://bostondynamics.com/about/",
+  "canonical_url": "https://bostondynamics.com/about/",
+  "domain": "bostondynamics.com",
+  "title": "About Boston Dynamics",
+  "published_at": "2024-01-01T00:00:00Z",
+  "content_hash": "sha256:305cb86609b56d63ac2aa438e22ca410f5a532d6fde273d87150c07b6cc0fdd7",
+  "raw_text_hash": "sha256:481e419960ab777340f9b5349b074110de98b518070490f3605a4b2a147037fb",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 511,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

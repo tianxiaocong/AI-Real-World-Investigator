@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-19",
+  "source_url": "https://www.sec.gov/ix?doc=/Archives/edgar/data/1045810/000104581024000185/nvda-20240728.htm",
+  "canonical_url": "https://www.sec.gov/ix?doc=/Archives/edgar/data/1045810/000104581024000185/nvda-20240728.htm",
+  "domain": "sec.gov",
+  "title": "NVIDIA Corp Form 10-Q Quarterly Report",
+  "published_at": "2024-08-28T00:00:00Z",
+  "content_hash": "sha256:d81865fbd5c5589785d852a85bc76d0bb8dce7ca88ccf1abc5a93dbdf4c617fe",
+  "raw_text_hash": "sha256:462d79597879b4ae4e8eab2ef10082bd51f7eccd37c6ec5b8763497fe569974d",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 564,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

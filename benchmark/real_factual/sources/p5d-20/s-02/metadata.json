@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-20",
+  "source_url": "https://commission.europa.eu/strategy-and-policy/relations-non-eu-countries/relations-united-kingdom_en",
+  "canonical_url": "https://commission.europa.eu/strategy-and-policy/relations-non-eu-countries/relations-united-kingdom_en",
+  "domain": "commission.europa.eu",
+  "title": "Relations with the United Kingdom",
+  "published_at": "2024-01-01T00:00:00Z",
+  "content_hash": "sha256:f7e2865b68a21c3d9a047b04d5c238a26e44ba41b3bbdf02a51304e5db279852",
+  "raw_text_hash": "sha256:c45602d6f100431ceca9929bd13769a1a121da2b74b5a1f4e0457dd493b0443e",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 619,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

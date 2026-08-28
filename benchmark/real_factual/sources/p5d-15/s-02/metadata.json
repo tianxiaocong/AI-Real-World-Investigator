@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-15",
+  "source_url": "https://www.tomshardware.com/pc-components/gpus/nvidia-blackwell-b200-shipping-schedule-update",
+  "canonical_url": "https://www.tomshardware.com/pc-components/gpus/nvidia-blackwell-b200-shipping-schedule-update",
+  "domain": "tomshardware.com",
+  "title": "Nvidia Blackwell Shipments On Track for Q4 Production",
+  "published_at": "2024-08-29T00:00:00Z",
+  "content_hash": "sha256:433f18a7d3965de41addc1a8f274b489e10d83a05fa07f149acb5f5a7b018a2c",
+  "raw_text_hash": "sha256:aba05cba5d0ae82b287d9d563762a4560ef7c6b7ac096326f6a06acf62b4d2b5",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 660,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "INDUSTRY"
+}

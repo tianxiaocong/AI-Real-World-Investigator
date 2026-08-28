@@ -1,0 +1,1 @@
+About billing for GitHub Copilot Published on 2024-02-01T00:00:00Z | Source: docs.github.com GitHub Copilot requires a paid subscription for commercial use, costing $19 per user/month for Copilot Business.

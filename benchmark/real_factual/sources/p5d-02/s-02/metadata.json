@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-02",
+  "source_url": "https://www.reuters.com/markets/deals/microsoft-closes-69-billion-activision-blizzard-deal-2023-10-13/",
+  "canonical_url": "https://www.reuters.com/markets/deals/microsoft-closes-69-billion-activision-blizzard-deal-2023-10-13/",
+  "domain": "reuters.com",
+  "title": "Microsoft closes $69 billion Activision deal after clearing UK hurdle",
+  "published_at": "2023-10-13T00:00:00Z",
+  "content_hash": "sha256:3a65fbe58b2cb532cad1d42aaf32e899696255d02c13e29c41f81fa8f1fbf72c",
+  "raw_text_hash": "sha256:6cee8ee5926f97af97491f248caf09291bb883130cc516582af83a11f28abba9",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 747,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "AUTHORITATIVE"
+}

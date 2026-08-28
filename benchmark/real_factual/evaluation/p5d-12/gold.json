@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-12",
+  "claim": "The US FDA granted full regulatory approval for MDMA-assisted PTSD therapy in August 2024.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Both the applicant pharmaceutical company (Lykos) and Associated Press confirm the FDA issued a Complete Response Letter explicitly rejecting approval."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "Lykos Therapeutics today announced that the FDA has issued a Complete Response Letter stating it cannot approve the application in its present form.",
+      "quote_start": 119,
+      "quote_end": 267,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Federal health regulators on Friday rejected the first-ever proposed treatment using the psychedelic drug MDMA for PTSD.",
+      "quote_start": 103,
+      "quote_end": 223,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

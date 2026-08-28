@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-12",
+  "source_url": "https://apnews.com/article/fda-psychedelic-mdma-ptsd-lykos-f80e922f30b912239d89304a0cb3de54",
+  "canonical_url": "https://apnews.com/article/fda-psychedelic-mdma-ptsd-lykos-f80e922f30b912239d89304a0cb3de54",
+  "domain": "apnews.com",
+  "title": "FDA rejects psychedelic MDMA treatment for PTSD",
+  "published_at": "2024-08-09T00:00:00Z",
+  "content_hash": "sha256:c412ae8a7da72a5bb94facfe2d25fa85c9c91b2aaad1fb32c1c06cf06c96303a",
+  "raw_text_hash": "sha256:3004c458b2d74d70159a87febef45833bd0c9457910d629ef63f38c6719c638f",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 646,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "AUTHORITATIVE"
+}

@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-06",
+  "source_url": "https://www.reuters.com/technology/amazon-closes-4-billion-investment-ai-startup-anthropic-2024-03-27/",
+  "canonical_url": "https://www.reuters.com/technology/amazon-closes-4-billion-investment-ai-startup-anthropic-2024-03-27/",
+  "domain": "reuters.com",
+  "title": "Amazon closes $4 billion investment in AI startup Anthropic",
+  "published_at": "2024-03-27T01:00:00Z",
+  "content_hash": "sha256:c14e3b96d0ea5620da45dd796ebecd3d83a18895ad3d811d1f8a0c5aeb882023",
+  "raw_text_hash": "sha256:6c5b74930a9a199563871f97c5e4fd07678540c6730a54d5b5c624dc8867322d",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 667,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "AUTHORITATIVE"
+}

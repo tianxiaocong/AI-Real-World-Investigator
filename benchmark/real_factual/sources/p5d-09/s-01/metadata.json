@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-09",
+  "source_url": "https://docs.github.com/en/billing/managing-billing-for-github-copilot/about-billing-for-github-copilot",
+  "canonical_url": "https://docs.github.com/en/billing/managing-billing-for-github-copilot/about-billing-for-github-copilot",
+  "domain": "docs.github.com",
+  "title": "About billing for GitHub Copilot",
+  "published_at": "2024-02-01T00:00:00Z",
+  "content_hash": "sha256:090146731b98e4c572c7bc31b0d7307ff89a59827567589aab0100f8aeac5ea7",
+  "raw_text_hash": "sha256:9764eb3179f4c8c57e01fbb57164f8772e3d13487cf007f00ec2745ae001b49c",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 625,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

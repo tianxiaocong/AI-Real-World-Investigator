@@ -1,0 +1,1 @@
+GitHub Copilot is generally available to all developers Published on 2022-06-21T00:00:00Z | Source: github.blog Copilot is free for verified students and maintainers of popular open source projects, while commercial plans require paid seats.

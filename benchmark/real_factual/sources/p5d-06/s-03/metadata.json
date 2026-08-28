@@ -1,0 +1,16 @@
+{
+  "source_id": "s-03",
+  "case_id": "p5d-06",
+  "source_url": "https://news.yahoo.com/amazon-closes-4-billion-investment-130000456.html",
+  "canonical_url": "https://news.yahoo.com/amazon-closes-4-billion-investment-130000456.html",
+  "domain": "news.yahoo.com",
+  "title": "Amazon closes Anthropic investment",
+  "published_at": "2024-03-27T02:00:00Z",
+  "content_hash": "sha256:fb3df5e45fec0d910fc077972bb2455b42eff24346338de35d69d3955f9fd13c",
+  "raw_text_hash": "sha256:fa984f48037dd05a70d469238207108eda57698bef24a7199b1ea120ea9e4662",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 575,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "MAINSTREAM"
+}

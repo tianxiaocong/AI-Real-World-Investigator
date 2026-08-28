@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-02",
+  "claim": "The FTC successfully blocked Microsoft's acquisition of Activision Blizzard.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "The initial FTC complaint sought to block the deal, but subsequent court rulings defeated the challenge and Microsoft formally closed the acquisition in October 2023."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "The Federal Trade Commission today issued an administrative complaint seeking to block Microsoft Corp. from acquiring Activision Blizzard.",
+      "quote_start": 118,
+      "quote_end": 256,
+      "role": "CONTEXTUAL",
+      "directness": "INDIRECT",
+      "scope_match": false
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Microsoft closed its $69 billion purchase of Activision Blizzard on Friday after winning approval from Britain's antitrust regulator, defeating FTC court challenges.",
+      "quote_start": 126,
+      "quote_end": 291,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 1
+  }
+}

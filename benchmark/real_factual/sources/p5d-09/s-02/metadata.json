@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-09",
+  "source_url": "https://github.blog/2022-06-21-github-copilot-is-generally-available-to-all-developers/",
+  "canonical_url": "https://github.blog/2022-06-21-github-copilot-is-generally-available-to-all-developers/",
+  "domain": "github.blog",
+  "title": "GitHub Copilot is generally available to all developers",
+  "published_at": "2022-06-21T00:00:00Z",
+  "content_hash": "sha256:f22da151d85347ece893a5ac44ed8f39c639fc32b6a71fde44bce56feb01b770",
+  "raw_text_hash": "sha256:51c6e69f1376980dca124388ca6317ed711c5e839273f65d5d139ef51470ff4b",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 668,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-08",
+  "claim": "Tesla reported $15.0 billion in GAAP net income for the full year 2023.",
+  "gold_state": "SUFFICIENT",
+  "derived_state_from_rules": "SUFFICIENT",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Both Tesla IR and SEC Form 10-K officially report GAAP net income of $14,997 million ($15.0 billion)."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "Net income attributable to common stockholders (GAAP) was $14.997B ($15.0B) for full year 2023.",
+      "quote_start": 124,
+      "quote_end": 219,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Net income: $14,997 million for the year ended December 31, 2023.",
+      "quote_start": 92,
+      "quote_end": 157,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 2,
+    "contradicting_origins": 0
+  }
+}

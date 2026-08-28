@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-18",
+  "source_url": "https://www.va.gov/housing-assistance/home-loans/eligibility/",
+  "canonical_url": "https://www.va.gov/housing-assistance/home-loans/eligibility/",
+  "domain": "va.gov",
+  "title": "Eligibility Requirements for VA Home Loan Programs",
+  "published_at": "2024-01-01T00:00:00Z",
+  "content_hash": "sha256:3474b3e2e2377ebfa46f2968330e706355228eccee72c39df5df721af9810768",
+  "raw_text_hash": "sha256:1e48fab7b18c62a35dcd2457c9adeb340f6dd3ecf24d2d081846cb9ad9e687d0",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 649,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

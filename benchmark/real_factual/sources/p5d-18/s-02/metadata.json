@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-18",
+  "source_url": "https://www.consumerfinance.gov/owning-a-home/loan-options/va-loans/",
+  "canonical_url": "https://www.consumerfinance.gov/owning-a-home/loan-options/va-loans/",
+  "domain": "consumerfinance.gov",
+  "title": "CFPB Guide to VA Guaranteed Home Loans",
+  "published_at": "2024-01-01T00:00:00Z",
+  "content_hash": "sha256:baa2c71dd489f594e6eac937ace2bfa7a07d9cdb89391eb777afac4a5448584c",
+  "raw_text_hash": "sha256:683cf83d1117698289fd35db8fe0b9156306249a02477737c96a6b2f5838676f",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 616,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

@@ -1,0 +1,16 @@
+{
+  "source_id": "s-03",
+  "case_id": "p5d-05",
+  "source_url": "https://techstartups.com/2024/03/01/anthropic-funding-talks/",
+  "canonical_url": "https://techstartups.com/2024/03/01/anthropic-funding-talks/",
+  "domain": "techstartups.com",
+  "title": "Anthropic Eyes New Multi-Billion Funding",
+  "published_at": "2024-03-01T04:00:00Z",
+  "content_hash": "sha256:2097b104a16f49a5ffd588c29f1cf7f4bab9b2a25a007b7e680f16169600ddd7",
+  "raw_text_hash": "sha256:b2717327ddfe6f0f2b6fb57d098f43b8547e95dc5b8c0574aea2f4dc2fa2174a",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 592,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "BLOG"
+}

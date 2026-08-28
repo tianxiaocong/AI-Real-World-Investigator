@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-19",
+  "source_url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2025",
+  "canonical_url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2025",
+  "domain": "nvidianews.nvidia.com",
+  "title": "NVIDIA Announces Financial Results for Second Quarter Fiscal 2025",
+  "published_at": "2024-08-28T00:00:00Z",
+  "content_hash": "sha256:373336ad20813338be4b30cf7b700d55d41e46c7b943c3e33627767d7b570fa3",
+  "raw_text_hash": "sha256:e8c99c4141f0b7116296ae6513f766bf9ff04f2e4c48a859976341336c385bd6",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 692,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

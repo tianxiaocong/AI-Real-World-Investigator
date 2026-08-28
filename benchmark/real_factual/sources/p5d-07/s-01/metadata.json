@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-07",
+  "source_url": "https://www.apple.com/newsroom/2023/10/apple-unveils-m3-m3-pro-and-m3-max/",
+  "canonical_url": "https://www.apple.com/newsroom/2023/10/apple-unveils-m3-m3-pro-and-m3-max/",
+  "domain": "apple.com",
+  "title": "Apple unveils M3, M3 Pro, and M3 Max",
+  "published_at": "2023-10-30T00:00:00Z",
+  "content_hash": "sha256:28befa67123ce649b2455b3914dd7db3fa9bd9abfd3132ef542b134d5b9ce94f",
+  "raw_text_hash": "sha256:b26bbc84068e0a9bfae145dc17dc99be4185e6b72a1c3e7544881d3981853400",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 588,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

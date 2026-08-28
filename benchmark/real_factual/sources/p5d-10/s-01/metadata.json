@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-10",
+  "source_url": "https://www.capitalone.com/about/newsroom/capital-one-discover-agreement/",
+  "canonical_url": "https://www.capitalone.com/about/newsroom/capital-one-discover-agreement/",
+  "domain": "capitalone.com",
+  "title": "Capital One to Acquire Discover in Transformational Transaction",
+  "published_at": "2024-02-19T00:00:00Z",
+  "content_hash": "sha256:aaf44ec901a870157e1316a82654ebbd19fa21d1670aa9c7e1b7798d7518b7bf",
+  "raw_text_hash": "sha256:29f26d127ef190960b6db9ba15720dd59230979d5a0d63d9fc4c9a23dea30e6d",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 697,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

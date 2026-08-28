@@ -1,0 +1,59 @@
+{
+  "case_id": "p5d-06",
+  "claim": "Amazon completed its $4 billion total investment in Anthropic.",
+  "gold_state": "SUFFICIENT",
+  "derived_state_from_rules": "SUFFICIENT",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "s-03 is a syndication of s-02 (Reuters), but s-01 is an independent official corporate disclosure from Amazon. Resolving provenance gives 2 independent origins (Amazon + Reuters) with official confirmation -> SUFFICIENT."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "Amazon today announced that it has completed its $4 billion investment in Anthropic.",
+      "quote_start": 110,
+      "quote_end": 194,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Amazon.com has completed its $4 billion investment in AI firm Anthropic, the companies said on Wednesday.",
+      "quote_start": 116,
+      "quote_end": 221,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-03",
+      "exact_quote": "By Reuters Staff: Amazon.com has completed its $4 billion investment in AI firm Anthropic.",
+      "quote_start": 94,
+      "quote_end": 184,
+      "role": "CONTEXTUAL",
+      "directness": "INDIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [
+    {
+      "source_id": "s-03",
+      "origin_source_id": "s-02",
+      "relation": "REPUBLISHES",
+      "evidence_quote": "By Reuters Staff: Amazon.com has completed"
+    }
+  ],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 3,
+    "independent_origins": 2,
+    "supporting_origins": 2,
+    "contradicting_origins": 0
+  }
+}

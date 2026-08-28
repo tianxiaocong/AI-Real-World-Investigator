@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-17",
+  "source_url": "https://www.nature.com/articles/s41586-024-00000-sample",
+  "canonical_url": "https://www.nature.com/articles/s41586-024-00000-sample",
+  "domain": "nature.com",
+  "title": "Preclinical reversal of cognitive impairment in transgenic mouse models",
+  "published_at": "2024-04-10T00:00:00Z",
+  "content_hash": "sha256:1dff978a864d6cc5a71322fdcc5fe69ddc21e594d52c089f9ede9a0ace41a5bc",
+  "raw_text_hash": "sha256:ab73448094b458cc3d294fcb38fdf288aee11b06c37822b2668dc865e7d520ca",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 676,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "AUTHORITATIVE"
+}

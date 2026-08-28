@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-11",
+  "source_url": "https://www.bloomberg.com/news/articles/2024-05-09/apple-leadership-succession-planning-tim-cook",
+  "canonical_url": "https://www.bloomberg.com/news/articles/2024-05-09/apple-leadership-succession-planning-tim-cook",
+  "domain": "bloomberg.com",
+  "title": "Apple Prepares Next Generation of Leaders as Tim Cook Remains Firmly in Charge",
+  "published_at": "2024-05-09T00:00:00Z",
+  "content_hash": "sha256:46f0c7897c8fe3b35a54530d46a01d9679d5f2af06e77fcb2787fef4e265ba2e",
+  "raw_text_hash": "sha256:c87d573dbb2cf65aeed3a19f62c86602e06fb00915cf6d716d12182fd0808011",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 697,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "AUTHORITATIVE"
+}

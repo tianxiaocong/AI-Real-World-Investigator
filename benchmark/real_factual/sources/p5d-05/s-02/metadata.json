@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-05",
+  "source_url": "https://finance.yahoo.com/news/anthropic-talks-funding-report-120000123.html",
+  "canonical_url": "https://finance.yahoo.com/news/anthropic-talks-funding-report-120000123.html",
+  "domain": "finance.yahoo.com",
+  "title": "Anthropic in talks for new funding round, report says",
+  "published_at": "2024-03-01T02:00:00Z",
+  "content_hash": "sha256:8a28423e28614db278a4fa76c26ee31a5b87bb9215e1231e635197ab759c76a4",
+  "raw_text_hash": "sha256:d5a410038a39d45e4390de345026ff1d90c6d89ad0ff2b393e9f5c512af58596",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 646,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "MAINSTREAM"
+}

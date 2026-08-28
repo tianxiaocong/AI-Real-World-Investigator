@@ -16,8 +16,45 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
 }
 
+import unicodedata
+
 class WebScraper:
     """Robust Web Scraper with SSRF protection, Trafilatura extraction & exact span matching"""
+
+    @staticmethod
+    def extract_clean_text_deterministic(html_content: str) -> str:
+        """
+        Converts HTML to clean, standardized plain text with deterministic guarantees:
+        - Unicode Normalization: NFC
+        - Newline Normalization: \r\n and \r unified to \n
+        - Strips unwanted script/style tags
+        """
+        if not html_content:
+            return ""
+
+        # Primary extraction with trafilatura
+        clean_text = trafilatura.extract(
+            html_content,
+            include_comments=False,
+            include_tables=True,
+            no_fallback=False
+        )
+
+        # Fallback to BeautifulSoup if trafilatura yields minimal text
+        if not clean_text or len(clean_text.strip()) < 100:
+            soup = BeautifulSoup(html_content, "html.parser")
+            for tag in soup(["script", "style", "nav", "footer", "header", "noscript"]):
+                tag.decompose()
+            clean_text = soup.get_text(separator="\n", strip=True)
+
+        if not clean_text:
+            clean_text = ""
+
+        # 1. Newline normalization
+        clean_text = clean_text.replace("\r\n", "\n").replace("\r", "\n")
+        # 2. Unicode NFC normalization
+        clean_text = unicodedata.normalize("NFC", clean_text)
+        return clean_text.strip()
 
     @staticmethod
     async def fetch_and_extract(url: str, timeout_seconds: int = 15) -> Optional[SourceCreate]:
@@ -41,20 +78,7 @@ class WebScraper:
                 if not html_content:
                     return None
 
-                # Primary extraction with trafilatura
-                clean_text = trafilatura.extract(
-                    html_content,
-                    include_comments=False,
-                    include_tables=True,
-                    no_fallback=False
-                )
-
-                # Fallback to BeautifulSoup if trafilatura yields minimal text
-                if not clean_text or len(clean_text.strip()) < 100:
-                    soup = BeautifulSoup(html_content, "html.parser")
-                    for tag in soup(["script", "style", "nav", "footer", "header", "noscript"]):
-                        tag.decompose()
-                    clean_text = soup.get_text(separator="\n", strip=True)
+                clean_text = WebScraper.extract_clean_text_deterministic(html_content)
 
                 if not clean_text or len(clean_text.strip()) < 80:
                     logger.warning(f"Insufficient content extracted from {url}")

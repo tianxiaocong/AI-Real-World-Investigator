@@ -1,0 +1,64 @@
+{
+  "case_id": "p5d-05",
+  "claim": "Anthropic reached preliminary discussions for an additional multi-billion investment round.",
+  "gold_state": "INSUFFICIENT",
+  "derived_state_from_rules": "INSUFFICIENT",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Three web pages exist, but s-02 and s-03 explicitly republish and cite s-01. Resolving the provenance graph yields exactly 1 independent origin without official confirmation, which is INSUFFICIENT."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "AI startup Anthropic has held preliminary discussions regarding potential new investment, according to people familiar with the situation.",
+      "quote_start": 110,
+      "quote_end": 248,
+      "role": "SUPPORTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "As first reported by The Information, Anthropic has held preliminary discussions regarding potential new investment.",
+      "quote_start": 116,
+      "quote_end": 232,
+      "role": "CONTEXTUAL",
+      "directness": "INDIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-03",
+      "exact_quote": "According to reports originally published by The Information, Anthropic is exploring new funding options.",
+      "quote_start": 102,
+      "quote_end": 207,
+      "role": "CONTEXTUAL",
+      "directness": "INDIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [
+    {
+      "source_id": "s-02",
+      "origin_source_id": "s-01",
+      "relation": "REPUBLISHES",
+      "evidence_quote": "As first reported by The Information"
+    },
+    {
+      "source_id": "s-03",
+      "origin_source_id": "s-01",
+      "relation": "CITES",
+      "evidence_quote": "According to reports originally published by The Information"
+    }
+  ],
+  "gold_independent_origins": [
+    "s-01"
+  ],
+  "gold_source_counts": {
+    "total_sources": 3,
+    "independent_origins": 1,
+    "supporting_origins": 1,
+    "contradicting_origins": 0
+  }
+}

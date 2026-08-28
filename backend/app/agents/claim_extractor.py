@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class ExtractedProvenance(BaseModel):
     relation: str = Field(..., description="REPUBLISHES, CITES, or NONE.")
-    target_source_id: Optional[str] = Field(None, description="The origin_source_id if relation is not NONE.")
+    cited_reference: Optional[str] = Field(None, description="The publisher name, organization, author, or URL explicitly cited as the origin if relation is not NONE.")
     evidence_quote: Optional[str] = Field(None, description="The verbatim quote proving the relation.")
 
 class RawExtractedClaim(BaseModel):
@@ -32,10 +32,11 @@ RULES:
 1. "exact_quote" MUST BE A VERBATIM, EXACT character-for-character substring found in the source text. Never paraphrase or alter the quote.
 2. An atomic claim is a single testable statement.
 3. Strictly classify statement nature (claim_type).
-4. Extract PROVENANCE. If the text explicitly states it is republishing from, or citing another specific URL or source name as the ultimate origin of this statement, fill out the `provenance` object.
+4. Extract PROVENANCE. If the text explicitly states it is republishing from, or citing another specific URL or publisher name as the ultimate origin of this statement, fill out the `provenance` object.
    - Set relation to "REPUBLISHES" if it is a direct syndication or republication.
-   - Set relation to "CITES" if it attributes the claim to another specific article or report.
+   - Set relation to "CITES" if it attributes the claim to another specific article, publisher, or report.
    - Set relation to "NONE" if it is original reporting or no explicit citation is found.
+   - Set `cited_reference` to the precise name of the publication, organization, or URL mentioned.
 5. Set confidence based on clarity and specificity of the evidence.
 """
 
@@ -140,7 +141,7 @@ class ClaimExtractorAgent:
             if raw.provenance:
                 res_dict["provenance"] = {
                     "relation": raw.provenance.relation,
-                    "target_source_id": raw.provenance.target_source_id,
+                    "cited_reference": raw.provenance.cited_reference,
                     "evidence_quote": raw.provenance.evidence_quote
                 }
             

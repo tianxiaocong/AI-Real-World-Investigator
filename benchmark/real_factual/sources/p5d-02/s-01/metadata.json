@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-02",
+  "source_url": "https://www.ftc.gov/news-events/news/press-releases/2022/12/ftc-seeks-block-microsofts-acquisition-activision-blizzard",
+  "canonical_url": "https://www.ftc.gov/news-events/news/press-releases/2022/12/ftc-seeks-block-microsofts-acquisition-activision-blizzard",
+  "domain": "ftc.gov",
+  "title": "FTC Seeks to Block Microsoft's Acquisition of Activision Blizzard",
+  "published_at": "2022-12-08T00:00:00Z",
+  "content_hash": "sha256:d77445d0193c5e16b80b5052d40bdb2457f2b6cc5077d50946ca3cfebad93313",
+  "raw_text_hash": "sha256:fe7508069bc679cad8dbe294f4411beb419d555cf95613607b26cf3f0be06000",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 724,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

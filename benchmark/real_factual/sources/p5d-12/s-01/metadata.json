@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-12",
+  "source_url": "https://lykospbc.com/press-releases/fda-issues-complete-response-letter-for-midomafetamine-capsules-for-ptsd/",
+  "canonical_url": "https://lykospbc.com/press-releases/fda-issues-complete-response-letter-for-midomafetamine-capsules-for-ptsd/",
+  "domain": "lykospbc.com",
+  "title": "Lykos Therapeutics Receives Complete Response Letter from FDA",
+  "published_at": "2024-08-09T00:00:00Z",
+  "content_hash": "sha256:485fe291958fb3839a6613afc5f790a3a13147c060b966367d46edebd8d29ef4",
+  "raw_text_hash": "sha256:06ef9a306063ff0870dbea80096e9e02fa7352907fe42b0ea69508d330b97e22",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 722,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

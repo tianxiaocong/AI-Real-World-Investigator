@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-11",
+  "claim": "Apple officially announced that CEO Tim Cook is stepping down immediately.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "Apple's official leadership roster and Bloomberg reporting confirm Tim Cook remains CEO and has not announced resignation."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "Tim Cook is the CEO of Apple and serves on its board of directors.",
+      "quote_start": 0,
+      "quote_end": 66,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Tim Cook has no plans to step down anytime soon and continues active day-to-day executive leadership.",
+      "quote_start": 137,
+      "quote_end": 238,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

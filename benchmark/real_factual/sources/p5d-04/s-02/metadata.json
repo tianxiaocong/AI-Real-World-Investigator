@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-04",
+  "source_url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_24_4133",
+  "canonical_url": "https://ec.europa.eu/commission/presscorner/detail/en/ip_24_4133",
+  "domain": "ec.europa.eu",
+  "title": "European AI Act enters into force",
+  "published_at": "2024-08-01T00:00:00Z",
+  "content_hash": "sha256:009aeb8d33d219f5b210534da94654936d38e04e1c67ca640c5dd8791bd3135e",
+  "raw_text_hash": "sha256:cf33b2e372eb387a17f53dfa87ab4395364587458ea3cfd272b15fb01e9cfe41",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 592,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

@@ -1,0 +1,16 @@
+{
+  "source_id": "s-01",
+  "case_id": "p5d-16",
+  "source_url": "https://www.niddk.nih.gov/health-information/diabetes/overview/managing-diabetes",
+  "canonical_url": "https://www.niddk.nih.gov/health-information/diabetes/overview/managing-diabetes",
+  "domain": "niddk.nih.gov",
+  "title": "Managing Diabetes - NIH National Institute of Diabetes and Digestive and Kidney Diseases",
+  "published_at": "2024-01-01T00:00:00Z",
+  "content_hash": "sha256:80d5daa62bd2f13a98e6f16a45c18c2c8205fef2b034d631d5964e603e95255b",
+  "raw_text_hash": "sha256:109b398c645d5feb9174a62105f052f64f714bcfe46d0dc52a90b4d12952f408",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 711,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}

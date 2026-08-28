@@ -1,0 +1,43 @@
+{
+  "case_id": "p5d-17",
+  "claim": "Compound XYZ has completed human clinical testing and is officially approved for human Alzheimer's treatment.",
+  "gold_state": "UNSUPPORTED",
+  "derived_state_from_rules": "UNSUPPORTED",
+  "consistency_status": "CONSISTENT",
+  "annotation": {
+    "gold_source": "frozen_human_adjudication_transcript",
+    "adjudicated": true,
+    "adjudication_rationale": "The underlying research was conducted exclusively in transgenic mice with no human clinical trials conducted."
+  },
+  "gold_evidence": [
+    {
+      "source_id": "s-01",
+      "exact_quote": "Treatment restored synaptic density exclusively in 6-month-old APP/PS1 transgenic mice; clinical trials in humans have not been conducted.",
+      "quote_start": 127,
+      "quote_end": 265,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    },
+    {
+      "source_id": "s-02",
+      "exact_quote": "Preclinical findings in animal models require rigorous multi-phase human clinical trials before safety and efficacy can be established.",
+      "quote_start": 104,
+      "quote_end": 239,
+      "role": "CONTRADICTS",
+      "directness": "DIRECT",
+      "scope_match": true
+    }
+  ],
+  "gold_provenance": [],
+  "gold_independent_origins": [
+    "s-01",
+    "s-02"
+  ],
+  "gold_source_counts": {
+    "total_sources": 2,
+    "independent_origins": 2,
+    "supporting_origins": 0,
+    "contradicting_origins": 2
+  }
+}

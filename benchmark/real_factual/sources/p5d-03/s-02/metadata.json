@@ -1,0 +1,16 @@
+{
+  "source_id": "s-02",
+  "case_id": "p5d-03",
+  "source_url": "https://www.gov.ca.gov/2024/09/29/governor-newsom-vetoes-sb-1047/",
+  "canonical_url": "https://www.gov.ca.gov/2024/09/29/governor-newsom-vetoes-sb-1047/",
+  "domain": "gov.ca.gov",
+  "title": "Governor Newsom Vetoes SB 1047",
+  "published_at": "2024-09-29T00:00:00Z",
+  "content_hash": "sha256:93faaba582d6b441b8ce1db703ebbb4764d06b9a8bef418942c85ec8210353c8",
+  "raw_text_hash": "sha256:a37d7bae1c2500712ddbd6c6a56b137e9a707250ca8846182af735e3a083081c",
+  "cleaner_version": "v1.1-nfc",
+  "content_type": "text/html; charset=utf-8",
+  "byte_length": 540,
+  "fetch_integrity_status": "VALID",
+  "source_tier_hint": "OFFICIAL"
+}
