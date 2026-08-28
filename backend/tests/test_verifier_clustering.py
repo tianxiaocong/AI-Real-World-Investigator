@@ -44,10 +44,11 @@ async def test_verifier_merges_corroborated_claims_and_counts_independent_source
     # Should be merged into 1 canonical claim
     assert len(results) == 1
     canonical = results[0]
-    assert canonical["verification_status"] == VerificationStatus.CONFIRMED
+    assert canonical["verification_status"] == "SUFFICIENT"
+    assert canonical["evidence_state"] == "SUFFICIENT"
     assert canonical["independent_sources_count"] == 2
     assert len(canonical["sources"]) == 2
-    assert "已确认" in canonical["verdict_summary"]
+    assert "证据充分" in canonical["verdict_summary"]
     assert len(canonical["verdict_reasons"]) >= 2
 
 @pytest.mark.asyncio
@@ -71,5 +72,5 @@ async def test_verifier_classifies_opinions():
 
     results = await verifier.verify_and_cluster_claims([opinion_claim])
     assert len(results) == 1
-    assert results[0]["verification_status"] == VerificationStatus.OPINION_ONLY
-    assert "观点推论" in results[0]["verdict_summary"]
+    assert results[0]["verification_status"] == "NOT_ASSESSABLE"
+    assert "无法评估" in results[0]["verdict_summary"]

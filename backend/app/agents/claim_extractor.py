@@ -39,6 +39,41 @@ RULES:
 5. Set confidence based on clarity and specificity of the evidence.
 """
 
+MAX_INPUT_CHARS = 16000
+
+def select_relevant_text_window(clean_text: str, target_name: str, max_chars: int = MAX_INPUT_CHARS) -> str:
+    """
+    Selects the most informative window from raw content based on target entities/keywords.
+    Prevents blind front-prefix truncation when key evidence is in subsequent sections.
+    """
+    if len(clean_text) <= max_chars:
+        return clean_text
+
+    terms = [w.lower() for w in target_name.split() if len(w) > 1]
+    if not terms:
+        return clean_text[:max_chars]
+
+    window_size = max_chars
+    step = 4000
+    best_window = clean_text[:window_size]
+    max_score = -1
+
+    for start_pos in range(0, len(clean_text), step):
+        end_pos = min(len(clean_text), start_pos + window_size)
+        chunk = clean_text[start_pos:end_pos]
+        chunk_lower = chunk.lower()
+        score = sum(chunk_lower.count(t) for t in terms)
+        
+        if score > max_score:
+            max_score = score
+            best_window = chunk
+
+        if end_pos >= len(clean_text):
+            break
+
+    return best_window
+
+
 class ClaimExtractorAgent:
     def __init__(self, llm_provider: Optional[LLMProvider] = None):
         self.llm = llm_provider or get_llm_provider(tier="fast")
@@ -53,8 +88,8 @@ class ClaimExtractorAgent:
         """
         Extracts validated atomic claims from text, ensuring character-level anchor matching.
         """
-        truncated_text = clean_text[:8000]
-        wrapped = wrap_untrusted_content(truncated_text)
+        selected_text = select_relevant_text_window(clean_text, target_name, max_chars=MAX_INPUT_CHARS)
+        wrapped = wrap_untrusted_content(selected_text)
         st_val = source_type.value if hasattr(source_type, "value") else str(source_type)
 
         prompt = (

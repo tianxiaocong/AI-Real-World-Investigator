@@ -3,13 +3,34 @@ import numpy as np
 from urllib.parse import urlparse
 from typing import List, Dict, Any, Optional, Set
 from pydantic import BaseModel, Field
-from app.models.schemas import VerificationStatus, ClaimType, ConfidenceLevel
+
+from app.models.schemas import ClaimType, ConfidenceLevel
+from app.models.verification_models import (
+    Claim,
+    Source,
+    SourceTier,
+    SourceProvenance,
+    ProvenanceType,
+    Evidence,
+    EvidenceDirectness,
+    EvidenceState,
+    EvidenceAssessment,
+    Verifiability,
+    InputType
+)
+from app.engine.verdict_rules import (
+    assess_evidence_for_claim,
+    compute_evidence_state,
+    resolve_provenance_target
+)
 from app.providers.llm.base import LLMProvider
 from app.providers.llm import get_llm_provider
 
 logger = logging.getLogger(__name__)
 
 def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
+    if not vec_a or not vec_b:
+        return 0.0
     a = np.array(vec_a, dtype=float)
     b = np.array(vec_b, dtype=float)
     norm_a = np.linalg.norm(a)
@@ -18,50 +39,29 @@ def cosine_similarity(vec_a: List[float], vec_b: List[float]) -> float:
         return 0.0
     return float(np.dot(a, b) / (norm_a * norm_b))
 
-try:
-    import tldextract
-    _tld_extractor = tldextract.TLDExtract(cache_dir=None)
-except ImportError:
-    _tld_extractor = None
-
-def extract_root_domain(domain_or_url: str) -> str:
-    """
-    Extract true normalized root domain name using Public Suffix List.
-    Handles 'mobile.reuters.com' -> 'reuters.com', 'news.bbc.co.uk' -> 'bbc.co.uk', etc.
-    """
-    if not domain_or_url:
-        return "unknown"
+def _map_source_type_to_tier(st_val: Any, domain: str = "") -> SourceTier:
+    st_upper = str(st_val.value if hasattr(st_val, "value") else st_val).upper()
+    if st_upper in ("OFFICIAL", "GOVERNMENT"):
+        return SourceTier.OFFICIAL
+    if st_upper in ("NEWS", "DATABASE", "ACADEMIC"):
+        return SourceTier.AUTHORITATIVE
+    if st_upper in ("INDUSTRY", "VENDOR"):
+        return SourceTier.INDUSTRY
+    if st_upper in ("FORUM", "COMMUNITY", "BLOG"):
+        return SourceTier.COMMUNITY
     
-    clean_target = domain_or_url.strip()
-    if clean_target.startswith("mock://"):
-        clean_target = clean_target.replace("mock://", "http://")
-
-    if _tld_extractor:
-        try:
-            ext = _tld_extractor(clean_target)
-            if ext.domain and ext.suffix:
-                return f"{ext.domain}.{ext.suffix}".lower()
-            if ext.domain:
-                return ext.domain.lower()
-        except Exception:
-            pass
-
-    # Fallback to hostname normalization
-    if "://" in clean_target:
-        parsed = urlparse(clean_target)
-        host = parsed.hostname or clean_target
-    else:
-        host = clean_target.split(":")[0].split("/")[0]
-    
-    host = host.lower().strip()
-    parts = host.split(".")
-    if len(parts) > 2:
-        two_part_tlds = {"com.cn", "gov.cn", "org.cn", "net.cn", "co.uk", "gov.uk", "ac.uk", "com.hk", "org.uk"}
-        last_two = ".".join(parts[-2:])
-        if last_two in two_part_tlds and len(parts) >= 3:
-            return ".".join(parts[-3:])
-        return ".".join(parts[-2:])
-    return host
+    d = (domain or "").lower()
+    if any(g in d for g in [".gov", "sec.gov", "samr.gov", ".edu", "court.gov"]):
+        return SourceTier.OFFICIAL
+    if any(o in d for o in ["reuters.com", "bloomberg.com", "apnews.com", "wsj.com", "ft.com", "xinhuanet.com", "cctv.com"]):
+        return SourceTier.AUTHORITATIVE
+    if any(m in d for m in ["36kr.com", "ithome.com", "thepaper.cn", "caixin.com", "sina.com.cn", "163.com", "qq.com"]):
+        return SourceTier.MAINSTREAM
+    if any(i in d for i in ["techcrunch.com", "huxiu.com", "geekpark.net", "infoq.cn"]):
+        return SourceTier.INDUSTRY
+    if any(c in d for c in ["zhihu.com", "weibo.com", "reddit.com", "x.com"]):
+        return SourceTier.COMMUNITY
+    return SourceTier.UNKNOWN
 
 class ConflictJudgement(BaseModel):
     is_conflicting: bool = Field(..., description="True if statement A and statement B present irreconcilable, contradictory facts or opposing figures.")
@@ -76,16 +76,16 @@ Given two statements regarding the same subject, decide if they:
 """
 
 class VerificationAgent:
+    """
+    Unified Verification Agent (Phase 5C Architecture Convergence).
+    Performs canonical claim clustering via embeddings and semantic pairwise LLM arbitration,
+    then strictly delegates all independent source calculation, origin graph resolution,
+    and 6-state verdict determination to the deterministic verdict_rules.py engine.
+    """
     def __init__(self, llm_provider: Optional[LLMProvider] = None):
         self.llm = llm_provider or get_llm_provider(tier="reasoning")
 
     async def verify_and_cluster_claims(self, claims_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """
-        Takes raw claims with embeddings and source metadata,
-        performs canonical claim clustering (merging corroborated claims across sources),
-        cross-examines conflicting pairs, computes independent domain statistics,
-        and assigns dual-dimension ClaimType and VerificationStatus with structured reasons.
-        """
         if not claims_data:
             return []
 
@@ -93,7 +93,6 @@ class VerificationAgent:
         working_claims: List[Dict[str, Any]] = []
         for c in claims_data:
             c_copy = dict(c)
-            # Ensure sources list is present
             if "sources" not in c_copy or not c_copy["sources"]:
                 c_copy["sources"] = [{
                     "id": c_copy.get("source_id", ""),
@@ -107,6 +106,8 @@ class VerificationAgent:
                     "char_end": c_copy.get("char_end"),
                     "context_prefix": c_copy.get("context_prefix", ""),
                     "context_suffix": c_copy.get("context_suffix", ""),
+                    "origin_source_id": c_copy.get("origin_source_id"),
+                    "origin_domain": c_copy.get("origin_domain")
                 }]
             c_copy["contradictions"] = []
             c_copy["contradicting_claims"] = []
@@ -136,16 +137,13 @@ class VerificationAgent:
                 if emb1 and emb2:
                     sim = cosine_similarity(emb1, emb2)
 
-                # Check for high similarity or potential conflict
                 if sim > 0.65:
                     judgement = await self._judge_pair(canonical["statement"], candidate["statement"])
                     
                     if judgement.is_supporting:
-                        # Merge candidate's sources into canonical claim
                         logger.info(f"Corroborating claims merged: '{canonical['statement'][:30]}' <== '{candidate['statement'][:30]}'")
                         merged_indices.add(j)
                         
-                        # Add distinct sources
                         existing_urls = {s.get("url") for s in canonical["sources"]}
                         for src in candidate.get("sources", []):
                             if src.get("url") not in existing_urls or not src.get("url"):
@@ -153,7 +151,6 @@ class VerificationAgent:
                                 if src.get("url"):
                                     existing_urls.add(src.get("url"))
 
-                        # Inherit higher confidence
                         if candidate.get("confidence") == ConfidenceLevel.HIGH:
                             canonical["confidence"] = ConfidenceLevel.HIGH
 
@@ -176,78 +173,153 @@ class VerificationAgent:
 
             merged_clusters.append(canonical)
 
-        # Step 3: Final verdict calculation for each canonical claim
+        # Step 3: Final verdict calculation strictly via unified verdict_rules.py engine
         final_claims: List[Dict[str, Any]] = []
         for claim in merged_clusters:
-            sources = claim.get("sources", [])
+            raw_sources = claim.get("sources", [])
             
-            # Calculate Independent Root Domains and Origin Provenance
-            unique_origins: Set[str] = set()
-            tier_counts: Dict[str, int] = {}
-            for s in sources:
-                dom = extract_root_domain(s.get("domain") or s.get("url") or "")
-                # If origin_domain is indicated (e.g. syndicated report from Bloomberg), use origin
-                origin_dom = extract_root_domain(s.get("origin_domain")) if s.get("origin_domain") else dom
-                if origin_dom and origin_dom != "unknown":
-                    unique_origins.add(origin_dom)
-                st = s.get("source_type", "OTHER")
-                st_str = st.value if hasattr(st, "value") else str(st)
-                tier_counts[st_str] = tier_counts.get(st_str, 0) + 1
+            source_objects: List[Source] = []
+            provenance_objects: List[SourceProvenance] = []
+            evidence_objects: List[Evidence] = []
+            
+            for idx, s in enumerate(raw_sources):
+                s_id = s.get("id") or f"s-{idx+1:02d}"
+                s_tier = _map_source_type_to_tier(s.get("source_type", "OTHER"), s.get("domain", ""))
+                src = Source(
+                    id=s_id,
+                    url=s.get("url") or "",
+                    domain=s.get("domain") or "",
+                    title=s.get("title") or "",
+                    source_tier=s_tier
+                )
+                source_objects.append(src)
+                
+                # Check for origin provenance
+                if s.get("origin_source_id"):
+                    provenance_objects.append(
+                        SourceProvenance(
+                            source_id=s_id,
+                            origin_source_id=s["origin_source_id"],
+                            provenance_type=ProvenanceType.CITES if s.get("provenance_type") == "CITES" else ProvenanceType.REPUBLISHES
+                        )
+                    )
+                elif s.get("origin_domain"):
+                    res_id = resolve_provenance_target(s["origin_domain"], source_objects)
+                    if res_id and res_id != s_id:
+                        provenance_objects.append(
+                            SourceProvenance(
+                                source_id=s_id,
+                                origin_source_id=res_id,
+                                provenance_type=ProvenanceType.REPUBLISHES
+                            )
+                        )
+                
+                # Construct Evidence
+                exact_quote = s.get("exact_quote") or s.get("title") or ""
+                evidence_objects.append(
+                    Evidence(
+                        id=f"e-{claim.get('id', 'c')}-{idx}",
+                        source_id=s_id,
+                        claim_id=claim.get("id", "c"),
+                        exact_quote=exact_quote,
+                        supports_claim=True,
+                        contradicts_claim=False,
+                        directness=EvidenceDirectness.DIRECT if exact_quote else EvidenceDirectness.CONTEXTUAL,
+                        scope_match=True
+                    )
+                )
 
-            independent_count = max(1, len(unique_origins))
-            claim["independent_sources_count"] = independent_count
-            claim["source_tiers_summary"] = tier_counts
+            # Contradicting Evidence
+            for c_idx, ct in enumerate(claim.get("contradictions", [])):
+                opp_id = f"s-opp-{c_idx+1}"
+                opp_src = Source(
+                    id=opp_id,
+                    domain=ct.get("opposing_domain", "外部信源"),
+                    title=ct.get("opposing_statement", ""),
+                    source_tier=SourceTier.AUTHORITATIVE
+                )
+                source_objects.append(opp_src)
+                evidence_objects.append(
+                    Evidence(
+                        id=f"e-opp-{c_idx}",
+                        source_id=opp_id,
+                        claim_id=claim.get("id", "c"),
+                        exact_quote=ct.get("opposing_statement", ""),
+                        supports_claim=False,
+                        contradicts_claim=True,
+                        directness=EvidenceDirectness.DIRECT,
+                        scope_match=True,
+                        evidence_note=ct.get("reason", "")
+                    )
+                )
 
+            # Determine verifiability
             c_type = claim.get("claim_type", ClaimType.FACT_STATEMENT)
             c_type_val = c_type.value if hasattr(c_type, "value") else str(c_type)
+            verifiability = Verifiability.PUBLICLY_VERIFIABLE
+            if c_type_val in ("OPINION", "INFERENCE"):
+                verifiability = Verifiability.NOT_PUBLICLY_VERIFIABLE
 
-            has_contradictions = len(claim.get("contradictions", [])) > 0
-            has_official = tier_counts.get("OFFICIAL", 0) > 0 or tier_counts.get("GOVERNMENT", 0) > 0
-            has_authoritative = has_official or tier_counts.get("NEWS", 0) > 0 or tier_counts.get("DATABASE", 0) > 0 or tier_counts.get("ACADEMIC", 0) > 0
+            claim_obj = Claim(
+                id=claim.get("id", "c-01"),
+                original_input=claim.get("statement", ""),
+                input_type=InputType.TEXT,
+                statement=claim.get("statement", ""),
+                claim_index=0,
+                verifiability=verifiability,
+                verifiability_reason="公开资料检索核验" if verifiability == Verifiability.PUBLICLY_VERIFIABLE else "主观观点/非公开推论",
+                verified_as_of="2026-08-28"
+            )
 
-            # Determine Verification Status & Human Reasoning Checklist
-            verdict_reasons: List[str] = []
+            assessment: EvidenceAssessment = assess_evidence_for_claim(
+                claim=claim_obj,
+                sources=source_objects,
+                evidences=evidence_objects,
+                provenances=provenance_objects
+            )
+            evidence_state: EvidenceState = compute_evidence_state(assessment, claim_obj.verifiability)
 
-            if c_type_val in ("OPINION", ClaimType.OPINION.value, "INFERENCE", ClaimType.INFERENCE.value):
-                claim["verification_status"] = VerificationStatus.OPINION_ONLY
-                claim["verdict_summary"] = "⚪ 观点推论 (主观评估/分析推导)"
-                verdict_reasons.append("该主张属于行业分析师/媒体观点或逻辑推导，不作为客观确凿事实采信。")
-                if independent_count > 1:
-                    verdict_reasons.append(f"共 {independent_count} 个独立信源表达了类似观点倾向。")
+            # Assign strictly unified 6-state outputs
+            claim["evidence_state"] = evidence_state.value
+            claim["verification_status"] = evidence_state.value
+            claim["independent_sources_count"] = assessment.independent_source_count
+            claim["origin_source_count"] = assessment.origin_source_count
+            claim["republish_count"] = assessment.republish_count
+            claim["supporting_evidence_count"] = assessment.supporting_evidence_count
+            claim["contradicting_evidence_count"] = assessment.contradicting_evidence_count
+            claim["has_direct_support"] = assessment.has_direct_support
+            claim["has_strong_independent_support"] = assessment.has_strong_independent_support
+            claim["has_credible_contradicting_evidence"] = assessment.has_credible_contradicting_evidence
 
-            elif has_contradictions or c_type_val in ("DISPUTED", ClaimType.DISPUTED.value):
-                claim["verification_status"] = VerificationStatus.DISPUTED
-                claim["claim_type"] = ClaimType.DISPUTED
+            # Build human readable verdict reasons
+            verdict_reasons = []
+            if evidence_state == EvidenceState.SUFFICIENT:
+                claim["verdict_summary"] = f"🟢 证据充分 ({assessment.independent_source_count} 个独立来源直接证实)"
+                verdict_reasons.append(f"✓ 获得 {assessment.independent_source_count} 个独立信息源交叉证实")
+                verdict_reasons.append("✓ 获得权威/官方直接支持，且当前检索范围内未发现直接冲突")
+            elif evidence_state == EvidenceState.STRONG:
+                claim["verdict_summary"] = f"🟢 证据较强 ({assessment.independent_source_count} 个独立来源)"
+                verdict_reasons.append(f"✓ 获得 {assessment.independent_source_count} 个独立来源支持，无有效反驳证据")
+            elif evidence_state == EvidenceState.CONFLICTING:
                 claim["verdict_summary"] = f"🔴 存在争议 ({len(claim['contradictions'])} 处口径冲突)"
                 for ct in claim["contradictions"]:
                     verdict_reasons.append(f"⚠️ 与信源 [{ct.get('opposing_domain')}] 存在冲突：{ct.get('reason')}")
-
-            elif independent_count >= 2 and has_authoritative:
-                claim["verification_status"] = VerificationStatus.CONFIRMED
-                claim["verdict_summary"] = f"🟢 已确认 ({independent_count} 个独立信源)"
-                domains_str = "、".join(list(unique_origins)[:3])
-                verdict_reasons.append(f"✓ 经 {independent_count} 个独立权威信源交叉证实 ({domains_str})")
-                if has_official:
-                    verdict_reasons.append("✓ 获得一手官方或合规监管主体披露直接支持")
-                verdict_reasons.append("✓ 当前检索范围内未发现直接冲突反证，事实链条自洽")
-
-            elif has_official or (has_authoritative and claim.get("confidence") == ConfidenceLevel.HIGH):
-                claim["verification_status"] = VerificationStatus.PROBABLE
-                claim["verdict_summary"] = f"🟢 基本确认 ({list(unique_origins)[0] if unique_origins else '权威信源'})"
-                verdict_reasons.append(f"✓ 获得权威信源 ({list(unique_origins)[0] if unique_origins else '主流披露'}) 明确报道")
-                verdict_reasons.append("✓ 描述具体翔实，当前检索范围内暂无对立反证")
-
-            elif independent_count == 1:
-                claim["verification_status"] = VerificationStatus.SINGLE_SOURCE
-                first_dom = list(unique_origins)[0] if unique_origins else "单一信源"
-                claim["verdict_summary"] = f"🟠 单一来源 ({first_dom})"
-                verdict_reasons.append(f"ℹ️ 目前仅由单一信源 [{first_dom}] 提及")
-                verdict_reasons.append("ℹ️ 尚未获得第二方独立信源交叉印证，建议审慎参考")
-
+            elif evidence_state == EvidenceState.UNSUPPORTED:
+                claim["verdict_summary"] = "🔴 证据不支持 (发现直接反驳证据)"
+                verdict_reasons.append("发现可靠的反驳证据证实该主张不成立。")
+            elif evidence_state == EvidenceState.NOT_ASSESSABLE:
+                claim["verdict_summary"] = "⚪ 无法评估 (非公开可验证事实/观点推论)"
+                verdict_reasons.append("该事项缺乏公开可验证渠道或属于主观推论。")
             else:
-                claim["verification_status"] = VerificationStatus.UNVERIFIED
-                claim["verdict_summary"] = "⚪ 无法确认 (证据不足)"
-                verdict_reasons.append("缺乏确凿一手出处，当前检索范围内未发现直接有效佐证。")
+                # INSUFFICIENT
+                if assessment.independent_source_count == 1:
+                    first_dom = source_objects[0].domain if source_objects else "单一信源"
+                    claim["verdict_summary"] = f"🟠 单一来源 ({first_dom})"
+                    verdict_reasons.append(f"ℹ️ 目前仅由单一信源 [{first_dom}] 提及")
+                    verdict_reasons.append("ℹ️ 尚未获得第二方独立信源交叉印证，证据不足")
+                else:
+                    claim["verdict_summary"] = "⚪ 证据不足"
+                    verdict_reasons.append("缺乏确凿一手出处或独立交叉验证，建议审慎采信。")
 
             claim["verdict_reasons"] = verdict_reasons
             claim["reasoning"] = "\n".join(verdict_reasons)

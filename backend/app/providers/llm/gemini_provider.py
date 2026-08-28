@@ -108,9 +108,9 @@ class GeminiProvider(LLMProvider):
             return response_model.model_validate(parsed_dict)
 
     async def get_embedding(self, text: str) -> list[float]:
-        """Fetch embedding from text-embedding-004"""
+        """Fetch embedding from text-embedding-004. Returns empty list if unavailable."""
         if not self.api_key:
-            return [0.0] * 768
+            return []
         
         url = f"{self.base_url}/models/text-embedding-004:embedContent?key={self.api_key}"
         payload = {
@@ -123,5 +123,5 @@ class GeminiProvider(LLMProvider):
                 res.raise_for_status()
                 return res.json()["embedding"]["values"]
             except Exception as e:
-                logger.warning(f"Gemini embedding failed: {e}. Fallback to mock vector.")
-                return [0.0] * 768
+                logger.warning(f"Gemini embedding endpoint failed: {e}. Returning empty embedding (lexical fallback).")
+                return []

@@ -36,7 +36,8 @@ from app.models.verification_models import (
 from app.engine.verdict_rules import (
     assess_evidence_for_claim,
     compute_evidence_state,
-    generate_overall_coverage
+    generate_overall_coverage,
+    resolve_provenance_target
 )
 from app.providers.llm.base import LLMProvider
 from app.providers.search.base import SearchProvider
@@ -278,30 +279,24 @@ class FastClaimVerifierAgent:
                     )
                     evidences.append(ev)
 
-                    # 记录信源溯源
+                    # 记录信源溯源 (Canonical strict identity resolution)
                     if raw_ev.origin_credit:
-                        provenances.append(
-                            SourceProvenance(
-                                source_id=matched_s_id,
-                                origin_source_id=raw_ev.origin_credit,
-                                provenance_type=ProvenanceType.CITES,
-                                explanation=f"引用自 {raw_ev.origin_credit}"
+                        resolved_origin_id = resolve_provenance_target(raw_ev.origin_credit, sources)
+                        if resolved_origin_id and resolved_origin_id != matched_s_id:
+                            provenances.append(
+                                SourceProvenance(
+                                    source_id=matched_s_id,
+                                    origin_source_id=resolved_origin_id,
+                                    provenance_type=ProvenanceType.CITES,
+                                    explanation=f"引用自 {raw_ev.origin_credit}"
+                                )
                             )
-                        )
+                        else:
+                            # 严格单源隔离，不凭空捏造未被 manifest 收录的图谱节点 ID
+                            logger.info(f"Provenance reference '{raw_ev.origin_credit}' isolated (not a tracked manifest source).")
             except Exception as e:
-                logger.warning(f"Evidence extraction failed, creating fallback evidence: {e}")
-                for s in sources[:2]:
-                    evidences.append(
-                        Evidence(
-                            id=f"e-{uuid.uuid4().hex[:6]}",
-                            source_id=s.id,
-                            claim_id=claim.id,
-                            exact_quote=s.title,
-                            supports_claim=True,
-                            directness=EvidenceDirectness.DIRECT,
-                            scope_match=True
-                        )
-                    )
+                # 抽取失败必须严格安全降级为 NO_VALID_EVIDENCE，绝不能伪造 supports_claim=True
+                logger.warning(f"Evidence extraction failed or unresolvable: {e}. Defaulting to safe INSUFFICIENT state.")
 
         # 3. 运行确定性规则引擎
         assessment: EvidenceAssessment = assess_evidence_for_claim(

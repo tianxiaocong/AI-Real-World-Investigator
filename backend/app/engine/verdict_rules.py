@@ -25,6 +25,37 @@ from app.models.verification_models import (
     InputType
 )
 
+def resolve_provenance_target(target_ref: Optional[str], sources: List[Source]) -> Optional[str]:
+    """
+    Canonical resolver: maps referenced_url or cited_entity to a source_id in the current manifest.
+    Strict Identity principle: if no reliable match is found, returns None (never guess).
+    """
+    if not target_ref:
+        return None
+    target_clean = target_ref.strip().lower()
+    
+    # 1. Direct match with source_id
+    for src in sources:
+        if src.id.lower() == target_clean:
+            return src.id
+            
+    # 2. Match with URL or domain
+    for src in sources:
+        if src.url and (target_clean in src.url.lower() or src.url.lower() in target_clean):
+            return src.id
+        if src.domain and (target_clean == src.domain.lower() or src.domain.lower() in target_clean or target_clean in src.domain.lower()):
+            return src.id
+            
+    # 3. Match with source title / author
+    for src in sources:
+        if src.title and (target_clean in src.title.lower() or src.title.lower() in target_clean):
+            return src.id
+        if src.author and (target_clean == src.author.lower()):
+            return src.id
+            
+    return None
+
+
 def _resolve_ultimate_origin(source_id: str, provenance_map: Dict[str, SourceProvenance], source_map: Dict[str, Source]) -> str:
     """
     Traverse the provenance graph to find the root origin of a source.
@@ -147,7 +178,7 @@ def assess_evidence_for_claim(
             contradicting_count += 1
             # 具备可信反驳证据要求：DIRECT 且来自非纯社区低质匿名源
             if ev.directness in (EvidenceDirectness.DIRECT, EvidenceDirectness.INDIRECT):
-                if src_tier in (SourceTier.OFFICIAL, SourceTier.AUTHORITATIVE, SourceTier.MAINSTREAM, SourceTier.INDUSTRY):
+                if src_tier in (SourceTier.OFFICIAL, SourceTier.AUTHORITATIVE, SourceTier.MAINSTREAM, SourceTier.INDUSTRY, SourceTier.UNKNOWN):
                     has_credible_contradiction = True
                 elif src_tier == SourceTier.COMMUNITY and ev.directness == EvidenceDirectness.DIRECT:
                     # 社区源如果有详实反证材料也可以记录
@@ -186,9 +217,11 @@ def compute_evidence_state(
     """
     根据证据结构化评估结果与公开可验证性，由规则引擎严格计算单 Claim 的 EvidenceState。
     """
-    # 1. 无法评估：没有找到任何相关证据 + 本身难以通过公开资料验证
+    # 1. 无法评估：非公开可验证事实（主观观点推论），或没有找到任何证据且极难公开验证
+    if verifiability == Verifiability.NOT_PUBLICLY_VERIFIABLE:
+        return EvidenceState.NOT_ASSESSABLE
     if (assessment.total_sources_found == 0 
-        and verifiability in (Verifiability.HARD_TO_VERIFY, Verifiability.NOT_PUBLICLY_VERIFIABLE)):
+        and verifiability == Verifiability.HARD_TO_VERIFY):
         return EvidenceState.NOT_ASSESSABLE
 
     # 2. 证据不支持 (有可靠证据反驳)：必须有可靠反驳，且缺乏可信直接支持

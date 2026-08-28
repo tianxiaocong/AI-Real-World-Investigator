@@ -161,9 +161,9 @@ class OpenAICompatibleProvider(LLMProvider):
             return response_model.model_validate(json.loads(fixed_json))
 
     async def get_embedding(self, text: str) -> list[float]:
-        """Fetch embedding from text-embedding-3-small"""
+        """Fetch embedding from text-embedding-3-small. Returns empty list if unavailable."""
         if not self.api_key:
-            return [0.0] * 768
+            return []
             
         url = f"{self.base_url}/embeddings"
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
@@ -175,5 +175,5 @@ class OpenAICompatibleProvider(LLMProvider):
                 res.raise_for_status()
                 return res.json()["data"][0]["embedding"]
             except Exception as e:
-                logger.warning(f"OpenAI embedding failed: {e}. Fallback to zero vector.")
-                return [0.0] * 768
+                logger.warning(f"OpenAI embedding endpoint failed: {e}. Returning empty embedding (lexical fallback).")
+                return []
