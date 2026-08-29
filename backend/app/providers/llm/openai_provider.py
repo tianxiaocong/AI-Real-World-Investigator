@@ -1,4 +1,5 @@
 import json
+import re
 import logging
 import asyncio
 import random
@@ -38,7 +39,7 @@ class OpenAICompatibleProvider(LLMProvider):
     async def _get_client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
-                timeout=90.0,
+                timeout=120.0,
                 limits=httpx.Limits(max_keepalive_connections=4, max_connections=8)
             )
         return self._client
@@ -144,7 +145,13 @@ class OpenAICompatibleProvider(LLMProvider):
             temperature=temperature
         )
 
-        clean_json = raw_text.strip().strip("`").removeprefix("json").strip()
+        # Robust JSON extraction from markdown code block or plain text
+        m = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", raw_text)
+        if m:
+            clean_json = m.group(1).strip()
+        else:
+            clean_json = raw_text.strip().strip("`").removeprefix("json").strip()
+
         try:
             parsed_dict = json.loads(clean_json)
             return response_model.model_validate(parsed_dict)
@@ -154,10 +161,12 @@ class OpenAICompatibleProvider(LLMProvider):
                 f"Fix the following invalid JSON so it validates against the schema:\n"
                 f"Error: {e}\n"
                 f"Invalid JSON:\n{clean_json}\n"
-                f"Schema:\n{json.dumps(schema, indent=2)}"
+                f"Schema:\n{json.dumps(schema, indent=2)}\n\n"
+                f"Return ONLY valid JSON."
             )
             fixed_text = await self.generate_text(prompt=repair_prompt, temperature=0.1)
-            fixed_json = fixed_text.strip().strip("`").removeprefix("json").strip()
+            m_fix = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", fixed_text)
+            fixed_json = m_fix.group(1).strip() if m_fix else fixed_text.strip().strip("`").removeprefix("json").strip()
             return response_model.model_validate(json.loads(fixed_json))
 
     async def get_embedding(self, text: str) -> list[float]:

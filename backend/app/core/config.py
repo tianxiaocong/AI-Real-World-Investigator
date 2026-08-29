@@ -22,6 +22,11 @@ class Settings(BaseSettings):
     OPENAI_MODEL: Optional[str] = None
     DEEPSEEK_API_KEY: Optional[str] = None
     
+    # SenseNova Configuration
+    SENSENOVA_API_KEY: Optional[str] = None
+    SENSENOVA_BASE_URL: str = "https://token.sensenova.cn/v1"
+    SENSENOVA_MODEL: str = "sensenova-6.8-flash-lite"
+    
     FAST_LLM_MODEL: str = "gemini-1.5-flash"
     REASONING_LLM_MODEL: str = "gemini-1.5-pro"
     

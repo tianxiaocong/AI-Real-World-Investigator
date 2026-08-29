@@ -490,7 +490,7 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock", api_key:
 def main():
     parser = argparse.ArgumentParser(description="Run Live Real-Web E2E Benchmark")
     parser.add_argument("--mode", choices=["cached", "live"], default="cached", help="Execution mode: cached snapshots or live scraping")
-    parser.add_argument("--llm", choices=["mock", "gemini", "openai", "deepseek"], default="mock", help="LLM backend to evaluate")
+    parser.add_argument("--llm", choices=["mock", "gemini", "openai", "deepseek", "sensenova"], default="mock", help="LLM backend to evaluate")
     parser.add_argument("--api-key", default=None, help="Optional API key for LLM provider")
     args = parser.parse_args()
 
