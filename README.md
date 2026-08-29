@@ -79,7 +79,7 @@
                                      ▼
         ┌─────────────────────────────────────────────────────────┐
         │        ClaimExtractorAgent & Exact Quote Grounding      │
-        │    * 三层物理定位 (Verbatim EXACT / Whitespace FUZZY)   │
+        │    * 四级物理定位 (EXACT / NORMALIZED_EXACT / FUZZY / UNVERIFIED) │
         │    * 信源溯源关系提取 (CITES / REPUBLISHES)              │
         └────────────────────────────┬────────────────────────────┘
                                      │

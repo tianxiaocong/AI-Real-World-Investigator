@@ -100,8 +100,8 @@ def test_unicode_nfc_nfd_normalization_in_normalized_exact():
     # In NFD, len("café") is 5 bytes/chars, while in NFC it is 4
     start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(nfc_source, nfd_quote)
     
-    # Must be recognized under canonical normalization as NORMALIZED_EXACT or EXACT depending on direct codepoints
-    assert tier in ("EXACT", "NORMALIZED_EXACT")
+    # NFD quote cannot verbatim match NFC source without normalization -> strictly NORMALIZED_EXACT
+    assert tier == "NORMALIZED_EXACT"
     assert start is not None and end is not None
     assert "café de Paris" in nfc_source[start:end]
 
