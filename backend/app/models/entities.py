@@ -60,6 +60,7 @@ class SourceEntity(Base):
     source_type = Column(String(50), nullable=False, default="OTHER")
     content_hash = Column(String(64), nullable=False)
     raw_content = Column(Text, nullable=True)
+    raw_text = Column(Text, nullable=True)
     clean_text = Column(Text, nullable=False)
     credibility_score = Column(Float, nullable=False, default=0.5)
     source_metadata = Column("metadata", JSON, default=dict)

@@ -231,6 +231,7 @@ class InvestigationOrchestrator:
 
                     if isinstance(source_data, SourceEntity) or (source_data and hasattr(source_data, "clean_text") and source_data.clean_text):
                         src_meta = getattr(source_data, "source_metadata", {}) or {}
+                        src_raw_text = getattr(source_data, "raw_text", None) or source_data.clean_text
                         src_entity = SourceEntity(
                             investigation_id=investigation_id,
                             url=source_data.url,
@@ -238,6 +239,7 @@ class InvestigationOrchestrator:
                             title=source_data.title or (search_meta.title if search_meta else None),
                             source_type=source_data.source_type.value if hasattr(source_data.source_type, "value") else str(source_data.source_type),
                             credibility_score=source_data.credibility_score,
+                            raw_text=src_raw_text,
                             clean_text=source_data.clean_text,
                             raw_content=source_data.raw_content,
                             content_hash=source_data.content_hash,
@@ -248,6 +250,7 @@ class InvestigationOrchestrator:
                     elif search_meta and len(search_meta.snippet) > 30:
                         domain = urlparse(url).hostname or "web-search"
                         st_type, cred = classify_source_and_credibility(url, domain)
+                        snippet_text = f"{search_meta.title}\n\n{search_meta.snippet}"
                         src_entity = SourceEntity(
                             investigation_id=investigation_id,
                             url=url,
@@ -255,7 +258,8 @@ class InvestigationOrchestrator:
                             title=search_meta.title,
                             source_type=st_type.value,
                             credibility_score=cred,
-                            clean_text=f"{search_meta.title}\n\n{search_meta.snippet}",
+                            raw_text=snippet_text,
+                            clean_text=snippet_text,
                             raw_content=search_meta.snippet,
                             content_hash=hashlib.sha256(search_meta.snippet.encode("utf-8")).hexdigest(),
                             source_metadata={"origin": "search_snippet"}
@@ -383,7 +387,9 @@ class InvestigationOrchestrator:
 
             raw_claims_pool = []
             for s in persisted_sources:
+                source_canonical = getattr(s, "raw_text", None) or s.clean_text
                 extracted = await self.extractor.extract_claims_from_source(
+                    source_text=source_canonical,
                     clean_text=s.clean_text,
                     source_url=s.url,
                     source_type=s.source_type,

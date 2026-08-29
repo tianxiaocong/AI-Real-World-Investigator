@@ -33,6 +33,10 @@ async def init_db():
                 sync_conn.execute(text("ALTER TABLE claims ADD COLUMN metadata JSON DEFAULT '{}'"))
             except Exception:
                 pass
+            try:
+                sync_conn.execute(text("ALTER TABLE sources ADD COLUMN raw_text TEXT"))
+            except Exception:
+                pass
         await conn.run_sync(_migrate)
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

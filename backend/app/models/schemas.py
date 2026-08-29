@@ -107,12 +107,15 @@ class SourceBase(BaseModel):
 
 class SourceCreate(SourceBase):
     raw_content: Optional[str] = None
+    raw_text: Optional[str] = None
     clean_text: str
     content_hash: str
 
 class SourceResponse(SourceBase):
     id: str
     investigation_id: str
+    raw_text: Optional[str] = None
+    clean_text: Optional[str] = None
     retrieved_at: datetime
     created_at: datetime
 

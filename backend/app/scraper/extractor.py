@@ -78,6 +78,7 @@ class WebScraper:
                 if not html_content:
                     return None
 
+                raw_text = unicodedata.normalize("NFC", html_content)
                 clean_text = WebScraper.extract_clean_text_deterministic(html_content)
 
                 if not clean_text or len(clean_text.strip()) < 80:
@@ -98,6 +99,7 @@ class WebScraper:
                     title=title,
                     source_type=source_type,
                     credibility_score=credibility,
+                    raw_text=raw_text,
                     clean_text=clean_text,
                     raw_content=html_content[:50000],  # keep max 50KB raw snippet
                     content_hash=content_hash,
