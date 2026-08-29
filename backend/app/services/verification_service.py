@@ -120,7 +120,10 @@ class VerificationService:
         claim_statement: str,
         sources_data: List[Dict[str, Any]],
         verifiability: Verifiability = Verifiability.PUBLICLY_VERIFIABLE,
-        target_entity: Optional[str] = None
+        target_entity: Optional[str] = None,
+        enable_provenance: bool = True,
+        enable_polarity_arbitration: bool = True,
+        enable_relevant_window: bool = True
     ) -> Dict[str, Any]:
         """
         Executes end-to-end claim extraction, evidence alignment, provenance linking,
@@ -130,6 +133,9 @@ class VerificationService:
         :param sources_data: List of dicts with keys (id/source_id, url, title, domain, clean_text/raw_text, source_type)
         :param verifiability: Verifiability enum (default: PUBLICLY_VERIFIABLE)
         :param target_entity: Target entity keyword for relevant window positioning
+        :param enable_provenance: If False, disables textual provenance resolution (Ablation A)
+        :param enable_polarity_arbitration: If False, disables secondary LLM semantic polarity arbitration (Ablation B)
+        :param enable_relevant_window: If False, disables targeted window selection and uses prefix slice (Ablation C)
         :return: Dict containing evidence_state, assessment, extracted_evidences, provenance_edges, etc.
         """
         target = target_entity or claim_statement[:30]
@@ -164,7 +170,8 @@ class VerificationService:
                 clean_text=raw_text,
                 source_url=src_obj.url,
                 source_type=src_obj.source_tier.value,
-                target_name=target
+                target_name=target,
+                use_relevant_window=enable_relevant_window
             )
 
             for item in extracted_items:
@@ -178,32 +185,33 @@ class VerificationService:
                 stmt = item.get("statement", "")
                 scope_match = item.get("quote_match") in ("EXACT", "FUZZY")
 
-                # Evaluate support/contradiction against target claim
-                # If statement or quote matches target assertion
-                eval_prompt = (
-                    f"Target Claim: {claim_statement}\n"
-                    f"Extracted Assertion: {stmt}\n"
-                    f"Exact Source Quote: {quote}\n\n"
-                    f"Does this extracted quote SUPPORT or CONTRADICT the Target Claim?\n"
-                    f"Output strictly JSON with 'supports' (bool), 'contradicts' (bool), 'reason' (str)."
-                )
-
                 supports = False
                 contradicts = False
                 reason = item.get("reasoning", "")
 
-                try:
-                    # Quick semantic polarity arbitration
-                    eval_res = await self.llm.generate_text(prompt=eval_prompt, temperature=0.0)
-                    eval_lower = eval_res.lower()
-                    if '"supports": true' in eval_lower or '"supports":true' in eval_lower:
-                        supports = True
-                    if '"contradicts": true' in eval_lower or '"contradicts":true' in eval_lower:
-                        contradicts = True
-                except Exception as e:
-                    logger.debug(f"Polarity evaluation fallback: {e}")
-                    # Conservative fallback: if claim matches statement closely
-                    if stmt and stmt.lower() in claim_statement.lower():
+                if enable_polarity_arbitration:
+                    # Evaluate support/contradiction against target claim via LLM semantic arbitration
+                    eval_prompt = (
+                        f"Target Claim: {claim_statement}\n"
+                        f"Extracted Assertion: {stmt}\n"
+                        f"Exact Source Quote: {quote}\n\n"
+                        f"Does this extracted quote SUPPORT or CONTRADICT the Target Claim?\n"
+                        f"Output strictly JSON with 'supports' (bool), 'contradicts' (bool), 'reason' (str)."
+                    )
+                    try:
+                        eval_res = await self.llm.generate_text(prompt=eval_prompt, temperature=0.0)
+                        eval_lower = eval_res.lower()
+                        if '"supports": true' in eval_lower or '"supports":true' in eval_lower:
+                            supports = True
+                        if '"contradicts": true' in eval_lower or '"contradicts":true' in eval_lower:
+                            contradicts = True
+                    except Exception as e:
+                        logger.debug(f"Polarity evaluation fallback: {e}")
+                        if stmt and stmt.lower() in claim_statement.lower():
+                            supports = True
+                else:
+                    # Ablation B baseline: naive string containment
+                    if stmt and (stmt.lower() in claim_statement.lower() or claim_statement.lower() in stmt.lower()):
                         supports = True
 
                 ev_id = f"ev-{src_obj.id}-{len(collected_evidences)+1}"
@@ -224,19 +232,20 @@ class VerificationService:
                 )
 
                 # Check for explicit provenance relations
-                prov_meta = item.get("provenance")
-                if prov_meta and prov_meta.get("relation") in ("REPUBLISHES", "CITES"):
-                    target_ref = prov_meta.get("cited_reference") or prov_meta.get("target_source_id") # backward compat
-                    matched_id = resolve_textual_provenance(target_ref, manifest_sources)
-                    if matched_id and matched_id != src_obj.id:
-                        prov_type = ProvenanceType.REPUBLISHES if prov_meta["relation"] == "REPUBLISHES" else ProvenanceType.CITES
-                        collected_provenance.append(
-                            SourceProvenance(
-                                source_id=src_obj.id,
-                                origin_source_id=matched_id,
-                                provenance_type=prov_type
+                if enable_provenance:
+                    prov_meta = item.get("provenance")
+                    if prov_meta and prov_meta.get("relation") in ("REPUBLISHES", "CITES"):
+                        target_ref = prov_meta.get("cited_reference") or prov_meta.get("target_source_id") # backward compat
+                        matched_id = resolve_textual_provenance(target_ref, manifest_sources)
+                        if matched_id and matched_id != src_obj.id:
+                            prov_type = ProvenanceType.REPUBLISHES if prov_meta["relation"] == "REPUBLISHES" else ProvenanceType.CITES
+                            collected_provenance.append(
+                                SourceProvenance(
+                                    source_id=src_obj.id,
+                                    origin_source_id=matched_id,
+                                    provenance_type=prov_type
+                                )
                             )
-                        )
 
         # 3. Construct target Claim entity
         target_claim = Claim(

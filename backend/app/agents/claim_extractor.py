@@ -84,12 +84,16 @@ class ClaimExtractorAgent:
         clean_text: str,
         source_url: str,
         source_type: Any,
-        target_name: str
+        target_name: str,
+        use_relevant_window: bool = True
     ) -> List[dict]:
         """
         Extracts validated atomic claims from text, ensuring character-level anchor matching.
         """
-        selected_text = select_relevant_text_window(clean_text, target_name, max_chars=MAX_INPUT_CHARS)
+        if use_relevant_window:
+            selected_text = select_relevant_text_window(clean_text, target_name, max_chars=MAX_INPUT_CHARS)
+        else:
+            selected_text = clean_text[:MAX_INPUT_CHARS]
         wrapped = wrap_untrusted_content(selected_text)
         st_val = source_type.value if hasattr(source_type, "value") else str(source_type)
 
