@@ -180,11 +180,21 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
     overclaim_count = 0
     conservative_miss_count = 0
     failure_taxonomy = defaultdict(list)
+    total_sources_attempted = 0
+    live_fresh_sources = 0
+    fallback_cached_sources = 0
+    pure_live_case_ids = []
+    pure_live_correct = 0
 
-    print(f"\n========================================================")
+    print(f"\n========================================================================")
     print(f"  AI Real-World Investigator: Real-Web E2E Benchmark")
     print(f"  Mode: {mode.upper()} | LLM: {llm_choice.upper()} | Cases: {len(claims)}")
-    print(f"========================================================\n")
+    if mode == "cached" and llm_choice == "mock":
+        print(f"  [PROTOCOL NOTICE]: Running in DETERMINISTIC CACHED REGRESSION mode.")
+        print(f"  This verifies pipeline logic, but does NOT represent empirical live performance.")
+    elif mode == "live":
+        print(f"  [PROTOCOL NOTICE]: Running in LIVE NETWORK mode. Fresh HTTP fetches will be audited.")
+    print(f"========================================================================\n")
 
     for claim_obj in claims:
         cid = claim_obj["id"]
@@ -195,28 +205,35 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
         # Load or fetch sources
         sources_payload = []
         case_sources_dir = SOURCES_DIR / cid
+        case_had_fallback = False
         
         if mode == "live":
-            # In live mode, attempt to fetch fresh content
+            # In live mode, attempt to fetch fresh content over HTTP
             if case_sources_dir.exists():
                 for s_dir in sorted(case_sources_dir.iterdir()):
                     if s_dir.is_dir() and (s_dir / "metadata.json").exists():
+                        total_sources_attempted += 1
                         with open(s_dir / "metadata.json", "r", encoding="utf-8") as f:
                             meta = json.load(f)
                         url = meta.get("source_url") or meta.get("canonical_url")
                         scraped = await WebScraper.fetch_and_extract(url)
-                        if scraped and scraped.raw_text:
+                        if scraped and scraped.raw_text and len(scraped.raw_text) > 50:
+                            live_fresh_sources += 1
                             sources_payload.append({
                                 "id": meta.get("source_id", s_dir.name),
                                 "url": url,
                                 "domain": scraped.domain,
                                 "title": scraped.title or meta.get("title", ""),
                                 "source_tier": meta.get("source_tier", "AUTHORITATIVE"),
+                                "source_type": meta.get("source_tier", "AUTHORITATIVE"),
                                 "raw_text": scraped.raw_text,
-                                "clean_text": scraped.clean_text
+                                "clean_text": scraped.clean_text,
+                                "fetch_status": "LIVE_FRESH"
                             })
                         else:
-                            # Fallback to cached snapshot on network block
+                            # Fallback to cached snapshot on network block / bot defense
+                            fallback_cached_sources += 1
+                            case_had_fallback = True
                             with open(s_dir / "content.html", "r", encoding="utf-8") as f:
                                 html_text = f.read()
                             raw_t = unicodedata.normalize("NFC", html_text)
@@ -227,10 +244,12 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
                                 "domain": meta.get("domain", ""),
                                 "title": meta.get("title", ""),
                                 "source_tier": meta.get("source_tier", "AUTHORITATIVE"),
+                                "source_type": meta.get("source_tier", "AUTHORITATIVE"),
                                 "raw_text": raw_t,
-                                "clean_text": clean_t
+                                "clean_text": clean_t,
+                                "fetch_status": "CACHED_FALLBACK"
                             })
-                            failure_taxonomy["SCRAPER_BLOCKED_FALLBACK"].append(f"{cid}/{s_dir.name}")
+                            failure_taxonomy["SCRAPER_BLOCKED_FALLBACK"].append(f"{cid}/{s_dir.name} ({url})")
         else:
             # Cached snapshot replay
             if case_sources_dir.exists():
@@ -252,7 +271,8 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
                             "source_tier": meta.get("source_tier", "AUTHORITATIVE"),
                             "source_type": meta.get("source_tier", "AUTHORITATIVE"),
                             "raw_text": raw_t,
-                            "clean_text": clean_t
+                            "clean_text": clean_t,
+                            "fetch_status": "CACHED_REPLAY"
                         })
 
         # Set appropriate Verifiability
@@ -286,6 +306,12 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
                 conservative_miss_count += 1
                 failure_taxonomy["CONSERVATIVE_MISS"].append(f"{cid} (Gold: {gold_state} -> Pred: {pred_state})")
 
+        # Track uncontaminated live metrics
+        if mode == "live" and not case_had_fallback and len(sources_payload) > 0:
+            pure_live_case_ids.append(cid)
+            if is_match:
+                pure_live_correct += 1
+
         # Gather quote grounding tiers from raw_extractions
         case_tiers = []
         for item in verdict.get("raw_extractions", []):
@@ -304,12 +330,14 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
             "pred_state": pred_state,
             "is_correct": is_match,
             "quote_tiers": case_tiers,
+            "had_fallback": case_had_fallback,
             "num_sources": len(sources_payload),
             "num_evidences": len(verdict.get("extracted_evidences", [])),
             "summary": human_explanation[:100] + "..." if len(human_explanation) > 100 else human_explanation
         })
 
-        print(f"  {status_symbol} {cid} [{claim_obj.get('domain', 'General')}]")
+        fetch_badge = "[FALLBACK]" if case_had_fallback else ("[LIVE]" if mode == "live" else "[CACHED]")
+        print(f"  {status_symbol} {cid} {fetch_badge:<10} [{claim_obj.get('domain', 'General')}]")
         print(f"         Gold: {gold_state:<14} | Pred: {pred_state:<14} | Quotes: {case_tiers}")
 
     # Calculate overall metrics
@@ -318,49 +346,70 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
     overclaim_rate = (overclaim_count / total_cases) * 100 if total_cases > 0 else 0.0
     miss_rate = (conservative_miss_count / total_cases) * 100 if total_cases > 0 else 0.0
 
+    pure_live_accuracy = (pure_live_correct / len(pure_live_case_ids) * 100) if pure_live_case_ids else None
+    scraper_success_rate = (live_fresh_sources / total_sources_attempted * 100) if total_sources_attempted > 0 else None
+
     total_quotes = sum(quote_tier_counts.values())
     exact_and_norm = quote_tier_counts.get("EXACT", 0) + quote_tier_counts.get("NORMALIZED_EXACT", 0)
     quote_grounding_rate = (exact_and_norm / total_quotes) * 100 if total_quotes > 0 else 100.0
 
     metrics = {
+        "execution_profile": "CACHED_REGRESSION" if (mode == "cached" and llm_choice == "mock") else "LIVE_EVALUATION",
+        "mode": mode,
+        "llm_tier": llm_choice,
         "total_cases": total_cases,
         "correct_count": correct_count,
         "accuracy_pct": accuracy,
         "overclaim_rate_pct": overclaim_rate,
         "conservative_miss_rate_pct": miss_rate,
         "quote_grounding_rate_pct": quote_grounding_rate,
+        "pure_live_cases_evaluated": len(pure_live_case_ids),
+        "pure_live_accuracy_pct": pure_live_accuracy,
+        "scraper_live_success_rate_pct": scraper_success_rate,
         "quote_tier_distribution": dict(quote_tier_counts),
         "confusion_matrix": {k: dict(v) for k, v in confusion_matrix.items()},
         "failure_taxonomy": dict(failure_taxonomy)
     }
 
     # Print Confusion Matrix Table
-    print("\n" + "=" * 64)
+    print("\n" + "=" * 68)
     print("  CONFUSION MATRIX (Gold Rows vs Predicted Columns)")
-    print("=" * 64)
+    print("=" * 68)
     header = f"{'Gold \\ Pred':<16} | " + " | ".join(f"{s[:4]:<4}" for s in STATE_ORDER)
     print(header)
     print("-" * len(header))
     for gold in STATE_ORDER:
         row = f"{gold:<16} | " + " | ".join(f"{confusion_matrix[gold][pred]:<4}" for pred in STATE_ORDER)
         print(row)
-    print("=" * 64)
+    print("=" * 68)
 
-    print(f"\n  OVERALL ACCURACY:         {accuracy:.1f}% ({correct_count}/{total_cases})")
-    print(f"  OVERCLAIM RATE:           {overclaim_rate:.1f}% ({overclaim_count}/{total_cases}) [Safety Goal: 0.0%]")
-    print(f"  CONSERVATIVE MISS RATE:   {miss_rate:.1f}% ({conservative_miss_count}/{total_cases})")
-    print(f"  QUOTE GROUNDING RATE:     {quote_grounding_rate:.1f}% ({exact_and_norm}/{total_quotes})")
-    print(f"  QUOTE TIERS:              {dict(quote_tier_counts)}\n")
+    print(f"\n  OVERALL ACCURACY:               {accuracy:.1f}% ({correct_count}/{total_cases})")
+    print(f"  OVERCLAIM RATE:                 {overclaim_rate:.1f}% ({overclaim_count}/{total_cases}) [Safety Goal: 0.0%]")
+    print(f"  CONSERVATIVE MISS RATE:         {miss_rate:.1f}% ({conservative_miss_count}/{total_cases})")
+    print(f"  QUOTE GROUNDING RATE:           {quote_grounding_rate:.1f}% ({exact_and_norm}/{total_quotes})")
+    if scraper_success_rate is not None:
+        print(f"  LIVE SCRAPER RETRIEVAL RATE:    {scraper_success_rate:.1f}% ({live_fresh_sources}/{total_sources_attempted})")
+    if pure_live_accuracy is not None:
+        print(f"  PURE LIVE (UNCONTAMINATED) ACC: {pure_live_accuracy:.1f}% ({pure_live_correct}/{len(pure_live_case_ids)})")
+    print(f"  QUOTE TIERS:                    {dict(quote_tier_counts)}\n")
 
     # Generate Markdown Summary Report
     acc_status = 'PASS' if accuracy >= 90 else 'WARN'
     oc_status = 'PERFECT' if overclaim_rate == 0 else 'OVERCLAIM'
     qg_status = 'GROUNDED' if quote_grounding_rate >= 95 else 'WEAK'
+    
+    methodology_note = ""
+    if mode == "cached" and llm_choice == "mock":
+        methodology_note = "> [!NOTE]\n> **Methodological Context**: This benchmark execution was run in `CACHED + MOCK` mode as a deterministic pipeline regression baseline. Results demonstrate that extraction, quote anchoring, and verdict state transitions operate without regressions under frozen conditions, but should not be conflated with live internet scraping and stochastic LLM reasoning.\n"
+    elif mode == "live":
+        methodology_note = f"> [!NOTE]\n> **Live Execution Telemetry**: Real HTTP requests were attempted for {total_sources_attempted} web sources. Scraper fresh fetch success rate: **{scraper_success_rate:.1f}%** ({live_fresh_sources}/{total_sources_attempted}). Pure uncontaminated live cases evaluated: **{len(pure_live_case_ids)}**.\n"
+
     md_content = f"""# Real-Web E2E Benchmark Evaluation Report
 
 **Evaluation Date**: 2026-08-30  
-**Mode**: `{mode.upper()}` | **LLM Tier**: `{llm_choice.upper()}` | **Total Cases**: `{total_cases}`
+**Execution Mode**: `{mode.upper()}` | **LLM Provider**: `{llm_choice.upper()}` | **Total Cases**: `{total_cases}`
 
+{methodology_note}
 ---
 
 ## Executive Summary Metrics
@@ -371,7 +420,13 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
 | **Overclaim Rate (Safety Invariant)** | **{overclaim_rate:.1f}%** | **0.0%** | {oc_status} |
 | **Conservative Miss Rate** | **{miss_rate:.1f}%** | <= 10.0% | ACCEPTABLE |
 | **True Raw-Text Quote Grounding** | **{quote_grounding_rate:.1f}%** | >= 95.0% | {qg_status} |
+"""
+    if scraper_success_rate is not None:
+        md_content += f"| **Live Scraper Retrieval Rate** | **{scraper_success_rate:.1f}%** | >= 80.0% | {'PASS' if scraper_success_rate >= 80 else 'BOT_BLOCKED'} |\n"
+    if pure_live_accuracy is not None:
+        md_content += f"| **Pure Live (Uncontaminated) Accuracy** | **{pure_live_accuracy:.1f}%** | >= 85.0% | {'PASS' if pure_live_accuracy >= 85 else 'WARN'} |\n"
 
+    md_content += f"""
 ---
 
 ## 6x6 Confusion Matrix
