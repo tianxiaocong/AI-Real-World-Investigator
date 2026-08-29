@@ -90,16 +90,34 @@ def test_case_insensitive_fuzzy_matching():
     assert source_text[start:end].lower() == quote.lower()
 
 
-def test_sliding_anchor_matching():
-    source_text = "The quick brown fox jumps over the lazy dog and runs into the forest near the river."
-    # Quote with slight middle word modification
-    tampered_quote = "The quick brown fox leaps over the lazy dog and runs into the forest"
+def test_unicode_nfc_nfd_normalization_in_normalized_exact():
+    import unicodedata
+    # Base composed text (NFC) vs Decomposed input quote (NFD)
+    # e.g., 'é' composed (\u00e9) vs 'e' + combining acute accent (\u0065\u0301)
+    nfc_source = "Le café de Paris a annoncé ses résultats financiers."
+    nfd_quote = unicodedata.normalize("NFD", "café de Paris")
     
-    start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(source_text, tampered_quote)
+    # In NFD, len("café") is 5 bytes/chars, while in NFC it is 4
+    start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(nfc_source, nfd_quote)
     
+    # Must be recognized under canonical normalization as NORMALIZED_EXACT or EXACT depending on direct codepoints
+    assert tier in ("EXACT", "NORMALIZED_EXACT")
+    assert start is not None and end is not None
+    assert "café de Paris" in nfc_source[start:end]
+
+
+def test_sliding_anchor_matching_ocr_drift():
+    source_text = "The quick brown fox jumps over the lazy dog and runs into the deep green forest near the flowing river."
+    # Quote with internal OCR / layout word drift ("leaps" instead of "jumps", "dense" instead of "deep green")
+    tampered_ocr_quote = "The quick brown fox leaps over the lazy dog and runs into the dense forest"
+    
+    start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(source_text, tampered_ocr_quote)
+    
+    # Lengthy quote with prefix/suffix anchors but internal OCR drift -> strictly FUZZY
     assert tier == "FUZZY"
     assert start is not None and end is not None
     assert start == 0
+    assert "The quick brown fox" in source_text[start:end]
 
 
 def test_hallucinated_quote_returns_unverified():
