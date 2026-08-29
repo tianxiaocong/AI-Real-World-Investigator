@@ -153,7 +153,7 @@ class BenchmarkMockProvider(MockLLMProvider):
         return '{"supports": true, "contradicts": false, "reason": "Quote directly supports target claim assertion."}'
 
 
-async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[str, Any]:
+async def run_benchmark(mode: str = "cached", llm_choice: str = "mock", api_key: Optional[str] = None) -> Dict[str, Any]:
     claims_file = BASE_DIR / "claims.jsonl"
     gold_file = BASE_DIR / "gold_annotations.jsonl"
     
@@ -166,7 +166,7 @@ async def run_benchmark(mode: str = "cached", llm_choice: str = "mock") -> Dict[
     if llm_choice == "mock":
         llm = BenchmarkMockProvider()
     else:
-        llm = get_llm_provider(tier="fast")
+        llm = get_llm_provider(llm_choice, tier="fast", api_key=api_key)
         
     extractor = ClaimExtractorAgent(llm_provider=llm)
     service = VerificationService(llm_provider=llm)
@@ -491,9 +491,10 @@ def main():
     parser = argparse.ArgumentParser(description="Run Live Real-Web E2E Benchmark")
     parser.add_argument("--mode", choices=["cached", "live"], default="cached", help="Execution mode: cached snapshots or live scraping")
     parser.add_argument("--llm", choices=["mock", "gemini", "openai", "deepseek"], default="mock", help="LLM backend to evaluate")
+    parser.add_argument("--api-key", default=None, help="Optional API key for LLM provider")
     args = parser.parse_args()
 
-    asyncio.run(run_benchmark(mode=args.mode, llm_choice=args.llm))
+    asyncio.run(run_benchmark(mode=args.mode, llm_choice=args.llm, api_key=args.api_key))
 
 
 if __name__ == "__main__":
