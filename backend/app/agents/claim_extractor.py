@@ -81,19 +81,21 @@ class ClaimExtractorAgent:
 
     async def extract_claims_from_source(
         self,
-        clean_text: str,
-        source_url: str,
-        source_type: Any,
-        target_name: str,
-        use_relevant_window: bool = True
+        clean_text: str = "",
+        source_url: str = "",
+        source_type: Any = "UNKNOWN",
+        target_name: str = "",
+        use_relevant_window: bool = True,
+        source_text: Optional[str] = None
     ) -> List[dict]:
         """
-        Extracts validated atomic claims from text, ensuring character-level anchor matching.
+        Extracts validated atomic claims from canonical source text, ensuring character-level anchor matching.
         """
+        text_to_use = source_text if source_text is not None else clean_text
         if use_relevant_window:
-            selected_text = select_relevant_text_window(clean_text, target_name, max_chars=MAX_INPUT_CHARS)
+            selected_text = select_relevant_text_window(text_to_use, target_name, max_chars=MAX_INPUT_CHARS)
         else:
-            selected_text = clean_text[:MAX_INPUT_CHARS]
+            selected_text = text_to_use[:MAX_INPUT_CHARS]
         wrapped = wrap_untrusted_content(selected_text)
         st_val = source_type.value if hasattr(source_type, "value") else str(source_type)
 
@@ -118,22 +120,22 @@ class ClaimExtractorAgent:
 
         validated_results = []
         for raw in batch.claims:
-            quote = raw.exact_quote.strip()
-            if not quote:
+            raw_quote = raw.exact_quote # Unmodified raw quote from LLM
+            if not raw_quote or not raw_quote.strip():
                 continue
 
-            # Verify and locate the span in original text with 3-tier precision matching
-            start, end, prefix, suffix, match_tier, element_role, block_id = WebScraper.locate_quote_spans(clean_text, quote)
+            # Verify and locate the span in canonical source text with strict 4-tier precision matching
+            start, end, prefix, suffix, match_tier, element_role, block_id = WebScraper.locate_quote_spans(text_to_use, raw_quote)
             
             if match_tier == "UNVERIFIED":
-                logger.debug(f"Quote not verifiable in source text: {quote[:40]}")
+                logger.debug(f"Quote not verifiable in source text: {raw_quote[:40]}")
             
             res_dict = {
                 "statement": raw.statement,
                 "claim_type": raw.claim_type,
                 "confidence": raw.confidence,
                 "reasoning": raw.reasoning,
-                "exact_quote": quote,
+                "exact_quote": raw_quote, # Preserved strictly unmodified!
                 "quote_match": match_tier,
                 "char_start": start,
                 "char_end": end,

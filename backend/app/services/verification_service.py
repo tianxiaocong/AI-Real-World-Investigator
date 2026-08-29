@@ -162,12 +162,13 @@ class VerificationService:
         raw_extractions: List[Dict[str, Any]] = []
 
         for s, src_obj in zip(sources_data, manifest_sources):
-            raw_text = s.get("clean_text") or s.get("raw_text") or ""
-            if not raw_text:
+            canonical_text = s.get("raw_text") or s.get("clean_text") or s.get("raw_content") or ""
+            if not canonical_text:
                 continue
 
             extracted_items = await self.extractor.extract_claims_from_source(
-                clean_text=raw_text,
+                clean_text=canonical_text,
+                source_text=canonical_text,
                 source_url=src_obj.url,
                 source_type=src_obj.source_tier.value,
                 target_name=target,
@@ -175,8 +176,8 @@ class VerificationService:
             )
 
             for item in extracted_items:
-                quote = item.get("exact_quote", "").strip()
-                if not quote:
+                quote = item.get("exact_quote", "")
+                if not quote or not quote.strip():
                     continue
 
                 raw_extractions.append(item)

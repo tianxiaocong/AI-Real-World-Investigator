@@ -171,3 +171,90 @@ def test_dom_element_role_detection():
     assert tier == "EXACT"
     assert role == "ASIDE"
     assert block_id == "aside#trending-news"
+
+
+@pytest.mark.asyncio
+async def test_e2e_claim_extractor_quote_immutability_and_normalization():
+    """
+    Validates end-to-end production invariant in ClaimExtractorAgent:
+    - Input raw source contains 'AAA hello world BBB'
+    - LLM returns exact_quote with leading/trailing spaces: '  hello world  '
+    - Invariant 1: exact_quote in returned dict is strictly unmutated ('  hello world  ')
+    - Invariant 2: match_tier is strictly NORMALIZED_EXACT (NOT EXACT!)
+    - Invariant 3: char_start and char_end slice the raw source: source[start:end] == 'hello world'
+    """
+    from app.agents.claim_extractor import ClaimExtractorAgent, ClaimExtractionBatch, RawExtractedClaim
+    from unittest.mock import AsyncMock
+    
+    mock_llm = AsyncMock()
+    mock_llm.generate_structured.return_value = ClaimExtractionBatch(
+        claims=[
+            RawExtractedClaim(
+                statement="A test statement.",
+                claim_type="FACT_STATEMENT",
+                confidence="HIGH",
+                exact_quote="  hello world  ",  # LLM returned padded quote
+                reasoning="Test reasoning"
+            )
+        ]
+    )
+    
+    extractor = ClaimExtractorAgent(llm_provider=mock_llm)
+    source_text = "AAA hello world BBB"
+    
+    results = await extractor.extract_claims_from_source(
+        source_text=source_text,
+        source_url="https://example.com/test",
+        source_type="OFFICIAL",
+        target_name="test target"
+    )
+    
+    assert len(results) == 1
+    res = results[0]
+    
+    # Invariant 1: raw exact_quote preserved strictly unmodified
+    assert res["exact_quote"] == "  hello world  "
+    # Invariant 2: Tier is strictly NORMALIZED_EXACT (not EXACT because of padding)
+    assert res["quote_match"] == "NORMALIZED_EXACT"
+    # Invariant 3: Offsets slice the matching tokens in source text
+    start, end = res["char_start"], res["char_end"]
+    assert source_text[start:end] == "hello world"
+
+
+@pytest.mark.asyncio
+async def test_e2e_claim_extractor_verbatim_exact():
+    """
+    Validates verbatim EXACT path in ClaimExtractorAgent when LLM outputs exact substring.
+    """
+    from app.agents.claim_extractor import ClaimExtractorAgent, ClaimExtractionBatch, RawExtractedClaim
+    from unittest.mock import AsyncMock
+    
+    mock_llm = AsyncMock()
+    mock_llm.generate_structured.return_value = ClaimExtractionBatch(
+        claims=[
+            RawExtractedClaim(
+                statement="Verbatim statement.",
+                claim_type="FACT_STATEMENT",
+                confidence="HIGH",
+                exact_quote="hello world",  # exact verbatim substring
+                reasoning="Verbatim reasoning"
+            )
+        ]
+    )
+    
+    extractor = ClaimExtractorAgent(llm_provider=mock_llm)
+    source_text = "AAA hello world BBB"
+    
+    results = await extractor.extract_claims_from_source(
+        source_text=source_text,
+        source_url="https://example.com/test",
+        source_type="OFFICIAL",
+        target_name="test target"
+    )
+    
+    assert len(results) == 1
+    res = results[0]
+    assert res["exact_quote"] == "hello world"
+    assert res["quote_match"] == "EXACT"
+    start, end = res["char_start"], res["char_end"]
+    assert source_text[start:end] == "hello world"
