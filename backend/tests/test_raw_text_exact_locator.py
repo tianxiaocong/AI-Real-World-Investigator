@@ -10,7 +10,7 @@ def test_verbatim_exact_invariant_ascii():
     
     assert tier == "EXACT"
     assert start is not None and end is not None
-    # Strict Mathematical Invariant
+    # Strict Mathematical Invariant: source_text[start:end] MUST equal quote literally
     assert source_text[start:end] == quote
     assert prefix == "OpenAI announced ChatGPT Plus at a subscription price of "
     assert suffix == ""
@@ -30,15 +30,16 @@ def test_verbatim_exact_invariant_chinese():
     assert suffix == "，金石投资跟投。"
 
 
-def test_whitespace_padded_quote_invariant():
+def test_whitespace_padded_quote_returns_normalized_exact():
     source_text = "The Federal Trade Commission filed an administrative complaint to block Microsoft from acquiring Activision Blizzard."
     padded_quote = "  an administrative complaint to block Microsoft   "
     
     start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(source_text, padded_quote)
     
-    assert tier == "EXACT"
+    # Must NOT pretend to be EXACT because quote had padding; MUST be NORMALIZED_EXACT
+    assert tier == "NORMALIZED_EXACT"
     assert start is not None and end is not None
-    # Invariant: points to the exact trimmed slice
+    # Slice matches the raw text token sequence
     assert source_text[start:end] == "an administrative complaint to block Microsoft"
 
 
@@ -48,11 +49,22 @@ def test_normalized_exact_newline_variations():
     
     start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(source_text, quote)
     
-    assert tier in ("NORMALIZED_EXACT", "FUZZY")
+    # Tokens match with identical order and case across newlines -> NORMALIZED_EXACT
+    assert tier == "NORMALIZED_EXACT"
     assert start is not None and end is not None
-    # Slice matches the raw text block in the source
     assert "DeepSeek-V3 achieved" in source_text[start:end]
     assert "coding evaluations." in source_text[start:end]
+
+
+def test_normalized_exact_multiple_spaces():
+    source_text = "NVIDIA reported   record-breaking   quarterly revenue."
+    quote = "NVIDIA reported record-breaking quarterly revenue."
+    
+    start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(source_text, quote)
+    
+    assert tier == "NORMALIZED_EXACT"
+    assert start is not None and end is not None
+    assert source_text[start:end] == "NVIDIA reported   record-breaking   quarterly revenue."
 
 
 def test_smart_quotes_and_unicode_symbols():
@@ -72,6 +84,7 @@ def test_case_insensitive_fuzzy_matching():
     
     start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(source_text, quote)
     
+    # Case difference -> strictly FUZZY
     assert tier == "FUZZY"
     assert start is not None and end is not None
     assert source_text[start:end].lower() == quote.lower()
@@ -79,7 +92,7 @@ def test_case_insensitive_fuzzy_matching():
 
 def test_sliding_anchor_matching():
     source_text = "The quick brown fox jumps over the lazy dog and runs into the forest near the river."
-    # Quote with slight middle variation
+    # Quote with slight middle word modification
     tampered_quote = "The quick brown fox leaps over the lazy dog and runs into the forest"
     
     start, end, prefix, suffix, tier, role, block_id = WebScraper.locate_quote_spans(source_text, tampered_quote)

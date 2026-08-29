@@ -110,48 +110,115 @@ class WebScraper:
 
     @staticmethod
     def locate_quote_spans(
-        clean_text: str,
+        source_text: str,
         quote: str
     ) -> Tuple[Optional[int], Optional[int], Optional[str], Optional[str], str, str, str]:
         """
-        Locates the exact character position of a quote in the source text,
-        along with surrounding context window and strict invariant match tier.
+        Locates the character position of a quote in the source text,
+        along with surrounding context window and strictly verified match tiers.
         Returns:
             (char_start, char_end, prefix, suffix, match_tier, element_role, block_id)
         
-        Strict Invariants:
-        - match_tier == "EXACT":
-            0 <= char_start < char_end <= len(clean_text)
-            clean_text[char_start:char_end] == matched_quote (verbatim codepoint slice)
-        - match_tier == "NORMALIZED_EXACT":
-            0 <= char_start < char_end <= len(clean_text)
-            clean_text[char_start:char_end] slices the raw text matching the quote
-            under whitespace normalization.
-        - match_tier == "FUZZY":
-            Anchored via case-insensitive or sliding window regex.
-        - match_tier == "UNVERIFIED":
-            (None, None, None, None, "UNVERIFIED", "UNKNOWN", "")
+        Strict Tier Definitions:
+        - EXACT:
+            Strict literal character-for-character equality:
+            source_text[char_start:char_end] == quote (verbatim codepoint slice, zero modification).
+        - NORMALIZED_EXACT:
+            The exact token sequence matches in identical order and case, but with
+            whitespace normalization (leading/trailing trim, multiple spaces, newlines, tabs).
+            source_text[char_start:char_end] slices the raw text containing those exact tokens.
+        - FUZZY:
+            Case-insensitive match or prefix/suffix sliding anchor match.
+        - UNVERIFIED:
+            No reliable anchor found; returns None coordinates.
         """
-        if not clean_text or not quote:
+        if not source_text or not quote:
             return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""
 
-        # Apply NFC Unicode normalization consistently
-        norm_source = unicodedata.normalize("NFC", clean_text)
+        # --- Tier 1: True Verbatim EXACT Match (zero modification) ---
+        idx_verbatim = source_text.find(quote)
+        if idx_verbatim != -1 and len(quote) > 0:
+            char_start = idx_verbatim
+            char_end = idx_verbatim + len(quote)
+            prefix = source_text[max(0, char_start - 120):char_start]
+            suffix = source_text[char_end:min(len(source_text), char_end + 120)]
+            element_role, block_id = WebScraper._extract_dom_role(source_text, quote)
+            return char_start, char_end, prefix, suffix, "EXACT", element_role, block_id
+
+        # --- Tier 2: NORMALIZED_EXACT (Whitespace / Trimming / Unicode variations) ---
+        norm_source = unicodedata.normalize("NFC", source_text)
         norm_quote = unicodedata.normalize("NFC", quote)
-        raw_quote = norm_quote.strip()
-
-        if not raw_quote:
+        
+        # If quote had leading/trailing whitespace, try finding trimmed quote
+        trimmed_quote = norm_quote.strip()
+        if not trimmed_quote:
             return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""
 
-        # --- DOM Role / Element Hierarchy Extraction ---
+        import re
+        tokens = trimmed_quote.split()
+        if tokens:
+            escaped_tokens = [re.escape(w) for w in tokens]
+            pattern_exact_tokens = r'\s+'.join(escaped_tokens)
+            try:
+                match_norm = re.search(pattern_exact_tokens, norm_source)
+                if match_norm:
+                    char_start = match_norm.start()
+                    char_end = match_norm.end()
+                    prefix = norm_source[max(0, char_start - 120):char_start]
+                    suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
+                    element_role, block_id = WebScraper._extract_dom_role(norm_source, trimmed_quote)
+                    return char_start, char_end, prefix, suffix, "NORMALIZED_EXACT", element_role, block_id
+            except Exception as e:
+                logger.debug(f"Regex error in exact tokens matching: {e}")
+
+            # --- Tier 3: FUZZY (Case-insensitive or sliding window) ---
+            try:
+                match_ci = re.search(pattern_exact_tokens, norm_source, flags=re.IGNORECASE)
+                if match_ci:
+                    char_start = match_ci.start()
+                    char_end = match_ci.end()
+                    prefix = norm_source[max(0, char_start - 120):char_start]
+                    suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
+                    element_role, block_id = WebScraper._extract_dom_role(norm_source, trimmed_quote)
+                    return char_start, char_end, prefix, suffix, "FUZZY", element_role, block_id
+            except Exception as e:
+                logger.debug(f"Regex error in case-insensitive matching: {e}")
+
+            # Sliding Anchor Matching for Lengthy Quotes (>= 5 tokens)
+            if len(tokens) >= 5:
+                prefix_pattern = r'\s+'.join(escaped_tokens[:4])
+                try:
+                    match_p = re.search(prefix_pattern, norm_source, flags=re.IGNORECASE)
+                    if match_p:
+                        char_start = match_p.start()
+                        suffix_pattern = r'\s+'.join(escaped_tokens[-3:])
+                        match_s = re.search(suffix_pattern, norm_source[char_start:], flags=re.IGNORECASE)
+                        if match_s:
+                            char_end = char_start + match_s.end()
+                        else:
+                            char_end = min(len(norm_source), char_start + len(trimmed_quote))
+                        prefix = norm_source[max(0, char_start - 100):char_start]
+                        suffix = norm_source[char_end:min(len(norm_source), char_end + 100)]
+                        element_role, block_id = WebScraper._extract_dom_role(norm_source, trimmed_quote)
+                        return char_start, char_end, prefix, suffix, "FUZZY", element_role, block_id
+                except Exception as e:
+                    pass
+
+        # --- Tier 4: UNVERIFIED ---
+        return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""
+
+    @staticmethod
+    def _extract_dom_role(source_text: str, quote: str) -> Tuple[str, str]:
+        """Helper to extract DOM element role and block ID if source text is HTML."""
         element_role = "MAIN"
         block_id = ""
-        if "<" in norm_source and ">" in norm_source:
+        if "<" in source_text and ">" in source_text:
             try:
-                soup = BeautifulSoup(norm_source, "html.parser")
+                soup = BeautifulSoup(source_text, "html.parser")
                 found_element = None
+                raw_q = quote.strip()
                 for text_node in soup.find_all(string=True):
-                    if raw_quote in text_node or raw_quote.lower() in text_node.lower():
+                    if raw_q in text_node or raw_q.lower() in text_node.lower():
                         found_element = text_node.parent
                         break
                 
@@ -172,73 +239,4 @@ class WebScraper:
                         curr = curr.parent
             except Exception:
                 pass
-
-        # 1. Verbatim Substring Search (Full Quote with exact whitespace)
-        idx_full = norm_source.find(norm_quote)
-        if idx_full != -1 and len(norm_quote) > 0:
-            char_start = idx_full
-            char_end = idx_full + len(norm_quote)
-            prefix = norm_source[max(0, char_start - 120):char_start]
-            suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
-            return char_start, char_end, prefix, suffix, "EXACT", element_role, block_id
-
-        # 2. Verbatim Substring Search (Trimmed Quote)
-        idx_raw = norm_source.find(raw_quote)
-        if idx_raw != -1:
-            char_start = idx_raw
-            char_end = idx_raw + len(raw_quote)
-            prefix = norm_source[max(0, char_start - 120):char_start]
-            suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
-            return char_start, char_end, prefix, suffix, "EXACT", element_role, block_id
-
-        import re
-        escaped_tokens = [re.escape(w) for w in raw_quote.split() if w]
-
-        # 3. Normalized Exact Match (Arbitrary Whitespace / Newlines between exact tokens)
-        if escaped_tokens:
-            pattern_exact_case = r'\s+'.join(escaped_tokens)
-            try:
-                match = re.search(pattern_exact_case, norm_source)
-                if match:
-                    char_start = match.start()
-                    char_end = match.end()
-                    prefix = norm_source[max(0, char_start - 120):char_start]
-                    suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
-                    matched_slice = norm_source[char_start:char_end]
-                    tier = "NORMALIZED_EXACT" if "".join(matched_slice.split()) == "".join(raw_quote.split()) else "FUZZY"
-                    return char_start, char_end, prefix, suffix, tier, element_role, block_id
-            except Exception as e:
-                logger.debug(f"Regex error in exact case matching: {e}")
-
-            # 4. Case-Insensitive Normalized Match
-            try:
-                match_ci = re.search(pattern_exact_case, norm_source, flags=re.IGNORECASE)
-                if match_ci:
-                    char_start = match_ci.start()
-                    char_end = match_ci.end()
-                    prefix = norm_source[max(0, char_start - 120):char_start]
-                    suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
-                    return char_start, char_end, prefix, suffix, "FUZZY", element_role, block_id
-            except Exception as e:
-                logger.debug(f"Regex error in case-insensitive matching: {e}")
-
-        # 5. Sliding Anchor Matching for Lengthy Quotes (>= 5 tokens)
-        if len(escaped_tokens) >= 5:
-            prefix_pattern = r'\s+'.join(escaped_tokens[:4])
-            try:
-                match_p = re.search(prefix_pattern, norm_source, flags=re.IGNORECASE)
-                if match_p:
-                    char_start = match_p.start()
-                    suffix_pattern = r'\s+'.join(escaped_tokens[-3:])
-                    match_s = re.search(suffix_pattern, norm_source[char_start:], flags=re.IGNORECASE)
-                    if match_s:
-                        char_end = char_start + match_s.end()
-                    else:
-                        char_end = min(len(norm_source), char_start + len(raw_quote))
-                    prefix = norm_source[max(0, char_start - 100):char_start]
-                    suffix = norm_source[char_end:min(len(norm_source), char_end + 100)]
-                    return char_start, char_end, prefix, suffix, "FUZZY", element_role, block_id
-            except Exception as e:
-                pass
-
-        return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""
+        return element_role, block_id

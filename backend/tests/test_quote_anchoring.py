@@ -31,7 +31,7 @@ def test_quote_anchoring_multiline_whitespace_fallback_fuzzy():
 
     # Since raw text has 4 spaces and not a single space, verbatim raw find fails,
     # and normalized whitespace find succeeds -> correctly matched as NORMALIZED_EXACT
-    assert tier in ("NORMALIZED_EXACT", "FUZZY")
+    assert tier == "NORMALIZED_EXACT"
 
 
 def test_quote_anchoring_case_insensitive_fallback_fuzzy():
@@ -62,7 +62,7 @@ def test_quote_anchoring_offset_correctness():
 
     start, end, prefix, suffix, tier, element_role, block_id = WebScraper.locate_quote_spans(raw_text, target_quote)
 
-    assert tier in ("NORMALIZED_EXACT", "FUZZY")
+    assert tier == "NORMALIZED_EXACT"
     # Offsets should map exactly to the raw text, meaning they capture the double space
     assert start == 11
     assert end == 27
