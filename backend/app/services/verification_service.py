@@ -183,7 +183,7 @@ class VerificationService:
 
                 # Determine polarity
                 stmt = item.get("statement", "")
-                scope_match = item.get("quote_match") in ("EXACT", "FUZZY")
+                scope_match = item.get("quote_match") in ("EXACT", "NORMALIZED_EXACT", "FUZZY")
 
                 supports = False
                 contradicts = False
@@ -215,7 +215,7 @@ class VerificationService:
                         supports = True
 
                 ev_id = f"ev-{src_obj.id}-{len(collected_evidences)+1}"
-                directness = EvidenceDirectness.DIRECT if item.get("quote_match") == "EXACT" else EvidenceDirectness.CONTEXTUAL
+                directness = EvidenceDirectness.DIRECT if item.get("quote_match") in ("EXACT", "NORMALIZED_EXACT") else EvidenceDirectness.CONTEXTUAL
 
                 collected_evidences.append(
                     Evidence(

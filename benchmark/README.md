@@ -1,55 +1,74 @@
 # 📊 AI Claim Verifier Benchmark Suite
 
-> **面向事实核验规则引擎与证据状态判定的分层自动化评测基准**
+> **面向事实核验规则引擎、证据锚定与端到端状态判定的分层自动化评测基准**
 
 ---
 
-## 🎯 双层评测体系架构
+## 🎯 三层评测体系架构 (Three-Tier Benchmark Taxonomy)
 
-本评测体系严格分为两层，拒绝将纯规则回归混淆为真实世界能力：
+本评测体系严格分为三层，拒绝将纯规则回归混淆为真实世界能力，保障评测科学性与可复现性：
 
-1. **第一层：合成规则引擎回归评测 (Synthetic Rule Regression Benchmark)**
-   - **目标**：验证规则引擎在所有预设边界条件下的状态转移与溯源去重逻辑是否被破坏。
-   - **运行命令**：`python benchmark/run_benchmark.py`
-2. **第二层：真实世界 20 案例黄金测试集 (Real-World 20-Case Gold Benchmark)**
-   - **目标**：覆盖真实世界 6 类核心证据状态（官方确证、多源强支撑、通稿营销去重、口径矛盾、权威辟谣、不可公开验证等）。
-   - **核心风控指标**：**Overclaim Rate（过度断言率 / 证据不足却误判为充分）必须严格保持为 0.0%**。
-   - **运行命令**：`python benchmark/real_world/run_real_world_benchmark.py`
+1. **第一层：合成规则引擎边界回归评测 (Synthetic Rule Regression Benchmark)**
+   - **目标**：验证 5 级证据状态转移、独立信源去重与反驳过滤在所有预设极端边界条件下的确定性逻辑。
+   - **测试套件**：`backend/tests/test_verdict_boundaries.py` (44 passed)
+   - **运行命令**：`pytest backend/tests/test_verdict_boundaries.py -v`
 
----
+2. **第二层：冻结真实网页快照端到端评测与消融研究 (Frozen Real-Factual Snapshot E2E Benchmark & Ablation Study)**
+   - **目标**：在 20 个对抗性真实长篇网页快照上，验证「抽取 → 逐字引文锚定 → 极性仲裁 → 血缘去重 → 确定性裁决」完整链路。
+   - **测试目录**：`benchmark/real_factual/`
+   - **运行命令**：`python benchmark/real_factual/run_phase_5e_ablations.py --mode openai --run all`
 
-## 📈 真实世界评测基准指标 (Real-World Benchmark Results)
-
-| 评测维度 | 样本类型 | 评估用例数 | 结果指标 |
-|---|---|---|---|
-| **综合状态准确率 (Overall Accuracy)** | 20 真实世界多样化主张 | 20 | **100.0% (20/20)** |
-| **过度断言率 (Overclaim Rate - 核心风控)** | 弱证据误判为强证据 | 20 | **0.0% (零过度断言)** |
-| **欠度断言率 (Underclaim Rate)** | 强证据误降为弱证据 | 20 | **0.0%** |
-| **Macro F1 Score** | 6 级证据状态综合平衡分 | 6 类 | **100.0%** |
-| **引文锚定匹配 (Quote Match Precision)** | 字符级引文比对 | 原文匹配 | **EXACT (原始文本) / FUZZY / UNVERIFIED 严格分级** |
+3. **第三层：在线实时检索核验端到端评测 (Live Real-Web E2E Benchmark — 规划中)**
+   - **目标**：评估结合实时搜索引擎（Search/Retrieval）与动态爬虫抓取时的全自动端到端核验能力。
 
 ---
 
-## 🧩 混淆矩阵 (Confusion Matrix)
+## 📈 官方真实基准指标 (Phase 5D / Phase 5E Control Results)
+
+在 20 个冻结真实长篇网页快照（包含时间线更替、同源转载回音壁、口径差异、侧边栏噪声等对抗陷阱）上，全组件生产级系统的实测数据如下：
+
+| 评测维度 | 定义与说明 | 样本数 | 实测结果 |
+| :--- | :--- | :---: | :---: |
+| **EvidenceState 准确率 (Accuracy)** | 预测证据状态与人工黄金标签（Gold）完全一致 | 20 | **95.0% (19/20)** |
+| **过度断言率 (Overclaim Rate - 核心风控)** | 弱证据或不实主张误判为强证实状态（严禁发生） | 20 | **0.0% (0/20)** |
+| **保守漏判率 (Conservative Miss Rate)** | 充分证实的真实主张被错误降级为不足或反驳 | 20 | **0.0% (0/20)** |
+| **逐字引文精确锚定率 (Quote Grounding)** | 提取引文在原始源文档中实现 100% 字符级精准锚定 | 20 | **100.0% (20/20)** |
+| **主张抽取成功率 (Extraction Rate)** | 成功提取原子主张且未发生格式/解析崩溃 | 20 | **100.0% (20/20)** |
+| **基础设施故障数 (Infra Failures)** | 评测过程因超时/连接中断崩溃的用例数 | 20 | **0 / 20** |
+
+> [!NOTE]
+> **偏差案例说明 (`p5d-11`)**：在苹果公司库克离职谣言案中，系统预测为 `CONFLICTING`，人工真值为 `UNSUPPORTED`。此偏差属于模型状态分类偏差（`MODEL FAILURE / SAFE`），未造成虚假证实（Overclaim）。
+
+---
+
+## 🧩 官方混淆矩阵 (Official Phase 5D/5E Confusion Matrix)
 
 ```text
-GOLD / PRED        SUFFICIENT   STRONG   INSUFFICIENT   CONFLICTING   UNSUPPORTED   NOT_ASSESSABLE
-SUFFICIENT (5)         5           0          0              0             0              0
-STRONG (5)             0           5          0              0             0              0
-INSUFFICIENT (4)       0           0          4              0             0              0
-CONFLICTING (3)        0           0          0              3             0              0
-UNSUPPORTED (2)        0           0          0              0             2              0
-NOT_ASSESSABLE (1)     0           0          0              0             0              1
+PRED \ GOLD    SUFFICIENT    UNSUPPORTED    CONFLICTING    INSUFFICIENT
+SUFFICIENT          4              0              0              0
+UNSUPPORTED         0             14              0              0
+CONFLICTING         0              1              0              0   <-- p5d-11 (Safe Rejection)
+INSUFFICIENT        0              0              0              1
 ```
 
 ---
 
-## 📁 数据集用例分布 (`benchmark/real_world/dataset_20.jsonl`)
+## 🔬 Phase 5E 单组件控制变量消融结论 (Component Ablation Study)
 
-- `5 × SUFFICIENT`：Twitter 私有化收购、宇树科技 B2 轮、Apple Intelligence 发布、OpenAI 创立、英伟达市值新高
-- `5 × STRONG`：Anthropic 核心团队出处、TikTok 用户规模、SpaceX 星舰筷子回收、Blackwell 良率调整、DeepSeek-V3 代码实测
-- `4 × INSUFFICIENT`：500 亿种子轮假新闻、匿名爆料关停业务、8 家通稿同源水稻假传言、耳机 BOM 成本主观猜测
-- `3 × CONFLICTING`：GAAP vs Non-GAAP 净利口径差、批发交付 vs 上牌上险量冲突、官方自测 vs 第三方盲测跑分对立
-- `2 × UNSUPPORTED`：最高检与外交部辟谣引渡假新闻、联合国取消一票否决权假传言
-- `1 × NOT_ASSESSABLE`：私人非公开行程与私下讨论
+在固定测试用例、固定模型、Prompt、Schema、温度与评测规则下，单组件消融实验提供了受控的实证证据：
 
+| 实验组别 | 组件干预 | 准确率 | Overclaim 率 | Miss 率 | 核心因果机制 |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **Control (Full)** | 全生产组件开启 | **95.0%** | **0.0%** | **0.0%** | 官方基准对照组 |
+| **Ablation A** | 关闭出处血缘推导 | **90.0%** | **5.0%** 🚨 | **0.0%** | **防止转载放大**：`p5d-05` 3 篇转载误判为 3 独立信源，重现 Overclaim |
+| **Ablation B** | 关闭语义极性仲裁 | **10.0%** 📉 | **0.0%** | **15.0%** | **语义方向理解**：死板字符匹配无法理解转述，18 案退化为保守拒认 |
+| **Ablation C** | 关闭动态聚焦窗口 | **95.0%** | **0.0%** | **5.0%** ⚠️ | **长文档可见性**：`p5d-06` 尾部证据被 16k 前缀截断，产生截断漏判 |
+
+---
+
+## 📁 评测数据与执行入口
+
+- `benchmark/real_factual/dataset_p5d_20.jsonl`：20 个冻结真实网页事实核验黄金测试集
+- `benchmark/real_factual/sources/`：20 组真实长网页 HTML/Text 快照
+- `benchmark/real_factual/results/`：已归档固化的 Control 与 Ablation A/B/C JSON 实验记录
+- `benchmark/real_factual/run_phase_5e_ablations.py`：消融实验与基准评测统一自动化入口

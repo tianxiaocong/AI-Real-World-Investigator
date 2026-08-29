@@ -109,88 +109,134 @@ class WebScraper:
             return None
 
     @staticmethod
-    def locate_quote_spans(clean_text: str, quote: str) -> Tuple[Optional[int], Optional[int], Optional[str], Optional[str], str, str, str]:
+    def locate_quote_spans(
+        clean_text: str,
+        quote: str
+    ) -> Tuple[Optional[int], Optional[int], Optional[str], Optional[str], str, str, str]:
         """
-        Locates the character position of a quote in the source text,
-        along with surrounding context window for UI evidence inspection and match tier.
-        Returns (char_start, char_end, prefix, suffix, match_tier, element_role, block_id)
-        - EXACT: True verbatim raw substring match directly on clean_text where clean_text[start:end] == quote.
-        - FUZZY: Normalized whitespace or case-insensitive match on normalized text.
-        - UNVERIFIED: No reliable anchor found.
+        Locates the exact character position of a quote in the source text,
+        along with surrounding context window and strict invariant match tier.
+        Returns:
+            (char_start, char_end, prefix, suffix, match_tier, element_role, block_id)
+        
+        Strict Invariants:
+        - match_tier == "EXACT":
+            0 <= char_start < char_end <= len(clean_text)
+            clean_text[char_start:char_end] == matched_quote (verbatim codepoint slice)
+        - match_tier == "NORMALIZED_EXACT":
+            0 <= char_start < char_end <= len(clean_text)
+            clean_text[char_start:char_end] slices the raw text matching the quote
+            under whitespace normalization.
+        - match_tier == "FUZZY":
+            Anchored via case-insensitive or sliding window regex.
+        - match_tier == "UNVERIFIED":
+            (None, None, None, None, "UNVERIFIED", "UNKNOWN", "")
         """
         if not clean_text or not quote:
             return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""
 
-        raw_quote = quote.strip()
+        # Apply NFC Unicode normalization consistently
+        norm_source = unicodedata.normalize("NFC", clean_text)
+        norm_quote = unicodedata.normalize("NFC", quote)
+        raw_quote = norm_quote.strip()
+
         if not raw_quote:
             return None, None, None, None, "UNVERIFIED", "UNKNOWN", ""
 
-        # --- NEW: DOM Provenance Extraction ---
+        # --- DOM Role / Element Hierarchy Extraction ---
         element_role = "MAIN"
         block_id = ""
-        
-        # Only parse if it looks like HTML
-        if "<" in clean_text and ">" in clean_text:
-            soup = BeautifulSoup(clean_text, "html.parser")
-            found_element = None
-            for text_node in soup.find_all(string=True):
-                if raw_quote in text_node or raw_quote.lower() in text_node.lower():
-                    found_element = text_node.parent
-                    break
-            
-            if found_element:
-                curr = found_element
-                while curr and curr.name != '[document]':
-                    if curr.name in ['aside', 'nav', 'footer', 'header']:
-                        element_role = curr.name.upper()
-                        b_id = curr.get('id')
-                        b_class = curr.get('class')
-                        if b_id:
-                            block_id = f"{curr.name}#{b_id}"
-                        elif b_class:
-                            block_id = f"{curr.name}.{b_class[0]}"
-                        else:
-                            block_id = curr.name
+        if "<" in norm_source and ">" in norm_source:
+            try:
+                soup = BeautifulSoup(norm_source, "html.parser")
+                found_element = None
+                for text_node in soup.find_all(string=True):
+                    if raw_quote in text_node or raw_quote.lower() in text_node.lower():
+                        found_element = text_node.parent
                         break
-                    curr = curr.parent
+                
+                if found_element:
+                    curr = found_element
+                    while curr and curr.name != '[document]':
+                        if curr.name in ['aside', 'nav', 'footer', 'header']:
+                            element_role = curr.name.upper()
+                            b_id = curr.get('id')
+                            b_class = curr.get('class')
+                            if b_id:
+                                block_id = f"{curr.name}#{b_id}"
+                            elif b_class:
+                                block_id = f"{curr.name}.{b_class[0]}"
+                            else:
+                                block_id = curr.name
+                            break
+                        curr = curr.parent
+            except Exception:
+                pass
 
-        # 1. True verbatim EXACT match directly on raw clean_text
-        idx_raw = clean_text.find(raw_quote)
+        # 1. Verbatim Substring Search (Full Quote with exact whitespace)
+        idx_full = norm_source.find(norm_quote)
+        if idx_full != -1 and len(norm_quote) > 0:
+            char_start = idx_full
+            char_end = idx_full + len(norm_quote)
+            prefix = norm_source[max(0, char_start - 120):char_start]
+            suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
+            return char_start, char_end, prefix, suffix, "EXACT", element_role, block_id
+
+        # 2. Verbatim Substring Search (Trimmed Quote)
+        idx_raw = norm_source.find(raw_quote)
         if idx_raw != -1:
             char_start = idx_raw
             char_end = idx_raw + len(raw_quote)
-            prefix = clean_text[max(0, char_start - 120):char_start]
-            suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
+            prefix = norm_source[max(0, char_start - 120):char_start]
+            suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
             return char_start, char_end, prefix, suffix, "EXACT", element_role, block_id
 
         import re
-        escaped_parts = [re.escape(w) for w in raw_quote.split()]
+        escaped_tokens = [re.escape(w) for w in raw_quote.split() if w]
 
-        # 2. Regex-based FUZZY match (handles case-insensitive and varying whitespace simultaneously)
-        if escaped_parts:
-            pattern = r'\s+'.join(escaped_parts)
+        # 3. Normalized Exact Match (Arbitrary Whitespace / Newlines between exact tokens)
+        if escaped_tokens:
+            pattern_exact_case = r'\s+'.join(escaped_tokens)
             try:
-                match = re.search(pattern, clean_text, flags=re.IGNORECASE)
+                match = re.search(pattern_exact_case, norm_source)
                 if match:
                     char_start = match.start()
                     char_end = match.end()
-                    prefix = clean_text[max(0, char_start - 120):char_start]
-                    suffix = clean_text[char_end:min(len(clean_text), char_end + 120)]
+                    prefix = norm_source[max(0, char_start - 120):char_start]
+                    suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
+                    matched_slice = norm_source[char_start:char_end]
+                    tier = "NORMALIZED_EXACT" if "".join(matched_slice.split()) == "".join(raw_quote.split()) else "FUZZY"
+                    return char_start, char_end, prefix, suffix, tier, element_role, block_id
+            except Exception as e:
+                logger.debug(f"Regex error in exact case matching: {e}")
+
+            # 4. Case-Insensitive Normalized Match
+            try:
+                match_ci = re.search(pattern_exact_case, norm_source, flags=re.IGNORECASE)
+                if match_ci:
+                    char_start = match_ci.start()
+                    char_end = match_ci.end()
+                    prefix = norm_source[max(0, char_start - 120):char_start]
+                    suffix = norm_source[char_end:min(len(norm_source), char_end + 120)]
                     return char_start, char_end, prefix, suffix, "FUZZY", element_role, block_id
             except Exception as e:
-                logger.warning(f"Regex error in quote matching: {e}")
+                logger.debug(f"Regex error in case-insensitive matching: {e}")
 
-        # 3. Fuzzy prefix anchor match
-        if len(escaped_parts) > 4:
-            prefix_parts = escaped_parts[:5]
-            pattern = r'\s+'.join(prefix_parts)
+        # 5. Sliding Anchor Matching for Lengthy Quotes (>= 5 tokens)
+        if len(escaped_tokens) >= 5:
+            prefix_pattern = r'\s+'.join(escaped_tokens[:4])
             try:
-                match = re.search(pattern, clean_text, flags=re.IGNORECASE)
-                if match:
-                    char_start = match.start()
-                    char_end = min(len(clean_text), char_start + len(raw_quote))
-                    prefix = clean_text[max(0, char_start - 100):char_start]
-                    suffix = clean_text[char_end:min(len(clean_text), char_end + 100)]
+                match_p = re.search(prefix_pattern, norm_source, flags=re.IGNORECASE)
+                if match_p:
+                    char_start = match_p.start()
+                    suffix_pattern = r'\s+'.join(escaped_tokens[-3:])
+                    match_s = re.search(suffix_pattern, norm_source[char_start:], flags=re.IGNORECASE)
+                    if match_s:
+                        char_end = char_start + match_s.end()
+                    else:
+                        char_end = min(len(norm_source), char_start + len(raw_quote))
+                    prefix = norm_source[max(0, char_start - 100):char_start]
+                    suffix = norm_source[char_end:min(len(norm_source), char_end + 100)]
                     return char_start, char_end, prefix, suffix, "FUZZY", element_role, block_id
             except Exception as e:
                 pass
