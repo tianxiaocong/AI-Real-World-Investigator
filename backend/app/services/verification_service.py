@@ -145,7 +145,7 @@ class VerificationService:
         for s in sources_data:
             s_id = s.get("id") or s.get("source_id") or f"src-{len(manifest_sources)+1}"
             domain = s.get("domain") or ""
-            tier = _map_source_type_to_tier(s.get("source_type") or s.get("source_tier_hint") or "OTHER", domain)
+            tier = _map_source_type_to_tier(s.get("source_type") or s.get("source_tier") or s.get("source_tier_hint") or "OTHER", domain)
             manifest_sources.append(
                 Source(
                     id=s_id,

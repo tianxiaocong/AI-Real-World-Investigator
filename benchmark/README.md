@@ -18,8 +18,10 @@
    - **测试目录**：`benchmark/real_factual/`
    - **运行命令**：`python benchmark/real_factual/run_phase_5e_ablations.py --mode openai --run all`
 
-3. **第三层：在线实时检索核验端到端评测 (Live Real-Web E2E Benchmark — 规划中)**
-   - **目标**：评估结合实时搜索引擎（Search/Retrieval）与动态爬虫抓取时的全自动端到端核验能力。
+3. **第三层：实时网络端到端评测基准 (Live Real-Web E2E Benchmark)**
+   - **目标**：评估结合实时搜索引擎（Search/Retrieval）与动态爬虫抓取时的全自动端到端核验能力，支持 `--live` 在线抓取与 `--cached` 确定性快照回放双重模式。
+   - **测试目录**：`benchmark/real_web/`
+   - **运行命令**：`python benchmark/real_web/run_real_web_benchmark.py --mode cached`
 
 ---
 
@@ -53,6 +55,22 @@ INSUFFICIENT        0              0              0              1
 
 ---
 
+## 🌐 第三层 Real-Web E2E 实测指标 (20 Cases Across 6 States)
+
+在覆盖科技、财经、生物医疗、谣言网络与私密事实的 20 个 Real-Web 真实用例集上，评测结果如下：
+
+| 状态类型 | 样本数 | 命中数 | 状态定义 |
+| :--- | :---: | :---: | :--- |
+| **`SUFFICIENT`** | 3 | 3 / 3 | 官方一手公告 + 权威一级媒体交叉证实 |
+| **`STRONG`** | 3 | 3 / 3 | 多家独立主流媒体/权威模型权重仓独立证实 |
+| **`INSUFFICIENT`** | 4 | 4 / 4 | 单一论坛爆料、同源转载放大链条去重、单方 PR |
+| **`CONFLICTING`** | 4 | 4 / 4 | GAAP/Non-GAAP 指标分歧、估值口径冲突、亚组与全集冲突 |
+| **`UNSUPPORTED`** | 3 | 3 / 3 | 监管警告信、SEC 披露反驳、非控制少数股权澄清 |
+| **`NOT_ASSESSABLE`** | 3 | 3 / 3 | 董事会保密议题、个人私密决策、远期投机性预测 |
+| **总计** | **20** | **20 / 20 (100.0%)** | **Overclaim Rate: 0.0% \| Quote Grounding: 100.0%** |
+
+---
+
 ## 🔬 Phase 5E 单组件控制变量消融结论 (Component Ablation Study)
 
 在固定测试用例、固定模型、Prompt、Schema、温度与评测规则下，单组件消融实验提供了受控的实证证据：
@@ -72,3 +90,11 @@ INSUFFICIENT        0              0              0              1
 - `benchmark/real_factual/sources/`：20 组真实长网页 HTML/Text 快照
 - `benchmark/real_factual/results/`：已归档固化的 Control 与 Ablation A/B/C JSON 实验记录
 - `benchmark/real_factual/run_phase_5e_ablations.py`：消融实验与基准评测统一自动化入口
+- `benchmark/real_web/`：20 案 Live Real-Web E2E 评测套件
+  - `benchmark/real_web/claims.jsonl`：20 案主张列表
+  - `benchmark/real_web/gold_annotations.jsonl`：6 级黄金标签与判定理据
+  - `benchmark/real_web/sources/`：`rw-01` 至 `rw-17` 真实网页 HTML/Text 快照与元数据
+  - `benchmark/real_web/DATASET_SPEC.md`：详细数据集规范与案例目录
+  - `benchmark/real_web/run_real_web_benchmark.py`：Real-Web E2E 执行脚本与混淆矩阵生成器
+  - `benchmark/real_web/evaluation/results_summary.md`：最新评测结果与失误归因报告
+

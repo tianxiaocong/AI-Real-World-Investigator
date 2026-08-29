@@ -1,0 +1,321 @@
+{
+  "metrics": {
+    "total_cases": 20,
+    "correct_count": 20,
+    "accuracy_pct": 100.0,
+    "overclaim_rate_pct": 0.0,
+    "conservative_miss_rate_pct": 0.0,
+    "quote_grounding_rate_pct": 100.0,
+    "quote_tier_distribution": {
+      "EXACT": 28
+    },
+    "confusion_matrix": {
+      "SUFFICIENT": {
+        "SUFFICIENT": 3
+      },
+      "STRONG": {
+        "STRONG": 3
+      },
+      "INSUFFICIENT": {
+        "INSUFFICIENT": 4
+      },
+      "CONFLICTING": {
+        "CONFLICTING": 4
+      },
+      "UNSUPPORTED": {
+        "UNSUPPORTED": 3
+      },
+      "NOT_ASSESSABLE": {
+        "NOT_ASSESSABLE": 3
+      }
+    },
+    "failure_taxonomy": {}
+  },
+  "case_results": [
+    {
+      "id": "rw-01",
+      "claim": "OpenAI launched ChatGPT Plus at a subscription price of $20 per month in February 2023.",
+      "domain": "Tech/AI",
+      "gold_state": "SUFFICIENT",
+      "pred_state": "SUFFICIENT",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-02",
+      "claim": "Apple Vision Pro is priced starting at $3,499 with 256GB of storage.",
+      "domain": "Tech/Hardware",
+      "gold_state": "SUFFICIENT",
+      "pred_state": "SUFFICIENT",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-03",
+      "claim": "Microsoft completed its $68.7 billion acquisition of Activision Blizzard in October 2023.",
+      "domain": "Corporate/Finance",
+      "gold_state": "SUFFICIENT",
+      "pred_state": "SUFFICIENT",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-04",
+      "claim": "Unitree Robotics raised nearly 1 billion RMB in Series B2 funding led by Meituan in 2024.",
+      "domain": "Tech/Robotics",
+      "gold_state": "STRONG",
+      "pred_state": "STRONG",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-05",
+      "claim": "DeepSeek-V3 is an open-weights Mixture-of-Experts AI model with 671 billion total parameters.",
+      "domain": "Tech/AI",
+      "gold_state": "STRONG",
+      "pred_state": "STRONG",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-06",
+      "claim": "TSMC began engineering trial production of 4nm chips at its Arizona Fab 21 in 2024.",
+      "domain": "Tech/Semiconductor",
+      "gold_state": "STRONG",
+      "pred_state": "STRONG",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-07",
+      "claim": "Apple has completely cancelled all internal development of the M5 chip architecture.",
+      "domain": "Executive Rumor",
+      "gold_state": "INSUFFICIENT",
+      "pred_state": "INSUFFICIENT",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT"
+      ],
+      "num_sources": 1,
+      "num_evidences": 1,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-08",
+      "claim": "AI startup BrainWave was acquired by Amazon for $500 million in cash.",
+      "domain": "Republishing Chain",
+      "gold_state": "INSUFFICIENT",
+      "pred_state": "INSUFFICIENT",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-09",
+      "claim": "QuantumNexus achieved room-temperature quantum supremacy with a 10,000-qubit processor.",
+      "domain": "Press Release Claim",
+      "gold_state": "INSUFFICIENT",
+      "pred_state": "INSUFFICIENT",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT"
+      ],
+      "num_sources": 1,
+      "num_evidences": 1,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-10",
+      "claim": "Nintendo Switch 2 will officially launch at a global retail price of $199.",
+      "domain": "Gaming Rumor",
+      "gold_state": "INSUFFICIENT",
+      "pred_state": "INSUFFICIENT",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT"
+      ],
+      "num_sources": 1,
+      "num_evidences": 1,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-11",
+      "claim": "TechCorp Q3 2024 net income reached $500 million.",
+      "domain": "Corporate/Finance",
+      "gold_state": "CONFLICTING",
+      "pred_state": "CONFLICTING",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-12",
+      "claim": "CleanEnergy Inc raised Series C funding at a post-money valuation of $2.0 billion.",
+      "domain": "Venture Capital",
+      "gold_state": "CONFLICTING",
+      "pred_state": "CONFLICTING",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-13",
+      "claim": "BioPharma's new oncology drug candidate demonstrated an 85% overall response rate in clinical trials.",
+      "domain": "Biomedical",
+      "gold_state": "CONFLICTING",
+      "pred_state": "CONFLICTING",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-14",
+      "claim": "Global Retail Corp CEO confirmed immediate plans to lay off 20% of corporate staff.",
+      "domain": "Corporate News",
+      "gold_state": "CONFLICTING",
+      "pred_state": "CONFLICTING",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "num_sources": 2,
+      "num_evidences": 2,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-15",
+      "claim": "The FDA officially approved MiracleHerb extract for curing type 2 diabetes.",
+      "domain": "Medical/Regulatory",
+      "gold_state": "UNSUPPORTED",
+      "pred_state": "UNSUPPORTED",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT"
+      ],
+      "num_sources": 1,
+      "num_evidences": 1,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-16",
+      "claim": "Tesla CEO Elon Musk stepped down from his position as Chief Executive Officer in July 2024.",
+      "domain": "Executive Rumor",
+      "gold_state": "UNSUPPORTED",
+      "pred_state": "UNSUPPORTED",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT"
+      ],
+      "num_sources": 1,
+      "num_evidences": 1,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-17",
+      "claim": "Google acquired 100% of AI company Anthropic and integrated it as an internal Alphabet subsidiary.",
+      "domain": "Corporate Acquisition",
+      "gold_state": "UNSUPPORTED",
+      "pred_state": "UNSUPPORTED",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT"
+      ],
+      "num_sources": 1,
+      "num_evidences": 1,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-18",
+      "claim": "The Board of Directors of InnovateCo secretly agreed in an executive session to replace the CFO next quarter.",
+      "domain": "Private Matters",
+      "gold_state": "NOT_ASSESSABLE",
+      "pred_state": "NOT_ASSESSABLE",
+      "is_correct": true,
+      "quote_tiers": [],
+      "num_sources": 0,
+      "num_evidences": 0,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-19",
+      "claim": "Executive John Doe privately decided to sell his personal real estate portfolio by the end of this year.",
+      "domain": "Private Matters",
+      "gold_state": "NOT_ASSESSABLE",
+      "pred_state": "NOT_ASSESSABLE",
+      "is_correct": true,
+      "quote_tiers": [],
+      "num_sources": 0,
+      "num_evidences": 0,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-20",
+      "claim": "Commercial fusion power will account for more than 50% of global electricity generation in the year 2060.",
+      "domain": "Speculative Prediction",
+      "gold_state": "NOT_ASSESSABLE",
+      "pred_state": "NOT_ASSESSABLE",
+      "is_correct": true,
+      "quote_tiers": [],
+      "num_sources": 0,
+      "num_evidences": 0,
+      "summary": "Verification completed."
+    }
+  ]
+}

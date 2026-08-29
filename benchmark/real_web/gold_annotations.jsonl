@@ -1,20 +1,20 @@
-{"id": "p5b-01", "gold_state": "CONFLICTING"}
-{"id": "p5b-02", "gold_state": "CONFLICTING"}
-{"id": "p5b-03", "gold_state": "SUFFICIENT"}
-{"id": "p5b-04", "gold_state": "CONFLICTING"}
-{"id": "p5b-05", "gold_state": "CONFLICTING"}
-{"id": "p5b-06", "gold_state": "CONFLICTING"}
-{"id": "p5b-07", "gold_state": "SUFFICIENT"}
-{"id": "p5b-08", "gold_state": "UNSUPPORTED"}
-{"id": "p5b-09", "gold_state": "CONFLICTING"}
-{"id": "p5b-10", "gold_state": "INSUFFICIENT"}
-{"id": "p5b-11", "gold_state": "INSUFFICIENT"}
-{"id": "p5b-12", "gold_state": "INSUFFICIENT"}
-{"id": "p5b-13", "gold_state": "CONFLICTING"}
-{"id": "p5b-14", "gold_state": "CONFLICTING"}
-{"id": "p5b-15", "gold_state": "INSUFFICIENT"}
-{"id": "p5b-16", "gold_state": "CONFLICTING"}
-{"id": "p5b-17", "gold_state": "UNSUPPORTED"}
-{"id": "p5b-18", "gold_state": "CONFLICTING"}
-{"id": "p5b-19", "gold_state": "INSUFFICIENT"}
-{"id": "p5b-20", "gold_state": "CONFLICTING"}
+{"id": "rw-01", "gold_state": "SUFFICIENT", "rationale": "Directly confirmed by OpenAI official blog and verified by Reuters independent reporting."}
+{"id": "rw-02", "gold_state": "SUFFICIENT", "rationale": "Officially stated by Apple Newsroom and verified by independent technology journalism."}
+{"id": "rw-03", "gold_state": "SUFFICIENT", "rationale": "Directly confirmed by SEC 8-K filings and official corporate communications."}
+{"id": "rw-04", "gold_state": "STRONG", "rationale": "Multiple authoritative financial and venture media independently confirmed with company verification."}
+{"id": "rw-05", "gold_state": "STRONG", "rationale": "Technical report and independent benchmark repositories verify the open weights architecture."}
+{"id": "rw-06", "gold_state": "STRONG", "rationale": "Multiple authoritative financial and semiconductor outlets verified early trial runs."}
+{"id": "rw-07", "gold_state": "INSUFFICIENT", "rationale": "Only an unverified anonymous Reddit thread; zero corroboration or official announcements."}
+{"id": "rw-08", "gold_state": "INSUFFICIENT", "rationale": "7 different tech blogs all cite a single unverified rumor tweet with no independent confirmation."}
+{"id": "rw-09", "gold_state": "INSUFFICIENT", "rationale": "Single self-published vendor press release with zero independent scientific replication."}
+{"id": "rw-10", "gold_state": "INSUFFICIENT", "rationale": "Only an unverified forum rumor with no retailer or manufacturer confirmation."}
+{"id": "rw-11", "gold_state": "CONFLICTING", "rationale": "Authoritative sources conflict: GAAP net income was $320M while Non-GAAP adjusted was $500M."}
+{"id": "rw-12", "gold_state": "CONFLICTING", "rationale": "Major venture media outlet A reported $2.0B while outlet B reported $1.2B."}
+{"id": "rw-13", "gold_state": "CONFLICTING", "rationale": "Phase 2 trial showed 85% in subgroup but comprehensive cohort showed only 45% response rate."}
+{"id": "rw-14", "gold_state": "CONFLICTING", "rationale": "News outlet reported CEO interview confirming layoffs, while official company spokesperson published explicit denial."}
+{"id": "rw-15", "gold_state": "UNSUPPORTED", "rationale": "FDA official public database and warning letters explicitly state MiracleHerb is unapproved and illegal to market as a cure."}
+{"id": "rw-16", "gold_state": "UNSUPPORTED", "rationale": "Official SEC 10-Q filings and corporate disclosures confirm Elon Musk continues as CEO without interruption."}
+{"id": "rw-17", "gold_state": "UNSUPPORTED", "rationale": "Regulatory disclosures and corporate statements confirm Google holds a non-controlling minority stake, not an acquisition."}
+{"id": "rw-18", "gold_state": "NOT_ASSESSABLE", "rationale": "Confidential internal board discussions cannot be verified via public internet records."}
+{"id": "rw-19", "gold_state": "NOT_ASSESSABLE", "rationale": "Private individual personal intent without public registry filings is not publicly assessable."}
+{"id": "rw-20", "gold_state": "NOT_ASSESSABLE", "rationale": "Speculative long-term future forecast where no empirical factual evidence currently exists."}
