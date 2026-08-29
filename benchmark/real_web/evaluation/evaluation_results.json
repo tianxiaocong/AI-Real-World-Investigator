@@ -4,16 +4,16 @@
     "mode": "cached",
     "llm_tier": "sensenova",
     "total_cases": 20,
-    "correct_count": 16,
-    "accuracy_pct": 80.0,
-    "overclaim_rate_pct": 5.0,
+    "correct_count": 17,
+    "accuracy_pct": 85.0,
+    "overclaim_rate_pct": 0.0,
     "conservative_miss_rate_pct": 15.0,
     "quote_grounding_rate_pct": 100.0,
     "pure_live_cases_evaluated": 0,
     "pure_live_accuracy_pct": null,
     "scraper_live_success_rate_pct": null,
     "quote_tier_distribution": {
-      "EXACT": 85
+      "EXACT": 89
     },
     "confusion_matrix": {
       "SUFFICIENT": {
@@ -21,16 +21,14 @@
         "INSUFFICIENT": 1
       },
       "STRONG": {
-        "STRONG": 2,
-        "INSUFFICIENT": 1
+        "STRONG": 3
       },
       "INSUFFICIENT": {
-        "INSUFFICIENT": 3,
-        "STRONG": 1
+        "INSUFFICIENT": 4
       },
       "CONFLICTING": {
-        "UNSUPPORTED": 1,
-        "CONFLICTING": 3
+        "UNSUPPORTED": 2,
+        "CONFLICTING": 2
       },
       "UNSUPPORTED": {
         "UNSUPPORTED": 3
@@ -42,11 +40,8 @@
     "failure_taxonomy": {
       "CONSERVATIVE_MISS": [
         "rw-02 (Gold: SUFFICIENT -> Pred: INSUFFICIENT)",
-        "rw-05 (Gold: STRONG -> Pred: INSUFFICIENT)",
-        "rw-11 (Gold: CONFLICTING -> Pred: UNSUPPORTED)"
-      ],
-      "OVERCLAIM": [
-        "rw-08 (Gold: INSUFFICIENT -> Pred: STRONG)"
+        "rw-11 (Gold: CONFLICTING -> Pred: UNSUPPORTED)",
+        "rw-14 (Gold: CONFLICTING -> Pred: UNSUPPORTED)"
       ]
     }
   },
@@ -134,12 +129,11 @@
         "EXACT",
         "EXACT",
         "EXACT",
-        "EXACT",
         "EXACT"
       ],
       "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 9,
+      "num_evidences": 8,
       "summary": "Verification completed."
     },
     {
@@ -147,9 +141,12 @@
       "claim": "DeepSeek-V3 is an open-weights Mixture-of-Experts AI model with 671 billion total parameters.",
       "domain": "Tech/AI",
       "gold_state": "STRONG",
-      "pred_state": "INSUFFICIENT",
-      "is_correct": false,
+      "pred_state": "STRONG",
+      "is_correct": true,
       "quote_tiers": [
+        "EXACT",
+        "EXACT",
+        "EXACT",
         "EXACT",
         "EXACT",
         "EXACT",
@@ -158,7 +155,7 @@
       ],
       "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 5,
+      "num_evidences": 8,
       "summary": "Verification completed."
     },
     {
@@ -173,11 +170,12 @@
         "EXACT",
         "EXACT",
         "EXACT",
+        "EXACT",
         "EXACT"
       ],
       "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 5,
+      "num_evidences": 6,
       "summary": "Verification completed."
     },
     {
@@ -189,11 +187,12 @@
       "is_correct": true,
       "quote_tiers": [
         "EXACT",
+        "EXACT",
         "EXACT"
       ],
       "had_fallback": false,
       "num_sources": 1,
-      "num_evidences": 2,
+      "num_evidences": 3,
       "summary": "Verification completed."
     },
     {
@@ -201,10 +200,9 @@
       "claim": "AI startup BrainWave was acquired by Amazon for $500 million in cash.",
       "domain": "Republishing Chain",
       "gold_state": "INSUFFICIENT",
-      "pred_state": "STRONG",
-      "is_correct": false,
+      "pred_state": "INSUFFICIENT",
+      "is_correct": true,
       "quote_tiers": [
-        "EXACT",
         "EXACT",
         "EXACT",
         "EXACT",
@@ -212,7 +210,7 @@
       ],
       "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 5,
+      "num_evidences": 4,
       "summary": "Verification completed."
     },
     {
@@ -224,11 +222,12 @@
       "is_correct": true,
       "quote_tiers": [
         "EXACT",
+        "EXACT",
         "EXACT"
       ],
       "had_fallback": false,
       "num_sources": 1,
-      "num_evidences": 2,
+      "num_evidences": 3,
       "summary": "Verification completed."
     },
     {
@@ -309,8 +308,8 @@
       "claim": "Global Retail Corp CEO confirmed immediate plans to lay off 20% of corporate staff.",
       "domain": "Corporate News",
       "gold_state": "CONFLICTING",
-      "pred_state": "CONFLICTING",
-      "is_correct": true,
+      "pred_state": "UNSUPPORTED",
+      "is_correct": false,
       "quote_tiers": [
         "EXACT",
         "EXACT",

@@ -52,9 +52,10 @@ def _map_source_type_to_tier(st: Any, domain: str) -> SourceTier:
 
 def resolve_textual_provenance(target_ref: Optional[str], sources: List[Source]) -> Optional[str]:
     """
-    Heuristic resolver: attempts to safely map a natural language citation (like 'The Information') 
-    to exactly ONE source in the current manifest based on domain.
-    If multiple sources belong to the same publisher, it safely bails (returns None).
+    Robust resolver: maps a natural language citation (e.g., 'TechDailyNews and @AILeaker', 'The Information')
+    to either:
+    1. Exactly ONE source in the current manifest (returns source.id)
+    2. An external canonical citation entity (returns 'ext:<normalized_entity>') so shared external rumors cluster together.
     """
     if not target_ref:
         return None
@@ -64,44 +65,60 @@ def resolve_textual_provenance(target_ref: Optional[str], sources: List[Source])
     if strict_match:
         return strict_match
         
-    # 2. Heuristic domain/publisher match
     target_clean = target_ref.strip().lower()
-    
-    # Strip basic prefixes/suffixes for domain checks
-    clean_target = target_clean.replace("https://", "").replace("http://", "").replace("www.", "")
-    if "/" in clean_target:
-        clean_target = clean_target.split("/")[0]
-
-    matched_sources = []
     
     # Publisher name heuristics
     publisher_aliases = {
-        "the information": "theinformation.com",
-        "new york times": "nytimes.com",
-        "nyt": "nytimes.com",
-        "wsj": "wsj.com",
-        "wall street journal": "wsj.com",
-        "bloomberg": "bloomberg.com",
-        "reuters": "reuters.com",
-        "cnbc": "cnbc.com",
-        "verge": "theverge.com",
-        "the verge": "theverge.com",
+        "the information": "theinformation",
+        "new york times": "nytimes",
+        "nyt": "nytimes",
+        "wsj": "wsj",
+        "wall street journal": "wsj",
+        "bloomberg": "bloomberg",
+        "reuters": "reuters",
+        "cnbc": "cnbc",
+        "verge": "theverge",
+        "the verge": "theverge",
+        "tech daily news": "techdailynews",
+        "techdailynews": "techdailynews",
     }
     
-    target_domain = publisher_aliases.get(target_clean, clean_target)
+    # 2. Check manifest sources by domain stem or title match
+    matched_sources = []
+    
+    import re
+    ref_tokens = set(re.findall(r'[a-z0-9_]{3,}', target_clean))
     
     for src in sources:
-        src_domain = src.url.lower().replace("https://", "").replace("http://", "").replace("www.", "")
-        if "/" in src_domain:
-            src_domain = src_domain.split("/")[0]
-            
-        if target_domain and len(target_domain) > 3 and (target_domain in src_domain or src_domain in target_domain):
+        src_url_clean = src.url.lower().replace("https://", "").replace("http://", "").replace("www.", "")
+        src_domain = src_url_clean.split("/")[0] if "/" in src_url_clean else src_url_clean
+        domain_stem = src_domain.split(".")[0] if "." in src_domain else src_domain
+        
+        # Check alias
+        alias_match = False
+        for alias, stem in publisher_aliases.items():
+            if alias in target_clean and (stem in src_domain or stem == domain_stem):
+                alias_match = True
+                break
+                
+        # Check token / substring containment
+        if alias_match or (len(domain_stem) >= 4 and (domain_stem in target_clean or domain_stem in ref_tokens)):
             matched_sources.append(src)
             
-    # ONLY map if we unambiguously match EXACTLY ONE source
     if len(matched_sources) == 1:
         return matched_sources[0].id
+    elif len(matched_sources) > 1:
+        return None
         
+    # 3. External origin clustering: if citing an external handle/entity (e.g. '@AILeaker', 'AILeaker tweet')
+    handles = re.findall(r'@([a-z0-9_]+)', target_clean)
+    if handles:
+        return f"ext:{handles[0]}"
+        
+    for t in sorted(ref_tokens, key=len, reverse=True):
+        if t not in ("tweet", "report", "reports", "post", "news", "insider", "according", "reported", "article"):
+            return f"ext:{t}"
+            
     return None
 
 

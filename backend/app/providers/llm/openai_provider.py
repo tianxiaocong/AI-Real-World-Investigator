@@ -88,6 +88,8 @@ class OpenAICompatibleProvider(LLMProvider):
                     client = await self._get_client()
                     response = await client.post(url, headers=headers, json=payload)
                     response.raise_for_status()
+                    data = response.json()
+                    self.stats["successful_requests"] += 1
                     msg = data["choices"][0]["message"]
                     content = msg.get("content") or msg.get("reasoning") or ""
                     return content.strip()
