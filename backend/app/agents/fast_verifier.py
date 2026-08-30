@@ -57,6 +57,7 @@ from app.engine.reasoning_v2_engine import (
     compute_reasoning_v2_verdict,
     evaluate_compound_fact_fulfillment
 )
+from app.scraper.extractor import WebScraper
 
 logger = logging.getLogger(__name__)
 
@@ -271,6 +272,19 @@ class FastClaimVerifierAgent:
                 domain = url.split("/")[2] if "://" in url else "web"
             tier = self._classify_source_tier(domain, url)
             
+            raw_text = snippet
+            content_hash = None
+
+            # 真实在线抓取与 SSRF 防御
+            if url.startswith("http") and not getattr(item, "is_synthetic", False):
+                try:
+                    scraped = await WebScraper.fetch_and_extract(url, timeout_seconds=8)
+                    if scraped and scraped.clean_text:
+                        raw_text = scraped.clean_text
+                        content_hash = scraped.content_hash
+                except Exception as e:
+                    logger.warning(f"Live fetch failed for {url}: {e}, using snippet fallback.")
+            
             source = Source(
                 id=s_id,
                 url=url,
@@ -278,14 +292,16 @@ class FastClaimVerifierAgent:
                 title=title,
                 source_tier=tier,
                 publish_date=getattr(item, "published_date", None) or today_str,
-                is_synthetic=getattr(item, "is_synthetic", False)
+                is_synthetic=getattr(item, "is_synthetic", False),
+                raw_text=raw_text,
+                content_hash=content_hash
             )
             sources.append(source)
 
         # 2. 从检索内容中提取证据与 V2 关系
         if sources:
             all_snippets_text = "\n\n".join([
-                f"[Source ID: {s.id} | {s.domain} | {s.title}]\n{s.title}\n{getattr(search_results[i], 'snippet', '')}"
+                f"[Source ID: {s.id} | {s.domain} | {s.title}]\n{s.title}\n{(s.raw_text or '')[:1500]}"
                 for i, s in enumerate(sources)
             ])
 
@@ -294,11 +310,11 @@ class FastClaimVerifierAgent:
             extract_prompt = f"""针对待核验主张："{claim.statement}"
 主张核心实体：{fact_slots.entity}，谓词：{fact_slots.predicate}，复合属性槽位：[{slot_names_str}]
 
-以下是检索到的公开网页摘要：
+以下是检索到的公开网页正文内容：
 {all_snippets_text}
 
 请提取与该主张直接相关、精确的证据片段，并完成关系分类：
-1. exact_quote: 原始网页中真实存在的逐字原话 (禁止凭空编写或概括)。
+1. exact_quote: 原始网页正文中真实存在的逐字原话 (严禁凭空编写或概括)。
 2. relation_type:
    - DIRECT_SUPPORT: 直接证实主张及其复合槽位
    - QUALIFIED_CONFLICT: 存在合法口径分歧(如GAAP vs Non-GAAP)或时序演进(如临床一期 vs 三期)
@@ -319,23 +335,39 @@ class FastClaimVerifierAgent:
                 )
                 for raw_ev in ext_res.evidences:
                     # 匹配所属 source
-                    matched_s_id = sources[0].id
+                    matched_s = sources[0]
                     for s in sources:
-                        if s.domain in raw_ev.exact_quote or s.title in raw_ev.exact_quote:
-                            matched_s_id = s.id
+                        if (s.raw_text and raw_ev.exact_quote in s.raw_text) or s.domain in raw_ev.exact_quote or s.title in raw_ev.exact_quote:
+                            matched_s = s
                             break
                     
+                    # 物理 Raw-Text 定位校验
+                    char_start, char_end, prefix, suffix, match_tier, el_role, blk_id = WebScraper.locate_quote_spans(
+                        source_text=matched_s.raw_text or "",
+                        quote=raw_ev.exact_quote
+                    )
+
+                    is_grounded = match_tier in ("EXACT", "NORMALIZED_EXACT", "FUZZY")
+
                     ev = Evidence(
                         id=f"e-{uuid.uuid4().hex[:6]}",
-                        source_id=matched_s_id,
+                        source_id=matched_s.id,
                         claim_id=claim.id,
                         exact_quote=raw_ev.exact_quote,
                         context=raw_ev.context,
-                        supports_claim=raw_ev.supports_claim if not (raw_ev.supports_claim and raw_ev.contradicts_claim) else True,
-                        contradicts_claim=raw_ev.contradicts_claim if not (raw_ev.supports_claim and raw_ev.contradicts_claim) else False,
+                        supports_claim=raw_ev.supports_claim if is_grounded else False,
+                        contradicts_claim=raw_ev.contradicts_claim if is_grounded else False,
                         directness=raw_ev.directness,
                         scope_match=raw_ev.scope_match,
-                        evidence_note=raw_ev.evidence_note
+                        evidence_note=raw_ev.evidence_note,
+                        char_start=char_start,
+                        char_end=char_end,
+                        match_tier=match_tier,
+                        prefix=prefix,
+                        suffix=suffix,
+                        is_admissible_factual_evidence=is_grounded,
+                        element_role=el_role,
+                        block_id=blk_id
                     )
                     evidences.append(ev)
 

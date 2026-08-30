@@ -386,6 +386,26 @@ class MockLLMProvider(LLMProvider):
                         )
                     ]
                 )  # type: ignore
+            elif "宇树" in prompt or "Unitree" in prompt:
+                return DecomposeOutput(
+                    claims=[
+                        RawDecomposedClaim(
+                            statement="宇树科技总部位于中国杭州，由创始人兼CEO王兴兴于2016年创立",
+                            subject="宇树科技",
+                            predicate="corporate_headquarters_and_founding",
+                            object_value="中国杭州 王兴兴 2016年",
+                            compound_slots=[
+                                RawCompoundSlot(slot_name="headquarters", value="杭州", is_required=True),
+                                RawCompoundSlot(slot_name="founder", value="王兴兴", is_required=True),
+                                RawCompoundSlot(slot_name="founding_year", value="2016", is_required=True)
+                            ],
+                            time_context="2016-至今",
+                            polarity=True,
+                            verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+                            verifiability_reason="企业官方备案与工商注册公开可查"
+                        )
+                    ]
+                )  # type: ignore
             else:
                 return DecomposeOutput(
                     claims=[
@@ -495,6 +515,35 @@ class MockLLMProvider(LLMProvider):
                             scope_match=True,
                             evidence_note="官方最新订阅价格确认",
                             origin_credit="OpenAI 官网"
+                        )
+                    ]
+                )  # type: ignore
+            elif "宇树" in prompt or "Unitree" in prompt:
+                return EvidenceExtractionBatch(
+                    evidences=[
+                        RawExtractedEvidence(
+                            exact_quote="宇树科技官方架构：总部位于中国杭州，由创始人王兴兴于2016年创立",
+                            context="宇树科技官方网站公司简介与工商档案",
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            relation_type="DIRECT_SUPPORT",
+                            matched_slots=["headquarters", "founder", "founding_year"],
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="官方官方架构明确记载总部与创立时间",
+                            origin_credit="宇树科技官方"
+                        ),
+                        RawExtractedEvidence(
+                            exact_quote="36氪专访：王兴兴于2016年在杭州创立宇树科技，深耕四足与人形机器人",
+                            context="权威科技创投媒体专访报道",
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            relation_type="DIRECT_SUPPORT",
+                            matched_slots=["headquarters", "founder", "founding_year"],
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="主流权威媒体独立印证",
+                            origin_credit="36氪"
                         )
                     ]
                 )  # type: ignore

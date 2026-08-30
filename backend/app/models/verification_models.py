@@ -154,6 +154,8 @@ class Source(BaseModel):
     source_tier: SourceTier
     publish_date: str | None = None     # 唯一的时间字段，Evidence 继承此时间
     is_synthetic: bool = False          # True = mock/demo 数据
+    raw_text: Optional[str] = None      # 网页正文原始文本
+    content_hash: Optional[str] = None  # SHA-256 唯一正文哈希
 
 
 # ──────────────────────────────────────────────
@@ -195,6 +197,13 @@ class Evidence(BaseModel):
     scope_match: bool = True               # False = 证据说的不是同一件事
 
     evidence_note: str = ""                # "该来源确认融资事实，但金额描述为8亿而非10亿"
+    
+    # 物理 Raw-Text 定位与字符级坐标
+    char_start: Optional[int] = None
+    char_end: Optional[int] = None
+    match_tier: str = "UNVERIFIED"         # EXACT, NORMALIZED_EXACT, FUZZY, UNVERIFIED
+    prefix: Optional[str] = None
+    suffix: Optional[str] = None
     
     # Scope Metadata
     scope_issues: list[ScopeIssue] = []

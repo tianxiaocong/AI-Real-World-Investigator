@@ -1,19 +1,26 @@
 """
-AI Real-World Investigator — 5-Case Blind Unassisted E2E Benchmark Runner
+AI Real-World Investigator — 5-Case Blind Unassisted E2E Benchmark Runner (v2 Full Audit Edition)
 
 Executes the FULL production E2E pipeline without ANY manual pre-structuring:
 Input: Raw Claim Statement ONLY
 Process:
   1. Claim Decomposition & FactSlots Extraction (Autonomously by LLM)
-  2. Web Search & Raw Content Fetch
+  2. Web Search & Live/Raw Content Fetch
   3. Evidence & EvidenceRelation Extraction (Autonomously by LLM)
-  4. Physical Quote Grounding & Provenance
+  4. Physical Raw-Text Quote Grounding & Provenance
   5. Deterministic Reasoning V2 Engine Verdict
+
+Saves fully auditable metadata:
+- LLM Provider & Model Name
+- Search Provider
+- Execution Timestamp & Hashes
+- Character-Level Quote Placement Coordinates & Match Tiers
 """
 
 import sys
 import json
 import asyncio
+import datetime
 import argparse
 from pathlib import Path
 from typing import List, Dict, Any
@@ -44,10 +51,14 @@ async def run_blind_evaluation(llm_provider_name: str = "mock", search_provider_
     search = get_search_provider(search_provider_name)
     agent = FastClaimVerifierAgent(llm_provider=llm, search_provider=search)
 
+    model_name = getattr(llm, "model", llm_provider_name)
+    run_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
     print("=" * 80)
     print(f"  AI Real-World Investigator: 5-Case Blind Unassisted E2E Evaluation")
-    print(f"  LLM Provider:    {llm_provider_name}")
+    print(f"  LLM Provider:    {llm_provider_name} (Model: {model_name})")
     print(f"  Search Provider: {search_provider_name}")
+    print(f"  Timestamp:       {run_timestamp}")
     print(f"  Total Cases:     {len(cases)}")
     print("=" * 80)
 
@@ -88,20 +99,62 @@ async def run_blind_evaluation(llm_provider_name: str = "mock", search_provider_
 
         print(f"  📜 EXTRACTED Quotes ({len(verdict.evidences)} items):")
         for e_idx, ev in enumerate(verdict.evidences):
-            print(f"     [{e_idx+1}] \"{ev.exact_quote[:60]}...\" (Supports: {ev.supports_claim}, Contradicts: {ev.contradicts_claim})")
+            print(f"     [{e_idx+1}] Tier: [{ev.match_tier}] ({ev.char_start}:{ev.char_end}) \"{ev.exact_quote[:60]}...\" (Admissible: {ev.is_admissible_factual_evidence})")
 
         print(f"  💡 WHY REASONS:")
         for r in verdict.why_reasons:
             print(f"     {r}")
 
+        # Record complete auditable case telemetry
         results.append({
             "id": c_id,
             "domain": domain,
             "claim": raw_claim,
+            "execution_metadata": {
+                "llm_provider": llm_provider_name,
+                "model": model_name,
+                "search_provider": search_provider_name,
+                "timestamp": run_timestamp
+            },
             "verdict_state": state,
             "fact_slots": fact_slots.model_dump() if hasattr(fact_slots, "model_dump") else str(fact_slots),
-            "relations_count": len(relations),
-            "evidences_count": len(verdict.evidences)
+            "sources": [
+                {
+                    "id": s.id,
+                    "url": s.url,
+                    "domain": s.domain,
+                    "source_tier": s.source_tier.value,
+                    "is_synthetic": s.is_synthetic,
+                    "raw_text_length": len(s.raw_text or "")
+                }
+                for s in verdict.sources
+            ],
+            "evidences": [
+                {
+                    "id": ev.id,
+                    "source_id": ev.source_id,
+                    "exact_quote": ev.exact_quote,
+                    "char_start": ev.char_start,
+                    "char_end": ev.char_end,
+                    "match_tier": ev.match_tier,
+                    "supports_claim": ev.supports_claim,
+                    "contradicts_claim": ev.contradicts_claim,
+                    "is_admissible": ev.is_admissible_factual_evidence
+                }
+                for ev in verdict.evidences
+            ],
+            "relations": [
+                {
+                    "relation_type": rel.relation_type.value,
+                    "accounting_standard": rel.accounting_standard.value,
+                    "temporal_evolution": rel.temporal_evolution.value,
+                    "matched_slots": rel.matched_slots,
+                    "polarity_reasoning": rel.polarity_reasoning
+                }
+                for rel in relations
+            ],
+            "why_reasons": verdict.why_reasons,
+            "evidence_gaps": verdict.evidence_gaps
         })
 
     print("\n" + "=" * 80)
