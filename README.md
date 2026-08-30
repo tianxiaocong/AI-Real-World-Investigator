@@ -1,52 +1,67 @@
 # 🕵️‍♂️ AI Real-World Investigator (AI 现实世界侦察兵)
 
-> **基于 Evidence-First 原则的多源事实核验与深度侦察系统**  
+> **面向真实世界事实调查与深度核验的 Evidence-First 工程系统**  
 > 旗舰核心引擎：**🔍 AI Claim Verifier (事实核验透视镜)**  
 > 不下主观断言，只回答一个核心问题：**「现有公开证据是否足以支持这个说法？」**  
-> *Evidence-First Web Investigation with Exact Quote Grounding, Provenance Graph Resolution, and Deterministic Evidence Adjudication.*
+> *A Reliable, Auditable, and Deterministic Web Evidence Adjudication System.*
 
 ---
 
-## 🧭 系统核心研究主线 (Core Research Narrative & Philosophy)
+## 🎯 系统核心主线与设计哲学 (Core Product Narrative & Triad)
 
 在开放世界事实核查中，端到端大模型（LLM-only）天然存在引文幻觉、同源转载回音壁、口径与时效失真以及过度断言（Overclaim）等系统性脆弱性。
 
-本系统遵循 **职责分离（Separation of Concerns）** 哲学：
+本系统的核心使命是：**构建一个高可靠、可审计、抗欺骗的现实世界调查系统，并通过真实实验与持续迭代不断发现和修复失败。**
+
+```text
+                 AI Real-World Investigator
+                           │
+                           ▼
+              现实世界事实调查 / 证据核验
+                           │
+        ┌──────────────────┼──────────────────┐
+        ▼                  ▼                  ▼
+     正确性 (Correctness)  可审计性 (Auditability) 安全性 (Security)
+        │                  │                  │
+        ▼                  ▼                  ▼
+   Claim Extraction     Exact Quote Grounding  Hop-by-Hop SSRF
+   Search & Retrieval   Auditable Evidence     Anti-Spoof Classifier
+   Scope & Polarity     Provenance Graph       IPv4/IPv6 getaddrinfo
+   Consistency Gating   Strict Source Identity Resource Limits
+        │                  │                  │
+        └──────────────────┼──────────────────┘
+                           ▼
+               Deterministic Safety Guard (规则安全闸门)
+                           │
+                           ▼
+                Final EvidenceState (6 级证据状态)
+                           │
+                           ▼
+              Human-readable Verdict Report (可溯源报告)
+```
+
+### 核心设计原则：**职责分离 (Separation of Concerns)**
 $$\text{LLM is the Semantic Reader, not the Final Judge.}$$
 
-* **物理证据层 (Raw Web Documents)**：提供不可篡改的事实原材料与 DOM 快照；
-* **语义理解层 (LLM Extractor)**：负责理解自然语言陈述、抽取候选引文、识别断言极性与范围冲突（Scope Issues）；
-* **物理定位层 (Exact Quote Locator)**：基于 Unicode 码点进行字符级物理锚定，实时拒认幻觉引用；
-* **来源血缘层 (Provenance Graph)**：穿透 `REPUBLISHES` 与 `CITES` 图谱，还原真实的独立信源数量；
-* **确定性裁决层 (Deterministic Rules Engine)**：由规则代码实施时空/数量一致性门禁与状态状态机，杜绝 Overclaim。
+* **原网页 (Raw Documents)**：负责提供事实原材料与 DOM 快照；
+* **大模型 (LLM Extractor)**：负责理解复杂自然语言、提取候选引文、识别陈述极性与范围冲突（Scope Issues）；
+* **精确物理定位器 (Exact Locator)**：在规范化文本（Canonical Text）中建立 Unicode 码点级字符落点，实时拒认幻觉引用；
+* **来源血缘解析器 (Provenance Graph)**：以严格 Source Identity 优先，遍历 `REPUBLISHES` 与 `CITES` 图谱，去重同源转载与引文回音壁；
+* **确定性规则闸门 (Deterministic Guard)**：作为最后一道安全防线，依据严格定义的证据状态机实施时空/数量一致性门禁，阻断危险的假证实。
 
-```mermaid
-flowchart TD
-    subgraph S1["1. 物理证据获取与安全防御 (Physical Evidence Layer)"]
-        A["待核验文本 / 网页 / 复合陈述"] --> B["原子主张解构 (Atomic Claims Decomposition)"]
-        B --> C["检索调度 (Search & Retrieval)"]
-        C --> D["安全爬虫 (Hop-by-Hop SSRF, IPv4/IPv6 getaddrinfo, Anti-Spoofing)"]
-        D --> E["Raw HTML & NFC 标准化文本"]
-    end
+---
 
-    subgraph S2["2. 语义抽取与物理引文定位 (Semantic & Grounding Layer)"]
-        E --> F["动态相关窗口聚焦 (Relevant Window Selector)"]
-        F --> G["LLM 语义提取 (Quote, Polarity, Scope Issues)"]
-        G --> H["Unicode 码点精确物理定位 (EXACT / NORMALIZED_EXACT)"]
-    end
+## 🔄 核心工程开发与验证闭环 (The Engineering Reliability Loop)
 
-    subgraph S3["3. 来源血缘图谱解析 (Provenance Resolution Layer)"]
-        H --> I["Canonical URL & Source ID 严格归属"]
-        I --> J["REPUBLISHES / CITES 溯源图遍历"]
-        J --> K["Ultimate Origin 根源聚类 (去重同源转载)"]
-    end
+整个系统的演进始终围绕以下可靠性链路展开：
 
-    subgraph S4["4. 确定性规则裁决 (Deterministic Adjudication Layer)"]
-        K --> L["Scope & Consistency 门禁 (Temporal & Quantifier)"]
-        L --> M["Deterministic Verdict Rules Engine (verdict_rules.py)"]
-        M --> N["6 级 EvidenceState 状态判定"]
-        N --> O["OverallCoverage 多主张完整性覆盖报告"]
-    end
+$$\text{搜得到} \longrightarrow \text{抓得准} \longrightarrow \text{读得对} \longrightarrow \text{引得准} \longrightarrow \text{来源不重} \longrightarrow \text{时空不乱} \longrightarrow \text{危险阻断} \longrightarrow \text{可溯源}$$
+
+```text
+真实调查场景 ──▶ 发现失败案例 ──▶ 定位失败层 (抽取/定位/血缘/规则/网络)
+                                            │
+                                            ▼
+冻结版本 ◀── 确认真实改善 ◀── 真实大模型重测 ◀── 修复代码/Prompt/数据结构
 ```
 
 ---
@@ -146,8 +161,9 @@ flowchart TD
 为避免将无序的证据状态误当作线性标尺，评测体系严格解耦为四项独立指标：
 
 1. **Exact State Accuracy**：$\frac{1}{N} \sum \mathbb{I}(\hat{y}_i = y_i)$，预测状态与人工黄金标签完全吻合率。
-2. **Safety Overclaim Rate (核心安全红线，目标严格为 0.0%)**：
+2. **Safety Overclaim Rate (核心安全红线，实测追求 0.0%)**：
    $$\text{Overclaim Rate} = \frac{\sum_{i=1}^N \mathbb{I}(y_i \in \{\text{INSU}, \text{UNSP}, \text{CONF}, \text{N\_AS}\} \land \hat{y}_i \in \{\text{SUFF}, \text{STRO}\})}{N}$$
+   *说明：衡量系统是否把证据不足、存疑或存在反驳的事实错误判定为充分证实。规则引擎作为安全闸门提供约束，实际系统的安全表现通过多模型真实评测进行实证检验。*
 3. **Conservative Miss Rate**：真实充分的事实被保守降级为证据不足的比率。
 4. **Quote Grounding Rate**：模型提取引文在原始源文档中实现逐字精准定位的比率（`EXACT` / `NORMALIZED_EXACT`）。
 
