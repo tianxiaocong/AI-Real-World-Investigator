@@ -50,10 +50,20 @@ async def fast_verify_claim(req: FastVerifyRequest):
     gemini_k = api_k.get("gemini_api_key")
     openai_k = api_k.get("openai_api_key")
     tavily_k = api_k.get("tavily_api_key")
+    sensenova_k = api_k.get("sensenova_api_key")
+    deepseek_k = api_k.get("deepseek_api_key")
     
-    chosen_key = gemini_k if req.llm_provider == "gemini" else openai_k
+    if req.llm_provider in ("sensenova", "glm"):
+        chosen_key = sensenova_k or None
+    elif req.llm_provider == "gemini":
+        chosen_key = gemini_k or None
+    elif req.llm_provider == "deepseek":
+        chosen_key = deepseek_k or None
+    else:
+        chosen_key = openai_k or None
+
     llm = get_llm_provider(req.llm_provider, tier="reasoning", api_key=chosen_key)
-    search = get_search_provider(req.search_provider, api_key=tavily_k)
+    search = get_search_provider(req.search_provider, api_key=tavily_k or None)
     
     agent = FastClaimVerifierAgent(llm_provider=llm, search_provider=search)
     coverage = await agent.verify_input(

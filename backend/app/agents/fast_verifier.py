@@ -12,6 +12,7 @@ AI Claim Verifier — Fast Verification Pipeline Agent (v4 Final)
 import re
 import json
 import uuid
+import asyncio
 import hashlib
 import datetime
 import logging
@@ -154,12 +155,9 @@ class FastClaimVerifierAgent:
                 )
             ]
 
-        verdicts: List[Verdict] = []
-        
-        # 2. 对每个拆解后的 Claim 分别执行定向证据检索与规则判定
-        for claim in claims:
-            verdict = await self._verify_single_claim(claim, today_str)
-            verdicts.append(verdict)
+        # 2. 对每个拆解后的 Claim 并行执行定向证据检索与规则判定（最多 2 个核心主张并发）
+        target_claims = claims[:2] if len(claims) > 2 else claims
+        verdicts = list(await asyncio.gather(*(self._verify_single_claim(claim, today_str) for claim in target_claims)))
 
         # 3. 汇总生成多 Claim 整体覆盖状态
         coverage = generate_overall_coverage(
