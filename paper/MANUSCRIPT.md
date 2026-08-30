@@ -11,7 +11,7 @@
 Automated fact-checking in real-world web environments is fraught with citation hallucinations, source syndication cascades (where republished rumors mimic independent corroboration), and conflicting financial/biomedical reporting. Standard LLM-only verification systems frequently suffer from *overclaiming*—falsely asserting that an unverified, rumor-based, or conflicting claim is definitively verified. 
 
 In this paper, we present **AI Real-World Investigator**, an open-source, deterministic fact-checking architecture that decouples semantic claim extraction from evidentiary verdict determination. Our system introduces three core mechanisms:
-1. **True Raw-Text Quote Anchoring**: A character-level, byte-accurate physical locator that binds extracted claims to immutable raw HTML document codepoints across four tiered matching strategies (`EXACT`, `NORMALIZED_EXACT`, `FUZZY`, `UNVERIFIED`), immediately rejecting phantom or hallucinated citations.
+1. **True Raw-Text Quote Anchoring**: A character-level, Unicode code-point-accurate physical locator that binds extracted claims to immutable raw HTML document codepoints across four tiered matching strategies (`EXACT`, `NORMALIZED_EXACT`, `FUZZY`, `UNVERIFIED`), immediately rejecting phantom or hallucinated citations.
 2. **Structural Provenance Resolution**: An automated graph-attribution engine that detects syndication, republication, and external leak chains (e.g., social media leaks cited across secondary news blogs), preventing echo-chamber overcounting of non-independent sources.
 3. **Deterministic Verdict Rules Engine**: A mathematically rigorous, multi-tier state machine defining six mutually exclusive evidentiary states (`SUFFICIENT`, `STRONG`, `INSUFFICIENT`, `CONFLICTING`, `UNSUPPORTED`, `NOT_ASSESSABLE`).
 
@@ -106,7 +106,7 @@ We construct a 20-case real-world fact-verification benchmark (`benchmark/real_w
 ### 3.2 Evaluation Matrix & Protocols
 The benchmark is evaluated under a controlled $2 \times 2 (+1)$ matrix:
 * **Execution Modes**:
-  * `CACHED`: Frozen, byte-exact HTML snapshots with 0 network variance.
+  * `CACHED`: Frozen, character-exact HTML snapshots with 0 network variance.
   * `LIVE`: Real-time HTTP fetching with automated fallback isolation upon encountering bot-blocking (HTTP 403/401).
 * **Model Backends**:
   1. `Mock`: Deterministic rule-based extractor (upper-bound baseline).

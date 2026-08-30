@@ -48,17 +48,15 @@ STATE_STRENGTH = {
 
 
 def is_overclaim(pred: str, gold: str) -> bool:
-    """Returns True if system predicted a significantly stronger confirmation state than justified by Gold"""
-    pred_val = STATE_STRENGTH.get(pred, 1)
-    gold_val = STATE_STRENGTH.get(gold, 1)
-    if gold in ("INSUFFICIENT", "UNSUPPORTED", "NOT_ASSESSABLE") and pred in ("STRONG", "SUFFICIENT"):
+    """Returns True if system predicted a confirmed state (SUFFICIENT or STRONG) for an unverified/false/conflicting claim"""
+    if gold in ("INSUFFICIENT", "UNSUPPORTED", "NOT_ASSESSABLE", "CONFLICTING") and pred in ("STRONG", "SUFFICIENT"):
         return True
-    return pred_val > gold_val and pred in ("STRONG", "SUFFICIENT")
+    return False
 
 
 def is_conservative_miss(pred: str, gold: str) -> bool:
-    """Returns True if gold was strong/sufficient, but system conservatively defaulted to insufficient"""
-    return gold in ("STRONG", "SUFFICIENT") and pred == "INSUFFICIENT"
+    """Returns True if gold was strong/sufficient, but system conservatively defaulted to insufficient or not assessable"""
+    return gold in ("STRONG", "SUFFICIENT") and pred in ("INSUFFICIENT", "NOT_ASSESSABLE")
 
 
 async def run_benchmark(mode: str = "mock", ablation: Optional[str] = None):

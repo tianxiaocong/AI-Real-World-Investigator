@@ -25,9 +25,24 @@ from app.engine.verdict_rules import (
 STATE_ORDER = [
     "SUFFICIENT", "STRONG", "INSUFFICIENT", "CONFLICTING", "UNSUPPORTED", "NOT_ASSESSABLE"
 ]
-STATE_WEIGHT = {
-    "SUFFICIENT": 5, "STRONG": 4, "INSUFFICIENT": 2, "CONFLICTING": 3, "UNSUPPORTED": 1, "NOT_ASSESSABLE": 0
-}
+
+def is_overclaim(pred: str, gold: str) -> bool:
+    """
+    Safety Violation Metric:
+    Returns True if the system positively confirmed (SUFFICIENT or STRONG)
+    a claim whose ground truth is UNSUPPORTED, INSUFFICIENT, CONFLICTING, or NOT_ASSESSABLE.
+    """
+    if gold in ("INSUFFICIENT", "UNSUPPORTED", "NOT_ASSESSABLE", "CONFLICTING"):
+        return pred in ("STRONG", "SUFFICIENT")
+    return False
+
+def is_conservative_miss(pred: str, gold: str) -> bool:
+    """
+    Conservative Under-claim Metric:
+    Returns True if ground truth was positively confirmed (SUFFICIENT or STRONG),
+    but the system conservatively degraded to INSUFFICIENT or NOT_ASSESSABLE.
+    """
+    return gold in ("STRONG", "SUFFICIENT") and pred in ("INSUFFICIENT", "NOT_ASSESSABLE")
 
 
 def run_rule_regression_benchmark():
@@ -42,6 +57,7 @@ def run_rule_regression_benchmark():
     correct_verdicts = 0
     total_cases = len(cases)
     overclaim_cases = 0
+    conservative_miss_cases = 0
     confusion_matrix = defaultdict(lambda: defaultdict(int))
 
     for item in cases:
@@ -123,20 +139,25 @@ def run_rule_regression_benchmark():
         is_match = (pred_val == gold_state)
         if is_match:
             correct_verdicts += 1
-        elif STATE_WEIGHT.get(pred_val, 0) > STATE_WEIGHT.get(gold_state, 0):
-            overclaim_cases += 1
+        else:
+            if is_overclaim(pred_val, gold_state):
+                overclaim_cases += 1
+            if is_conservative_miss(pred_val, gold_state):
+                conservative_miss_cases += 1
 
         print(f"[{'PASS' if is_match else 'FAIL'}] {c_id}: {statement[:28]}... -> Pred: {pred_val} | Gold: {gold_state}")
 
     accuracy = (correct_verdicts / total_cases) * 100.0
     overclaim_rate = (overclaim_cases / total_cases) * 100.0
+    miss_rate = (conservative_miss_cases / total_cases) * 100.0
 
     print(f"\n============================================================")
     print(f" [SUMMARY] SYNTHETIC RULE REGRESSION RESULTS")
-    print(f" Total Cases Evaluated : {total_cases}")
-    print(f" Regression Passed     : {correct_verdicts} / {total_cases}")
-    print(f" Rule Engine Accuracy  : {accuracy:.1f}%")
-    print(f" Overclaim Rate (Risk) : {overclaim_rate:.1f}%")
+    print(f" Total Cases Evaluated   : {total_cases}")
+    print(f" Regression Passed       : {correct_verdicts} / {total_cases}")
+    print(f" Exact State Accuracy    : {accuracy:.1f}%")
+    print(f" Overclaim Rate (Safety) : {overclaim_rate:.1f}% ({overclaim_cases}/{total_cases})")
+    print(f" Conservative Miss Rate  : {miss_rate:.1f}% ({conservative_miss_cases}/{total_cases})")
     print(f"============================================================")
     print(f" Confusion Matrix (Gold Rows x Pred Cols):")
     header = f"{'GOLD / PRED':<15}" + "".join([f"{s[:6]:>8}" for s in STATE_ORDER])

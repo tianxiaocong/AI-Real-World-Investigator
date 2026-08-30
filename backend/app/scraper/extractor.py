@@ -57,22 +57,49 @@ class WebScraper:
         return clean_text.strip()
 
     @staticmethod
-    async def fetch_and_extract(url: str, timeout_seconds: int = 15) -> Optional[SourceCreate]:
-        """Fetch URL content, clean HTML, extract main text and compute metadata"""
-        if not is_safe_url(url):
-            logger.warning(f"SSRF check rejected URL: {url}")
-            return None
-
-        parsed = urlparse(url)
-        domain = parsed.hostname or ""
-        source_type, credibility = classify_source_and_credibility(url, domain)
-
+    async def fetch_and_extract(url: str, timeout_seconds: int = 15, max_redirects: int = 5) -> Optional[SourceCreate]:
+        """Fetch URL content with hop-by-hop SSRF validation across redirects, clean HTML, and compute metadata"""
+        current_url = url
         try:
-            async with httpx.AsyncClient(timeout=timeout_seconds, follow_redirects=True, headers=HEADERS) as client:
-                response = await client.get(url)
-                if response.status_code != 200:
-                    logger.warning(f"HTTP {response.status_code} for {url}")
+            async with httpx.AsyncClient(timeout=timeout_seconds, follow_redirects=False, headers=HEADERS) as client:
+                redirect_count = 0
+                response = None
+
+                while redirect_count <= max_redirects:
+                    if not is_safe_url(current_url):
+                        logger.warning(f"SSRF check rejected URL: {current_url}")
+                        return None
+
+                    response = await client.get(current_url)
+
+                    # Check if response is a redirect
+                    if response.is_redirect or response.status_code in (301, 302, 303, 307, 308):
+                        location = response.headers.get("location")
+                        if not location:
+                            logger.warning(f"Redirect missing location header from {current_url}")
+                            return None
+                        
+                        # Resolve relative URL redirect
+                        next_url = str(httpx.URL(current_url).join(location))
+                        if not is_safe_url(next_url):
+                            logger.warning(f"SSRF check rejected redirect target: {next_url} (from {current_url})")
+                            return None
+
+                        current_url = next_url
+                        redirect_count += 1
+                        continue
+
+                    break
+
+                if not response or response.status_code != 200:
+                    status = response.status_code if response else "No response"
+                    logger.warning(f"HTTP {status} for {current_url}")
                     return None
+
+                final_url = str(response.url) if response.url else current_url
+                parsed = urlparse(final_url)
+                domain = parsed.hostname or ""
+                source_type, credibility = classify_source_and_credibility(final_url, domain)
 
                 html_content = response.text
                 if not html_content:
@@ -82,7 +109,7 @@ class WebScraper:
                 clean_text = WebScraper.extract_clean_text_deterministic(html_content)
 
                 if not clean_text or len(clean_text.strip()) < 80:
-                    logger.warning(f"Insufficient content extracted from {url}")
+                    logger.warning(f"Insufficient content extracted from {final_url}")
                     return None
 
                 # Extract page title
@@ -94,7 +121,7 @@ class WebScraper:
                 content_hash = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()
 
                 return SourceCreate(
-                    url=url,
+                    url=final_url,
                     domain=domain,
                     title=title,
                     source_type=source_type,

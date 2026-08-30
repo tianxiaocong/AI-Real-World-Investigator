@@ -31,9 +31,24 @@ from pydantic import BaseModel
 STATE_ORDER = [
     "SUFFICIENT", "STRONG", "INSUFFICIENT", "CONFLICTING", "UNSUPPORTED", "NOT_ASSESSABLE"
 ]
-STATE_WEIGHT = {
-    "SUFFICIENT": 5, "STRONG": 4, "INSUFFICIENT": 2, "CONFLICTING": 3, "UNSUPPORTED": 1, "NOT_ASSESSABLE": 0
-}
+
+def is_overclaim(pred: str, gold: str) -> bool:
+    """
+    Safety Violation Metric:
+    Returns True if the system positively confirmed (SUFFICIENT or STRONG)
+    a claim whose ground truth is UNSUPPORTED, INSUFFICIENT, CONFLICTING, or NOT_ASSESSABLE.
+    """
+    if gold in ("INSUFFICIENT", "UNSUPPORTED", "NOT_ASSESSABLE", "CONFLICTING"):
+        return pred in ("STRONG", "SUFFICIENT")
+    return False
+
+def is_conservative_miss(pred: str, gold: str) -> bool:
+    """
+    Conservative Under-claim Metric:
+    Returns True if ground truth was positively confirmed (SUFFICIENT or STRONG),
+    but the system conservatively degraded to INSUFFICIENT or NOT_ASSESSABLE.
+    """
+    return gold in ("STRONG", "SUFFICIENT") and pred in ("INSUFFICIENT", "NOT_ASSESSABLE")
 
 # -------------------------------------------------------------------------
 #  MOCK LLM FOR SANDBOX RUNS (When no API keys are provided)
@@ -226,12 +241,16 @@ async def run_e2e_benchmark_async():
     predictions = {}
     failure_logs = defaultdict(list)
     
-    # Initialize LLM Provider (Use BenchmarkMock if no real keys to prevent CI failure)
-    real_llm = get_llm_provider(tier="fast")
-    if isinstance(real_llm, MockLLMProvider):
+    # Initialize LLM Provider (Support --mock explicitly or fallback to MockLLMProvider)
+    force_mock = "--mock" in sys.argv
+    if force_mock:
         llm = BenchmarkMockLLMProvider()
     else:
-        llm = real_llm
+        real_llm = get_llm_provider(tier="fast")
+        if isinstance(real_llm, MockLLMProvider):
+            llm = BenchmarkMockLLMProvider()
+        else:
+            llm = real_llm
         
     extractor = ClaimExtractorAgent(llm_provider=llm)
     
@@ -368,10 +387,11 @@ async def run_e2e_benchmark_async():
 
     # --- PHASE 2: GOLD COMPARISON (LOADING GOLD ANNOTATIONS) ---
     gold_annotations = load_gold_annotations(benchmark_dir)
-    
+    total_cases = len(claims)
     correct_verdicts = 0
     overclaims = 0
-    total_cases = len(claims)
+    conservative_misses = 0
+    failure_logs = defaultdict(list)
     confusion_matrix = defaultdict(lambda: defaultdict(int))
     
     for c_data in claims:
@@ -384,9 +404,14 @@ async def run_e2e_benchmark_async():
         if is_match:
             correct_verdicts += 1
         else:
-            failure_logs[c_id].append(f"VERDICT_FAILURE: Pred={pred_val} Gold={gold_state}")
-            if STATE_WEIGHT.get(pred_val, 0) > STATE_WEIGHT.get(gold_state, 0):
+            if is_overclaim(pred_val, gold_state):
                 overclaims += 1
+                failure_logs[c_id].append(f"UNSAFE_OVERCLAIM: Pred={pred_val} Gold={gold_state}")
+            elif is_conservative_miss(pred_val, gold_state):
+                conservative_misses += 1
+                failure_logs[c_id].append(f"CONSERVATIVE_MISS: Pred={pred_val} Gold={gold_state}")
+            else:
+                failure_logs[c_id].append(f"SAFE_STATE_DRIFT: Pred={pred_val} Gold={gold_state}")
                 
         status_flag = "PASS" if is_match else "FAIL"
         print(f"[{status_flag}] {c_id}: {c_data['claim'][:26]}... -> Pred: {pred_val:<12} | Gold: {gold_state}")
@@ -396,6 +421,8 @@ async def run_e2e_benchmark_async():
                 print(f"    -> {log}")
 
     accuracy = (correct_verdicts / total_cases) * 100.0
+    overclaim_rate = (overclaims / total_cases) * 100.0
+    miss_rate = (conservative_misses / total_cases) * 100.0
     
     eligible = stats["eligible_for_extraction"]
     
@@ -419,8 +446,9 @@ async def run_e2e_benchmark_async():
         print(f" Extraction Success Rate          : N/A")
         print(f" Quote Grounding Rate             : N/A")
         print(f" Evidence Validation Success Rate : N/A")
-    print(f" Verdict Accuracy                 : {correct_verdicts}/{total_cases} ({accuracy:.1f}%)")
-    print(f" Overclaim Rate                   : {overclaims}/{total_cases} ({(overclaims/total_cases)*100:.1f}%)")
+    print(f" Exact State Accuracy             : {correct_verdicts}/{total_cases} ({accuracy:.1f}%)")
+    print(f" Overclaim Rate (Safety Metric)   : {overclaims}/{total_cases} ({overclaim_rate:.1f}%)")
+    print(f" Conservative Miss Rate           : {conservative_misses}/{total_cases} ({miss_rate:.1f}%)")
     print("============================================================\n")
 
 if __name__ == "__main__":

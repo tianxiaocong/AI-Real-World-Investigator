@@ -18,7 +18,10 @@ from app.models.verification_models import (
     Verdict,
     OverallState,
     Verifiability,
-    InputType
+    InputType,
+    ScopeIssue,
+    ScopeIssueType,
+    ScopeSeverity
 )
 from app.engine.verdict_rules import (
     assess_evidence_for_claim,
@@ -339,4 +342,106 @@ def test_boundary_15_explicit_denial_contradicts():
     assert assessment.has_credible_contradicting_evidence is True
     assert assessment.has_direct_support is False
     assert state in [EvidenceState.UNSUPPORTED, EvidenceState.CONFLICTING]
+
+
+# Test 16: 数值口径不一致 (HIGH Severity Quantifier Mismatch) 阻止 SUFFICIENT 判定
+def test_boundary_16_quantifier_mismatch_blocks_sufficient():
+    claim = Claim(
+        id="c-funding",
+        original_input="某公司完成10亿美元融资",
+        input_type=InputType.TEXT,
+        statement="某公司完成10亿美元融资",
+        claim_index=0,
+        verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+        verifiability_reason="融资信息属于公开事实",
+        verified_as_of="2026-08-28"
+    )
+    src_off = Source(id="s-off", url="https://company.com/press", domain="company.com", title="Official", source_tier=SourceTier.OFFICIAL)
+    src_news = Source(id="s-news", url="https://reuters.com/1", domain="reuters.com", title="Reuters", source_tier=SourceTier.AUTHORITATIVE)
+
+    # 证据提取中检测到数量口径差异 (实际是1000万美元，非10亿美元)
+    ev_off = Evidence(
+        id="e-off",
+        source_id="s-off",
+        claim_id="c-funding",
+        exact_quote="公司正式宣布完成1000万美元A轮融资",
+        supports_claim=True,
+        directness=EvidenceDirectness.DIRECT,
+        scope_match=True,
+        scope_issues=[
+            ScopeIssue(
+                issue_type=ScopeIssueType.QUANTIFIER,
+                severity=ScopeSeverity.HIGH,
+                source_fragment="1000万美元",
+                claim_fragment="10亿美元",
+                explanation="金额数量级严重不符"
+            )
+        ]
+    )
+    ev_news = Evidence(
+        id="e-news",
+        source_id="s-news",
+        claim_id="c-funding",
+        exact_quote="公司获得1000万美元投资",
+        supports_claim=True,
+        directness=EvidenceDirectness.DIRECT,
+        scope_match=True
+    )
+
+    assessment = assess_evidence_for_claim(claim, [src_off, src_news], [ev_off, ev_news])
+    state = compute_evidence_state(assessment, claim.verifiability)
+
+    assert assessment.value_consistent is False
+    assert state == EvidenceState.INSUFFICIENT
+
+
+# Test 17: 时间更替失效 (HIGH Severity Temporal Supersession) 阻止 STRONG 判定
+def test_boundary_17_temporal_supersession_blocks_strong():
+    claim = Claim(
+        id="c-price",
+        original_input="产品现价为每月20美元",
+        input_type=InputType.TEXT,
+        statement="产品现价为每月20美元",
+        claim_index=0,
+        verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+        verifiability_reason="定价信息公开可查",
+        verified_as_of="2026-08-28"
+    )
+    src1 = Source(id="s-1", url="https://reuters.com/price", domain="reuters.com", title="Reuters", source_tier=SourceTier.AUTHORITATIVE)
+    src2 = Source(id="s-2", url="https://bloomberg.com/price", domain="bloomberg.com", title="Bloomberg", source_tier=SourceTier.AUTHORITATIVE)
+
+    # 历史报道虽称20美元，但已被后续涨价更替
+    ev1 = Evidence(
+        id="e-1",
+        source_id="s-1",
+        claim_id="c-price",
+        exact_quote="2023年推出时售价为每月20美元",
+        supports_claim=True,
+        directness=EvidenceDirectness.DIRECT,
+        scope_match=True,
+        scope_issues=[
+            ScopeIssue(
+                issue_type=ScopeIssueType.TEMPORAL,
+                severity=ScopeSeverity.HIGH,
+                source_fragment="2023年推出时",
+                claim_fragment="现价",
+                explanation="历史旧价格已失效更替"
+            )
+        ]
+    )
+    ev2 = Evidence(
+        id="e-2",
+        source_id="s-2",
+        claim_id="c-price",
+        exact_quote="早期价格为每月20美元",
+        supports_claim=True,
+        directness=EvidenceDirectness.DIRECT,
+        scope_match=True
+    )
+
+    assessment = assess_evidence_for_claim(claim, [src1, src2], [ev1, ev2])
+    state = compute_evidence_state(assessment, claim.verifiability)
+
+    assert assessment.time_consistent is False
+    assert state == EvidenceState.INSUFFICIENT
 

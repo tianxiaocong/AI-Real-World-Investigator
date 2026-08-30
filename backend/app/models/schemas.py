@@ -17,12 +17,18 @@ class ClaimType(str, Enum):
     FACT = "FACT_STATEMENT"
 
 class VerificationStatus(str, Enum):
-    CONFIRMED = "CONFIRMED"            # 🟢 已确认 (多独立权威来源交叉印证，或官方明确披露且无反证)
-    PROBABLE = "PROBABLE"              # 🟢 基本确认 (有可靠主流信源，逻辑自洽，暂无反证)
-    SINGLE_SOURCE = "SINGLE_SOURCE"    # 🟠 单一来源 (仅单一信源提及，缺乏独立交叉验证)
-    DISPUTED = "DISPUTED"              # 🔴 存在争议 (不同来源在核心事实/数据上存在直接冲突)
-    UNVERIFIED = "UNVERIFIED"          # ⚪ 无法确认 (缺乏证据或仅为孤立传言)
-    OPINION_ONLY = "OPINION_ONLY"      # ⚪ 仅为观点/推论 (主观观点，不作为客观事实采信)
+    """
+    [LEGACY / COMPATIBILITY LAYER]
+    Notice: The canonical ontology of the investigation engine is EvidenceState (defined in
+    app.models.verification_models). VerificationStatus is maintained exclusively for backward
+    compatibility with legacy API routes and database schemas.
+    """
+    CONFIRMED = "CONFIRMED"            # 🟢 已确认 (Mapped to SUFFICIENT / STRONG)
+    PROBABLE = "PROBABLE"              # 🟢 基本确认 (Mapped to STRONG)
+    SINGLE_SOURCE = "SINGLE_SOURCE"    # 🟠 单一来源 (Mapped to INSUFFICIENT)
+    DISPUTED = "DISPUTED"              # 🔴 存在争议 (Mapped to CONFLICTING / UNSUPPORTED)
+    UNVERIFIED = "UNVERIFIED"          # ⚪ 无法确认 (Mapped to INSUFFICIENT / NOT_ASSESSABLE)
+    OPINION_ONLY = "OPINION_ONLY"      # ⚪ 仅为观点 (Mapped to NOT_ASSESSABLE)
 
     # Backward compatibility aliases
     MULTI_SOURCE_SUPPORTED = "CONFIRMED"

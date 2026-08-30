@@ -202,6 +202,24 @@ def assess_evidence_for_claim(
         len(direct_supporting_origins) >= 2
     )
 
+    # --- DETERMINISTIC RULE 3: Consistency Calculation from Scope Issues ---
+    has_high_quantifier_conflict = False
+    has_high_temporal_conflict = False
+
+    for ev in evidences:
+        scope_issues = getattr(ev, "scope_issues", [])
+        for issue in scope_issues:
+            itype = issue.issue_type.name if hasattr(issue.issue_type, 'name') else str(issue.issue_type)
+            isev = issue.severity.name if hasattr(issue.severity, 'name') else str(issue.severity)
+            if isev == "HIGH":
+                if itype in ("QUANTIFIER", "POPULATION", "CONDITION", "EXCEPTION"):
+                    has_high_quantifier_conflict = True
+                elif itype in ("TEMPORAL", "ENTITY_VERSION"):
+                    has_high_temporal_conflict = True
+
+    value_consistent = not has_high_quantifier_conflict
+    time_consistent = not has_high_temporal_conflict
+
     return EvidenceAssessment(
         claim_id=claim.id,
         total_sources_found=len(sources),
@@ -215,8 +233,8 @@ def assess_evidence_for_claim(
         has_strong_independent_support=has_strong_independent_support,
         has_supporting_official_source=has_supporting_official,
         has_credible_contradicting_evidence=has_credible_contradiction,
-        time_consistent=True,
-        value_consistent=True
+        time_consistent=time_consistent,
+        value_consistent=value_consistent
     )
 
 
@@ -242,21 +260,23 @@ def compute_evidence_state(
     if assessment.has_credible_contradicting_evidence and assessment.has_direct_support:
         return EvidenceState.CONFLICTING
 
-    # 4. 证据充分：≥2 独立来源直接支持 + 官方一手来源直接证实 + 无可信反驳
+    # 4. 证据充分：≥2 独立来源直接支持 + 官方一手来源直接证实 + 无可信反驳 + 数值/时空一致
     if (assessment.independent_source_count >= 2
         and assessment.has_supporting_official_source
         and assessment.has_direct_support
         and not assessment.has_credible_contradicting_evidence
-        and assessment.value_consistent is not False):
+        and assessment.value_consistent is not False
+        and assessment.time_consistent is not False):
         return EvidenceState.SUFFICIENT
 
-    # 5. 证据较强：≥2 独立来源直接支持 + 无可信反驳 (哪怕没有官方一手源)
+    # 5. 证据较强：≥2 独立来源直接支持 + 无可信反驳 + 数值/时空一致 (哪怕没有官方一手源)
     if (assessment.has_strong_independent_support
         and not assessment.has_credible_contradicting_evidence
-        and assessment.value_consistent is not False):
+        and assessment.value_consistent is not False
+        and assessment.time_consistent is not False):
         return EvidenceState.STRONG
 
-    # 6. 证据不足：其余情况 (例如：0个证据但可公开验证、单一来源、只有转载、只有间接/背景提及等)
+    # 6. 证据不足：其余情况 (例如：0个证据但可公开验证、单一来源、只有转载、时空/数值口径冲突降级、只有间接/背景提及等)
     return EvidenceState.INSUFFICIENT
 
 
