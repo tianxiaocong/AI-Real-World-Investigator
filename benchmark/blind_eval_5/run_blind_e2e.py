@@ -1,25 +1,27 @@
 """
-AI Real-World Investigator — Unassisted E2E Benchmark Runner with 8-Stage Funnel Telemetry
+AI Real-World Investigator — Autonomous E2E Benchmark Runner (v3 Scientific Audit Edition)
 
 Executes the FULL production E2E pipeline without ANY manual pre-structuring:
 Input: Raw Claim Statement ONLY
 Process:
   1. Claim Decomposition & Full Constraint FactSlots Extraction
-  2. Multi-Way Directed Search & Pre-Scrape Relevance Gating
+  2. Multi-Way Directed Search & Pre-Scrape Relevance Gating (Zero Hardcoding)
   3. Live WebScraper Raw Text Fetching & SSRF Protection
   4. Evidence & EvidenceRelation Autonomous Extraction
   5. 4-Tier Physical Quote Grounding (EXACT / NORMALIZED_EXACT only)
-  6. Deterministic Reasoning V2 Engine Verdict & Safe Failure Invariant
+  6. Autonomous Round 2 Investigation Loop (Strictly Enforcing WebScraper & Quote Grounding)
+  7. Deterministic Reasoning V2 Engine Verdict & Safe Failure Invariant
 
-Saves fully auditable metadata and calculates 8-stage funnel metrics:
-1. decomposition_slot_recall
-2. search_relevance_rate
-3. live_fetch_success_rate
-4. evidence_extraction_rate
-5. quote_exact_rate
-6. relation_valid_rate
-7. verdict_accuracy
-8. overclaim_rate
+Calculates rigorous scientific audit metrics:
+1. true_gold_slot_recall (Matched predicted FactSlots vs Gold Standard Slots)
+2. search_relevance_precision (Accepted sources / Total candidate search hits)
+3. live_fetch_success_rate (Successful raw text fetches / Attempted fetches)
+4. evidence_extraction_count (Total raw evidence statements extracted)
+5. quote_exact_grounding_rate (EXACT / NORMALIZED_EXACT quotes grounded in raw text)
+6. valid_evidence_relations_count (Number of structured EvidenceRelations generated)
+7. successful_evidence_backed_closures (Number of positive proofs / refutations grounded in live quotes)
+8. safe_degradation_closures (Number of safe insufficient verdicts acknowledging evidence gaps)
+9. unwarranted_overclaim_rate (Target: 0.0%)
 """
 
 import sys
@@ -47,6 +49,33 @@ from app.agents.fast_verifier import FastClaimVerifierAgent
 from app.models.verification_models import InputType
 
 
+def evaluate_gold_slot_match(gold_slot: str, fact_slots: Any, claim_statement: str) -> bool:
+    """Checks if a gold constraint is captured in the predicted FactSlots object."""
+    if not fact_slots:
+        return False
+    
+    g_lower = gold_slot.lower().strip()
+    
+    # 1. Check entity & predicate
+    if g_lower in (getattr(fact_slots, "entity", "") or "").lower():
+        return True
+    if g_lower in (getattr(fact_slots, "predicate", "") or "").lower():
+        return True
+    if g_lower in (getattr(fact_slots, "time_context", "") or "").lower():
+        return True
+    if g_lower in str(getattr(fact_slots, "accounting_basis", "")).lower():
+        return True
+        
+    # 2. Check compound_slots
+    for cs in getattr(fact_slots, "compound_slots", []):
+        val = str(cs.value).lower().strip() if cs.value else ""
+        name = str(cs.slot_name).lower().strip() if cs.slot_name else ""
+        if g_lower in val or val in g_lower or g_lower in name:
+            return True
+            
+    return False
+
+
 async def run_blind_evaluation(
     cases_file_path: str,
     output_file_path: str,
@@ -65,7 +94,7 @@ async def run_blind_evaluation(
     run_timestamp = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     print("=" * 85)
-    print(f"  AI Real-World Investigator — Autonomous E2E Funnel Evaluation")
+    print(f"  AI Real-World Investigator — Autonomous E2E Scientific Evaluation")
     print(f"  Cases File:      {cases_file.name}")
     print(f"  LLM Provider:    {llm_provider_name} (Model: {model_name})")
     print(f"  Search Provider: {search_provider_name}")
@@ -76,8 +105,8 @@ async def run_blind_evaluation(
     results = []
 
     # Funnel Metric Accumulators
-    total_slots_expected = 0
-    total_slots_captured = 0
+    total_gold_slots = 0
+    total_matched_gold_slots = 0
     total_searched_sources = 0
     total_relevant_sources = 0
     total_attempted_fetches = 0
@@ -86,15 +115,20 @@ async def run_blind_evaluation(
     total_grounded_exact_quotes = 0
     total_valid_relations = 0
     total_cases = len(cases)
-    unwarranted_strong_count = 0
+    
+    successful_evidence_backed_closures = 0
+    safe_degradation_closures = 0
+    unwarranted_overclaim_count = 0
 
     for idx, case in enumerate(cases):
         c_id = case["id"]
         domain = case["domain"]
         raw_claim = case["claim"]
+        gold_slots = case.get("gold_slots", [])
 
         print(f"\n[{idx+1}/{len(cases)}] CASE: {c_id} ({domain})")
         print(f"  INPUT CLAIM: \"{raw_claim}\"")
+        print(f"  🎯 GOLD SLOTS: {gold_slots}")
 
         # EXECUTE UNASSISTED E2E PIPELINE
         coverage = await agent.verify_input(
@@ -111,11 +145,14 @@ async def run_blind_evaluation(
         relations = verdict.relations
         state = verdict.evidence_state.value
 
-        # Slot recall evaluation
-        num_slots = len(getattr(fact_slots, "compound_slots", [])) if fact_slots else 0
-        if num_slots > 0:
-            total_slots_captured += num_slots
-        total_slots_expected += max(num_slots, 2)  # expect at least 2 key constraints per real case
+        # True Gold Slot Recall Evaluation
+        case_gold_matched = 0
+        for g in gold_slots:
+            if evaluate_gold_slot_match(g, fact_slots, raw_claim):
+                case_gold_matched += 1
+                total_matched_gold_slots += 1
+        total_gold_slots += len(gold_slots)
+        case_slot_recall = case_gold_matched / len(gold_slots) if gold_slots else 1.0
 
         # Source & Fetch metrics
         case_sources = verdict.sources
@@ -133,14 +170,22 @@ async def run_blind_evaluation(
         total_grounded_exact_quotes += len(case_grounded)
         total_valid_relations += len(relations)
 
-        # Overclaim safety check
-        if state in ("STRONG", "SUFFICIENT") and len(case_grounded) == 0:
-            unwarranted_strong_count += 1
+        # Outcome Taxonomy Classification
+        if state in ("STRONG", "SUFFICIENT", "UNSUPPORTED") and len(case_grounded) > 0:
+            successful_evidence_backed_closures += 1
+            closure_type = "POSITIVE_EVIDENCE_CLOSURE"
+        elif state in ("INSUFFICIENT", "CONFLICTING", "NOT_ASSESSABLE"):
+            safe_degradation_closures += 1
+            closure_type = "SAFE_DEGRADATION_CLOSURE"
+        else:
+            unwarranted_overclaim_count += 1
+            closure_type = "UNWARRANTED_OVERCLAIM"
 
-        print(f"  🎯 FINAL VERDICT: {state}")
+        print(f"  🎯 FINAL VERDICT: {state} [{closure_type}]")
         if fact_slots:
             compound_str = ", ".join([f"{cs.slot_name}={cs.value}" for cs in getattr(fact_slots, "compound_slots", [])]) or "none"
             print(f"  📦 EXTRACTED FactSlots: entity='{getattr(fact_slots, 'entity', '')}', slots=[{compound_str}], acct={getattr(fact_slots, 'accounting_basis', '')}")
+            print(f"  📊 Gold Slot Recall: {case_slot_recall:.1%} ({case_gold_matched}/{len(gold_slots)} matched)")
         
         print(f"  🌐 RETRIEVED Sources ({len(case_sources)} total | {len(case_relevant)} relevant | {len(case_fetched)} live-fetched)")
         for s in case_sources:
@@ -164,6 +209,9 @@ async def run_blind_evaluation(
             "id": c_id,
             "domain": domain,
             "claim": raw_claim,
+            "gold_slots": gold_slots,
+            "gold_slots_matched": case_gold_matched,
+            "gold_slots_recall": f"{case_slot_recall:.1%}",
             "execution_metadata": {
                 "llm_provider": llm_provider_name,
                 "model": model_name,
@@ -171,6 +219,7 @@ async def run_blind_evaluation(
                 "timestamp": run_timestamp
             },
             "verdict_state": state,
+            "closure_type": closure_type,
             "fact_slots": fact_slots.model_dump() if hasattr(fact_slots, "model_dump") else str(fact_slots),
             "sources": [
                 {
@@ -214,36 +263,40 @@ async def run_blind_evaluation(
             "evidence_gaps": verdict.evidence_gaps
         })
 
-    # Calculate 8-Stage Funnel Metrics
-    slot_recall = (total_slots_captured / max(total_slots_expected, 1))
-    relevance_rate = (total_relevant_sources / max(total_searched_sources, 1))
+    # Calculate Scientific Funnel Metrics
+    true_slot_recall = (total_matched_gold_slots / max(total_gold_slots, 1))
+    search_relevance_precision = (total_relevant_sources / max(total_searched_sources, 1))
     fetch_success_rate = (total_successful_fetches / max(total_attempted_fetches, 1))
     quote_exact_rate = (total_grounded_exact_quotes / max(total_extracted_evidences, 1))
-    overclaim_rate = (unwarranted_strong_count / max(total_cases, 1))
+    overclaim_rate = (unwarranted_overclaim_count / max(total_cases, 1))
 
     print("\n" + "=" * 85)
-    print("  8-STAGE AUDIT FUNNEL METRICS REPORT")
+    print("  SCIENTIFIC AUDIT METRICS REPORT")
     print("=" * 85)
-    print(f"  1. Decomposition Slot Recall:     {slot_recall:.1%} ({total_slots_captured}/{total_slots_expected} slots)")
-    print(f"  2. Search Relevance Rate:         {relevance_rate:.1%} ({total_relevant_sources}/{total_searched_sources} sources)")
-    print(f"  3. Live Fetch Success Rate:       {fetch_success_rate:.1%} ({total_successful_fetches}/{total_attempted_fetches} URLs)")
-    print(f"  4. Evidence Extracted Count:      {total_extracted_evidences} items")
-    print(f"  5. Quote EXACT Grounding Rate:    {quote_exact_rate:.1%} ({total_grounded_exact_quotes}/{total_extracted_evidences} quotes)")
-    print(f"  6. EvidenceRelations Generated:   {total_valid_relations} relations")
-    print(f"  7. Unwarranted Overclaim Rate:    {overclaim_rate:.1%} (Target: 0.0%)")
+    print(f"  1. True Gold Slot Recall:             {true_slot_recall:.1%} ({total_matched_gold_slots}/{total_gold_slots} gold slots)")
+    print(f"  2. Search Relevance Precision:        {search_relevance_precision:.1%} ({total_relevant_sources}/{total_searched_sources} sources accepted)")
+    print(f"  3. Live Fetch Success Rate:           {fetch_success_rate:.1%} ({total_successful_fetches}/{total_attempted_fetches} relevant URLs fetched)")
+    print(f"  4. Evidence Extracted Count:          {total_extracted_evidences} items")
+    print(f"  5. Quote EXACT Grounding Rate:        {quote_exact_rate:.1%} ({total_grounded_exact_quotes}/{total_extracted_evidences} quotes)")
+    print(f"  6. EvidenceRelations Generated:       {total_valid_relations} relations")
+    print(f"  7. Evidence-Backed Positive Closures: {successful_evidence_backed_closures} / {total_cases} cases")
+    print(f"  8. Safe Degradation Closures:         {safe_degradation_closures} / {total_cases} cases")
+    print(f"  9. Unwarranted Overclaim Rate:        {overclaim_rate:.1%} (Target: 0.0%)")
     print("=" * 85)
 
     output_path = Path(output_file_path).resolve()
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump({
-            "audit_funnel_summary": {
-                "decomposition_slot_recall": f"{slot_recall:.1%}",
-                "search_relevance_rate": f"{relevance_rate:.1%}",
+            "audit_summary": {
+                "true_gold_slot_recall": f"{true_slot_recall:.1%}",
+                "search_relevance_precision": f"{search_relevance_precision:.1%}",
                 "live_fetch_success_rate": f"{fetch_success_rate:.1%}",
                 "extracted_evidences_count": total_extracted_evidences,
-                "quote_exact_rate": f"{quote_exact_rate:.1%}",
+                "quote_exact_grounding_rate": f"{quote_exact_rate:.1%}",
                 "valid_relations_count": total_valid_relations,
-                "overclaim_rate": f"{overclaim_rate:.1%}"
+                "successful_evidence_backed_closures": successful_evidence_backed_closures,
+                "safe_degradation_closures": safe_degradation_closures,
+                "unwarranted_overclaim_rate": f"{overclaim_rate:.1%}"
             },
             "cases": results
         }, f, ensure_ascii=False, indent=2)

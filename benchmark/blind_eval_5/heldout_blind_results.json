@@ -1,25 +1,38 @@
 {
-  "audit_funnel_summary": {
-    "decomposition_slot_recall": "100.0%",
-    "search_relevance_rate": "23.1%",
+  "audit_summary": {
+    "true_gold_slot_recall": "76.9%",
+    "search_relevance_precision": "10.0%",
     "live_fetch_success_rate": "100.0%",
     "extracted_evidences_count": 3,
-    "quote_exact_rate": "0.0%",
+    "quote_exact_grounding_rate": "0.0%",
     "valid_relations_count": 0,
-    "overclaim_rate": "0.0%"
+    "successful_evidence_backed_closures": 0,
+    "safe_degradation_closures": 5,
+    "unwarranted_overclaim_rate": "0.0%"
   },
   "cases": [
     {
       "id": "heldout-01",
       "domain": "Tech Hardware / Multi-Spec",
       "claim": "苹果公司发布的 iPhone 15 Pro 起售价为 999 美元，搭载 3 纳米制程的 A17 Pro 芯片，并首次采用钛金属机身。",
+      "gold_slots": [
+        "iPhone 15 Pro",
+        "999",
+        "3",
+        "A17 Pro",
+        "钛金属",
+        "苹果"
+      ],
+      "gold_slots_matched": 3,
+      "gold_slots_recall": "50.0%",
       "execution_metadata": {
         "llm_provider": "sensenova",
         "model": "glm-5.2",
         "search_provider": "duckduckgo",
-        "timestamp": "2026-08-30T09:02:56.342439+00:00"
+        "timestamp": "2026-08-30T12:24:29.271709+00:00"
       },
       "verdict_state": "INSUFFICIENT",
+      "closure_type": "SAFE_DEGRADATION_CLOSURE",
       "fact_slots": {
         "entity": "苹果公司",
         "predicate": "发布定价",
@@ -34,7 +47,7 @@
           {
             "slot_name": "price",
             "value": "999",
-            "unit": "美元",
+            "unit": "USD",
             "is_required": true,
             "qualifier": null
           }
@@ -46,10 +59,10 @@
       },
       "sources": [
         {
-          "id": "s-1-8581",
-          "url": "https://www.reddit.com/r/BonersInPublic/",
-          "domain": "www.reddit.com",
-          "source_tier": "COMMUNITY",
+          "id": "s-1-4dbf",
+          "url": "https://www.microsoft.com/en-us?msockid=2d579f66b9a268652d9b88a3b87c695c",
+          "domain": "www.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
@@ -57,10 +70,10 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-2-3554",
-          "url": "https://www.reddit.com/r/json/comments/4fl46o/cutting_sex_inside_vagina_plus_music_hd_porn_9c/",
-          "domain": "www.reddit.com",
-          "source_tier": "COMMUNITY",
+          "id": "s-2-791c",
+          "url": "https://account.microsoft.com/account",
+          "domain": "account.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
@@ -68,10 +81,10 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-3-a6b2",
-          "url": "https://www.reddit.com/r/techsupport/comments/3p7fc0/most_porn_websites_will_not_load_for_me/",
-          "domain": "www.reddit.com",
-          "source_tier": "COMMUNITY",
+          "id": "s-3-4c7d",
+          "url": "https://myaccount.microsoft.com/",
+          "domain": "myaccount.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
@@ -79,54 +92,10 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-4-9734",
-          "url": "https://www.reddit.com/r/OutOfTheLoop/comments/56pdfn/what_happened_to_xhamster/",
-          "domain": "www.reddit.com",
-          "source_tier": "COMMUNITY",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-5-8011",
-          "url": "https://www.apple.com/iphone-17/",
-          "domain": "www.apple.com",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-6-e46e",
-          "url": "https://www.apple.com/shop/buy-iphone/iphone-17",
-          "domain": "www.apple.com",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-7-6417",
-          "url": "https://www.wired.com/story/which-apple-iphone-17-models-to-buy/",
-          "domain": "www.wired.com",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-8-b8b9",
-          "url": "https://www.bestbuy.com/site/all-iphone/iphone-17/pcmcat1757084265446.c?id=pcmcat1757084265446",
-          "domain": "www.bestbuy.com",
-          "source_tier": "UNKNOWN",
+          "id": "s-4-00a8",
+          "url": "https://www.microsoft.com/en-us/microsoft-products-and-apps?msockid=2d579f66b9a268652d9b88a3b87c695c",
+          "domain": "www.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
@@ -137,30 +106,41 @@
       "evidences": [],
       "relations": [],
       "why_reasons": [
-        "ℹ️ 虽然检索到8个独立信息源，但均未提供针对该声明价格的具体内容摘要。",
-        "! 未捕获到任何直接支持“iPhone 15 Pro起售价为999美元”的证据。",
-        "! 缺乏苹果公司官方发布会、官网或新闻稿的直接证实。",
-        "! 未发现可靠反证来推翻该声明。"
+        "! 未检索到任何直接支持该声明中具体定价（999美元）的证据",
+        "! 缺乏苹果公司官方发布会、官方新闻稿或官网产品页面的直接证实",
+        "ℹ️ 虽然检索到4个独立信息源，但均未提供针对该声明具体金额的有效证据摘要",
+        "! 未发现任何明确反驳该定价声明的可靠反证"
       ],
       "evidence_gaps": [
-        "尚未找到苹果公司官方关于 iPhone 15 Pro 起售价的公告或官网产品页面记录。",
-        "尚未找到权威科技媒体对苹果官方发布会公布具体价格的直接报道。"
+        "尚未找到苹果公司官方关于 iPhone 15 Pro 起售价的公告或官网产品页面记录",
+        "尚未找到权威科技媒体对苹果官方发布会公布该具体定价的直接报道摘要"
       ]
     },
     {
       "id": "heldout-02",
       "domain": "Financial / GAAP Operating Margin",
       "claim": "特斯拉(Tesla)在2024年第二季度财报中公布的GAAP营业利润为16.05亿美元，营业利润率为6.3%。",
+      "gold_slots": [
+        "特斯拉",
+        "2024",
+        "Q2",
+        "16.05",
+        "6.3%",
+        "GAAP"
+      ],
+      "gold_slots_matched": 4,
+      "gold_slots_recall": "66.7%",
       "execution_metadata": {
         "llm_provider": "sensenova",
         "model": "glm-5.2",
         "search_provider": "duckduckgo",
-        "timestamp": "2026-08-30T09:02:56.342439+00:00"
+        "timestamp": "2026-08-30T12:24:29.271709+00:00"
       },
       "verdict_state": "INSUFFICIENT",
+      "closure_type": "SAFE_DEGRADATION_CLOSURE",
       "fact_slots": {
         "entity": "特斯拉",
-        "predicate": "GAAP营业利润",
+        "predicate": "营业利润",
         "compound_slots": [
           {
             "slot_name": "company",
@@ -170,8 +150,15 @@
             "qualifier": null
           },
           {
-            "slot_name": "time_period",
+            "slot_name": "time",
             "value": "2024年第二季度",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "accounting_basis",
+            "value": "GAAP",
             "unit": null,
             "is_required": true,
             "qualifier": null
@@ -180,13 +167,6 @@
             "slot_name": "operating_income",
             "value": "16.05",
             "unit": "亿美元",
-            "is_required": true,
-            "qualifier": null
-          },
-          {
-            "slot_name": "accounting_basis",
-            "value": "GAAP",
-            "unit": null,
             "is_required": true,
             "qualifier": null
           }
@@ -198,9 +178,9 @@
       },
       "sources": [
         {
-          "id": "s-1-2936",
-          "url": "https://steamcommunity.com/sharedfiles/filedetails/?id=3266410893",
-          "domain": "steamcommunity.com",
+          "id": "s-1-ec69",
+          "url": "https://support.google.com/mail/answer/8494?hl=en-GB&co=GENIE.Platform=Desktop",
+          "domain": "support.google.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -209,20 +189,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-2-faed",
-          "url": "https://www.reddit.com/r/pcgaming/comments/tcirkz/gyro_aim_configuration_guide_for_pc_steam/",
-          "domain": "www.reddit.com",
-          "source_tier": "COMMUNITY",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-3-8349",
-          "url": "https://guide.xim.tech/Aim-Settings/",
-          "domain": "guide.xim.tech",
+          "id": "s-2-d6e6",
+          "url": "https://support.google.com/merchants/answer/3455481?hl=en",
+          "domain": "support.google.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -231,9 +200,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-4-4770",
-          "url": "https://steamcommunity.com/app/3280350/discussions/1/809098168003444202/",
-          "domain": "steamcommunity.com",
+          "id": "s-3-1e08",
+          "url": "https://www.streetadvisor.com/brownsville-cameron-county-texas/questions/best-places-to-shop-in-brownsville-tx",
+          "domain": "www.streetadvisor.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -242,9 +211,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-5-1f42",
-          "url": "https://www.automoto.it/formula1/f1-gp-abu-dhabi-2025-live-cronaca-gara-titolo-norris-verstappen-piastri.html",
-          "domain": "www.automoto.it",
+          "id": "s-4-897c",
+          "url": "https://www.streetadvisor.com/san-francisco-san-francisco-county-california/questions/best-places-to-shop-in-san-francisco-ca",
+          "domain": "www.streetadvisor.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -253,9 +222,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-6-d651",
-          "url": "https://it.wikipedia.org/wiki/Gran_Premio_di_Abu_Dhabi_2025",
-          "domain": "it.wikipedia.org",
+          "id": "s-5-4f69",
+          "url": "https://bleacherreport.com/nfl",
+          "domain": "bleacherreport.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -264,9 +233,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-7-7088",
-          "url": "https://www.corrieredellosport.it/news/formula-1/2025/12/07-145095020/f1_diretta_gp_abu_dhabi_verstappen_norris_e_piastri_si_giocano_il_mondiale_segui_live",
-          "domain": "www.corrieredellosport.it",
+          "id": "s-6-abff",
+          "url": "https://bleacherreport.com/",
+          "domain": "bleacherreport.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -275,9 +244,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-8-4fa3",
-          "url": "https://www.formula1.com/en/racing/2024/united-arab-emirates",
-          "domain": "www.formula1.com",
+          "id": "s-7-f006",
+          "url": "https://bleacherreport.com/nba",
+          "domain": "bleacherreport.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -286,45 +255,56 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-r2-1-da13",
-          "url": "https://www.calculatorsoup.com/calculators/math/math.php",
-          "domain": "www.calculatorsoup.com",
+          "id": "s-8-ca4f",
+          "url": "https://bleacherreport.com/college-football",
+          "domain": "bleacherreport.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
-          "fetch_status": "FETCH_SUCCESS",
+          "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
           "content_hash": null,
           "raw_text_length": 0
         },
         {
-          "id": "s-r2-2-9e76",
-          "url": "https://www.calculator.net/basic-calculator.html",
-          "domain": "www.calculator.net",
+          "id": "s-r2-1-f093",
+          "url": "https://www.gold-ira.gold/",
+          "domain": "www.gold-ira.gold",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
-          "fetch_status": "FETCH_SUCCESS",
+          "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
           "content_hash": null,
           "raw_text_length": 0
         },
         {
-          "id": "s-r2-3-3f9e",
-          "url": "https://en.wikipedia.org/wiki/2_+_2_=_5",
-          "domain": "en.wikipedia.org",
+          "id": "s-r2-2-5690",
+          "url": "https://www.gold-ira.gold/veronica-kithcart",
+          "domain": "www.gold-ira.gold",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
-          "fetch_status": "FETCH_SUCCESS",
+          "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
           "content_hash": null,
           "raw_text_length": 0
         },
         {
-          "id": "s-r2-4-3267",
-          "url": "https://www.symbolab.com/solver/algebra-calculator",
-          "domain": "www.symbolab.com",
+          "id": "s-r2-3-a582",
+          "url": "https://www.gold-ira.gold/iran-gold",
+          "domain": "www.gold-ira.gold",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
-          "fetch_status": "FETCH_SUCCESS",
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-r2-4-70f5",
+          "url": "https://www.gold-ira.gold/how-does-a-gold-ira-make-money",
+          "domain": "www.gold-ira.gold",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
           "content_hash": null,
           "raw_text_length": 0
@@ -333,41 +313,51 @@
       "evidences": [],
       "relations": [],
       "why_reasons": [
-        "ℹ️ 检索到12个独立信息源，但已捕获的证据摘要为空，表明现有来源未能提供有效信息。",
-        "! 缺乏特斯拉官方发布的2024年第二季度财报或新闻稿作为直接证实来源。",
-        "! 未捕获到任何支持或反驳“GAAP营业利润为16.05亿美元”这一具体数值的直接证据或可靠反证。"
+        "! 当前检索到的8个独立信息源中，未捕获到直接支持该具体财务数据的证据摘要",
+        "! 缺乏特斯拉官方（如投资者关系页面或SEC 10-Q文件）对该GAAP营业利润具体数值的直接证实",
+        "ℹ️ 现有检索结果未能提供足以验证或反驳该声明中“16.05亿美元”这一精确数字的可靠信息源"
       ],
       "evidence_gaps": [
-        "尚未找到特斯拉官方发布的2024年第二季度财报（Q2 2024 Update）或SEC备案文件（如10-Q表）原文。",
-        "尚未找到明确列出该季度GAAP营业利润具体金额的权威第三方财经数据库记录。"
+        "尚未找到特斯拉2024年第二季度官方财报（如SEC 10-Q表或季度更新文件）中关于GAAP营业利润的原始数据记录",
+        "尚未找到权威财经媒体或数据提供商对该特定季度GAAP营业利润确切金额的交叉验证"
       ]
     },
     {
       "id": "heldout-03",
       "domain": "Corporate M&A / Equity Acquisition",
       "claim": "微盟集团(Weimob)于2020年宣布以5.1亿元人民币收购餐饮SaaS服务商雅座61.8%的股权。",
+      "gold_slots": [
+        "微盟",
+        "2020",
+        "5.1",
+        "雅座",
+        "61.8%"
+      ],
+      "gold_slots_matched": 5,
+      "gold_slots_recall": "100.0%",
       "execution_metadata": {
         "llm_provider": "sensenova",
         "model": "glm-5.2",
         "search_provider": "duckduckgo",
-        "timestamp": "2026-08-30T09:02:56.342439+00:00"
+        "timestamp": "2026-08-30T12:24:29.271709+00:00"
       },
       "verdict_state": "INSUFFICIENT",
+      "closure_type": "SAFE_DEGRADATION_CLOSURE",
       "fact_slots": {
         "entity": "微盟集团",
-        "predicate": "宣布收购股权",
+        "predicate": "收购股权",
         "compound_slots": [
           {
-            "slot_name": "acquirer",
-            "value": "微盟集团",
+            "slot_name": "target_company",
+            "value": "雅座",
             "unit": null,
             "is_required": true,
             "qualifier": null
           },
           {
-            "slot_name": "target_company",
-            "value": "雅座",
-            "unit": null,
+            "slot_name": "acquisition_percentage",
+            "value": "61.8",
+            "unit": "%",
             "is_required": true,
             "qualifier": null
           },
@@ -379,24 +369,17 @@
             "qualifier": null
           },
           {
-            "slot_name": "equity_percentage",
-            "value": "61.8",
-            "unit": "%",
-            "is_required": true,
+            "slot_name": "target_company_industry",
+            "value": "餐饮SaaS",
+            "unit": null,
+            "is_required": false,
             "qualifier": null
           },
           {
-            "slot_name": "year",
+            "slot_name": "announcement_year",
             "value": "2020",
             "unit": "年",
             "is_required": true,
-            "qualifier": null
-          },
-          {
-            "slot_name": "target_business",
-            "value": "餐饮SaaS服务商",
-            "unit": null,
-            "is_required": false,
             "qualifier": null
           }
         ],
@@ -407,10 +390,10 @@
       },
       "sources": [
         {
-          "id": "s-1-dfa4",
-          "url": "https://support.microsoft.com/de-de/accounts-billing/manage/how-to-sign-in-to-hotmail",
-          "domain": "support.microsoft.com",
-          "source_tier": "AUTHORITATIVE",
+          "id": "s-1-987d",
+          "url": "https://www.reddit.com/r/DirtySnapchat/about/rules/",
+          "domain": "www.reddit.com",
+          "source_tier": "COMMUNITY",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
@@ -418,10 +401,10 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-2-9a0b",
-          "url": "https://support.microsoft.com/en-us/onedrive/where-have-my-desktop-icons-gone",
-          "domain": "support.microsoft.com",
-          "source_tier": "AUTHORITATIVE",
+          "id": "s-2-0038",
+          "url": "https://www.reddit.com/r/dirtysnapchat/new",
+          "domain": "www.reddit.com",
+          "source_tier": "COMMUNITY",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
@@ -429,10 +412,10 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-3-39c1",
-          "url": "https://techcommunity.microsoft.com/blog/Windows-ITPro-blog/get-ready-for-windows-11-version-26h2/4529367",
-          "domain": "techcommunity.microsoft.com",
-          "source_tier": "AUTHORITATIVE",
+          "id": "s-3-9ac7",
+          "url": "https://www.reddit.com/r/SnapchatGoneWild/top/",
+          "domain": "www.reddit.com",
+          "source_tier": "COMMUNITY",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
           "fetch_mode": "LIVE",
@@ -440,144 +423,12 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-4-a6a9",
-          "url": "https://techcommunity.microsoft.com/blog/exchange/released-july-2026-exchange-server-security-updates/4534146",
-          "domain": "techcommunity.microsoft.com",
-          "source_tier": "AUTHORITATIVE",
+          "id": "s-4-16cf",
+          "url": "https://www.reddit.com/r/DirtySnapchat/wiki/format/",
+          "domain": "www.reddit.com",
+          "source_tier": "COMMUNITY",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-5-59ee",
-          "url": "https://www.instagram.com/?hl=pt-br",
-          "domain": "www.instagram.com",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-6-09f2",
-          "url": "https://www.instagram.com/?hl=en",
-          "domain": "www.instagram.com",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-7-b150",
-          "url": "https://www.instagram.com/reels/",
-          "domain": "www.instagram.com",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-8-ce85",
-          "url": "https://www.instagram.com/?hl=fr",
-          "domain": "www.instagram.com",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-9-ce51",
-          "url": "https://www.punjabivirsa.co.uk/",
-          "domain": "www.punjabivirsa.co.uk",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-10-1d8c",
-          "url": "https://www.tripadvisor.co.uk/Restaurant_Review-g186338-d720360-Reviews-Punjab_Restaurant-London_England.html",
-          "domain": "www.tripadvisor.co.uk",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-11-ef05",
-          "url": "https://www.5tara.co.uk/",
-          "domain": "www.5tara.co.uk",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-12-8fd1",
-          "url": "https://punjabcuisinemi.com/",
-          "domain": "punjabcuisinemi.com",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "REJECTED_IRRELEVANT",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-r2-1-f637",
-          "url": "https://www.ilmeteo.it/",
-          "domain": "www.ilmeteo.it",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "FETCH_SUCCESS",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-r2-2-518e",
-          "url": "https://www.avmeteo.it/radar",
-          "domain": "www.avmeteo.it",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "FETCH_SUCCESS",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-r2-3-21a6",
-          "url": "https://www.ilmeteo.it/meteo/ora",
-          "domain": "www.ilmeteo.it",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "FETCH_SUCCESS",
-          "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
-        },
-        {
-          "id": "s-r2-4-bc76",
-          "url": "https://meteoreportsd.altervista.org/osservazioni-meteo-live/radar-pioggia/",
-          "domain": "meteoreportsd.altervista.org",
-          "source_tier": "UNKNOWN",
-          "is_synthetic": false,
-          "fetch_status": "FETCH_SUCCESS",
           "fetch_mode": "LIVE",
           "content_hash": null,
           "raw_text_length": 0
@@ -586,27 +437,35 @@
       "evidences": [],
       "relations": [],
       "why_reasons": [
-        "! 未检索到任何直接支持该收购声明（金额5.1亿元，比例61.8%，时间2020年）的媒体报道或新闻稿。",
-        "! 缺乏微盟集团官方发布的公告或新闻稿来证实此次收购的具体金额和股权比例。",
-        "ℹ️ 当前检索到的16个独立信息源中，均未包含与该声明直接相关的有效信息。",
-        "! 未发现可靠反证，即没有信息明确指出该收购未发生或金额/比例不符，因此无法判定为假，只能判定为证据不足。"
+        "ℹ️ 检索到4个独立信息源，但均未提供针对该声明具体金额与股权比例的直接支持证据。",
+        "! 缺乏微盟集团官方公告或权威财经新闻的直接证实，无法确认交易金额5.1亿元及收购比例61.8%的准确性。",
+        "! 未发现可靠反证，无法直接否定该声明，但现有证据不足以支撑声明为真。"
       ],
       "evidence_gaps": [
-        "尚未找到微盟集团关于收购雅座股权的官方公告或财报披露记录。",
-        "尚未找到权威财经媒体对此次收购具体金额（5.1亿元）和股权比例（61.8%）的详细报道。"
+        "尚未找到微盟集团关于此收购案的官方公告或新闻稿。",
+        "尚未找到权威财经媒体对该交易金额（5.1亿元）和收购比例（61.8%）的详细报道。"
       ]
     },
     {
       "id": "heldout-04",
       "domain": "Corporate Rumor / Official Refutation",
       "claim": "网络传闻称波音公司(Boeing)因Starliner飞船故障已决定永久退出NASA商业载人航天计划(Commercial Crew Program)。",
+      "gold_slots": [
+        "波音",
+        "Starliner",
+        "NASA",
+        "永久退出"
+      ],
+      "gold_slots_matched": 4,
+      "gold_slots_recall": "100.0%",
       "execution_metadata": {
         "llm_provider": "sensenova",
         "model": "glm-5.2",
         "search_provider": "duckduckgo",
-        "timestamp": "2026-08-30T09:02:56.342439+00:00"
+        "timestamp": "2026-08-30T12:24:29.271709+00:00"
       },
       "verdict_state": "INSUFFICIENT",
+      "closure_type": "SAFE_DEGRADATION_CLOSURE",
       "fact_slots": {
         "entity": "波音公司",
         "predicate": "永久退出",
@@ -619,29 +478,22 @@
             "qualifier": null
           },
           {
-            "slot_name": "company_alias",
-            "value": "Boeing",
+            "slot_name": "spacecraft",
+            "value": "Starliner",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "agency",
+            "value": "NASA",
             "unit": null,
             "is_required": true,
             "qualifier": null
           },
           {
             "slot_name": "program",
-            "value": "NASA商业载人航天计划",
-            "unit": null,
-            "is_required": true,
-            "qualifier": null
-          },
-          {
-            "slot_name": "program_alias",
-            "value": "Commercial Crew Program",
-            "unit": null,
-            "is_required": true,
-            "qualifier": null
-          },
-          {
-            "slot_name": "spacecraft",
-            "value": "Starliner",
+            "value": "商业载人航天计划",
             "unit": null,
             "is_required": true,
             "qualifier": null
@@ -654,7 +506,7 @@
             "qualifier": null
           },
           {
-            "slot_name": "action",
+            "slot_name": "decision",
             "value": "永久退出",
             "unit": null,
             "is_required": true,
@@ -668,9 +520,53 @@
       },
       "sources": [
         {
-          "id": "s-1-f0c9",
-          "url": "https://warwick.ac.uk/study/postgraduate/courses/",
-          "domain": "warwick.ac.uk",
+          "id": "s-1-7f38",
+          "url": "https://social.msdn.microsoft.com/forums/vstudio/en-us/home",
+          "domain": "social.msdn.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-2-95c8",
+          "url": "https://social.msdn.microsoft.com/Forums/en-US/home",
+          "domain": "social.msdn.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-3-c217",
+          "url": "https://www.answers.microsoft.com/ja-jp/windows/forum/all/ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã¢â‚¬Å“ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¡/55dd8522-1caa-4ae4-80b4-3d0fe4944f22",
+          "domain": "www.answers.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-4-8ecc",
+          "url": "https://answers.microsoft.com/en-us/msoffice/forum/all/task-scheduler-intermitent-using-vbs-file/3ab9c5d0-e719-4129-916b-bea0f08d3896",
+          "domain": "answers.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-5-2ae4",
+          "url": "https://support.google.com/youtubetv/?hl=en",
+          "domain": "support.google.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -679,9 +575,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-2-d721",
-          "url": "https://warwick.ac.uk/study/undergraduate/courses/",
-          "domain": "warwick.ac.uk",
+          "id": "s-6-ebe7",
+          "url": "https://support.google.com/youtubetv/answer/16519270?hl=en&co=GENIE.Platform=Android",
+          "domain": "support.google.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -690,9 +586,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-3-1a01",
-          "url": "https://warwick.ac.uk/services/library/",
-          "domain": "warwick.ac.uk",
+          "id": "s-7-4f27",
+          "url": "https://obsproject.com/tr/downLOAD",
+          "domain": "obsproject.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -701,9 +597,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-4-86a6",
-          "url": "https://warwick.ac.uk/services/accommodation/",
-          "domain": "warwick.ac.uk",
+          "id": "s-8-7a8a",
+          "url": "https://obsproject.com/forum/threads/youtube-need-to-setup-broadcast-before-you-can-stream.149849/",
+          "domain": "obsproject.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -715,27 +611,37 @@
       "evidences": [],
       "relations": [],
       "why_reasons": [
-        "! 未检索到任何直接支持“波音永久退出NASA商业载人航天计划”的官方声明或权威媒体报道",
-        "! 缺乏波音公司官方证实其因Starliner故障而做出永久退出决定的直接证据",
-        "ℹ️ 现有检索到的4个独立信息源中，均未提供能够证实或证伪该声明的实质性证据内容",
-        "✓ 基于当前无支持证据、无官方证实且无可靠反证的情况，判定为证据不足"
+        "! 未检索到任何直接支持“波音永久退出NASA商业载人航天计划”的官方声明或权威媒体报道。",
+        "! 缺乏波音公司或NASA官方证实该决定的直接证据。",
+        "ℹ️ 现有8个独立信息源中，均未提供关于“永久退出”的实质性证据或官方背书。",
+        "! 未发现可靠反证直接驳斥该传闻，但同样无证据支持其真实性。"
       ],
       "evidence_gaps": [
-        "尚未找到波音公司官方发布的关于退出NASA商业载人航天计划的公告或新闻稿",
-        "尚未找到NASA关于波音退出该计划的官方确认声明或合同终止记录"
+        "尚未找到波音公司官方发布的退出声明或相关战略调整公告。",
+        "尚未找到NASA关于波音退出商业载人航天计划的官方确认文件或声明。"
       ]
     },
     {
       "id": "heldout-05",
       "domain": "Biotech / Clinical Trial Evolution",
       "claim": "礼来(Eli Lilly)的阿兹海默症药物多奈单抗(Donanemab)在TRAILBLAZER-ALZ 2三期临床试验中达到主要终点，但在早期二期试验中部分次要认知指标曾呈现争议。",
+      "gold_slots": [
+        "礼来",
+        "多奈单抗",
+        "TRAILBLAZER-ALZ 2",
+        "主要终点",
+        "二期"
+      ],
+      "gold_slots_matched": 4,
+      "gold_slots_recall": "80.0%",
       "execution_metadata": {
         "llm_provider": "sensenova",
         "model": "glm-5.2",
         "search_provider": "duckduckgo",
-        "timestamp": "2026-08-30T09:02:56.342439+00:00"
+        "timestamp": "2026-08-30T12:24:29.271709+00:00"
       },
       "verdict_state": "INSUFFICIENT",
+      "closure_type": "SAFE_DEGRADATION_CLOSURE",
       "fact_slots": {
         "entity": "礼来",
         "predicate": "临床试验达到主要终点",
@@ -762,14 +668,14 @@
             "qualifier": null
           },
           {
-            "slot_name": "drug_english",
+            "slot_name": "drug_name_english",
             "value": "Donanemab",
             "unit": null,
             "is_required": true,
             "qualifier": null
           },
           {
-            "slot_name": "indication",
+            "slot_name": "disease",
             "value": "阿兹海默症",
             "unit": null,
             "is_required": true,
@@ -790,8 +696,8 @@
             "qualifier": null
           },
           {
-            "slot_name": "endpoint_result",
-            "value": "达到主要终点",
+            "slot_name": "endpoint",
+            "value": "主要终点",
             "unit": null,
             "is_required": true,
             "qualifier": null
@@ -804,9 +710,9 @@
       },
       "sources": [
         {
-          "id": "s-1-75a8",
-          "url": "https://answers.microsoft.com/en-us/msoffice/forum/all/excel-mac-sumproduct-not-working-well-with-2/0795564c-24ea-43ef-8861-d6cd6d676fca",
-          "domain": "answers.microsoft.com",
+          "id": "s-1-6539",
+          "url": "https://social.msdn.microsoft.com/Forums/en-US/home",
+          "domain": "social.msdn.microsoft.com",
           "source_tier": "AUTHORITATIVE",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -815,9 +721,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-2-e5b2",
-          "url": "https://answers.microsoft.com/en-us/windows/forum/all/win-11-become-slower-and-malfunction-after/c7c6e8e9-4e94-445a-87a5-63a6e4797b92",
-          "domain": "answers.microsoft.com",
+          "id": "s-2-3594",
+          "url": "https://social.msdn.microsoft.com/Forums/en-US/5218d2bb-3d84-4cc4-8dd8-940d1a138e69/data-binding-and-commandargument?forum=aspwebforms",
+          "domain": "social.msdn.microsoft.com",
           "source_tier": "AUTHORITATIVE",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -826,9 +732,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-3-c29a",
-          "url": "https://answers.microsoft.com/en-us/windows/forum/all/partly-loading-images-in-browsers-disconnection/e74a4d2b-58c4-456f-bb40-84bea2efd02d",
-          "domain": "answers.microsoft.com",
+          "id": "s-3-acdb",
+          "url": "https://social.msdn.microsoft.com/Forums/en-US/a0d51a49-009f-4945-917a-3e1532f64470/dynamic-data-uploadview-pdf?forum=aspdatascaffolding",
+          "domain": "social.msdn.microsoft.com",
           "source_tier": "AUTHORITATIVE",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -837,9 +743,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-4-4116",
-          "url": "https://answers.microsoft.com/en-us/windows/forum/all/windows-script-host-error-random-black-screen/04a28b2d-b023-4ba7-9752-023209159759",
-          "domain": "answers.microsoft.com",
+          "id": "s-4-4a8e",
+          "url": "https://social.msdn.microsoft.com/Forums/sqlserver/en-US/e925a712-9a36-43a8-88ab-6e5e23c3fb50/about-filesystemwatcher?forum=Vsexpressvb",
+          "domain": "social.msdn.microsoft.com",
           "source_tier": "AUTHORITATIVE",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -848,9 +754,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-5-eeb0",
-          "url": "https://en.wikipedia.org/wiki/Super_Game_Boy",
-          "domain": "en.wikipedia.org",
+          "id": "s-5-9d1a",
+          "url": "https://pixabay.com/es/images/search/muñeco+con+lupa/",
+          "domain": "pixabay.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -859,9 +765,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-6-24af",
-          "url": "https://en.wikipedia.org/wiki/List_of_Super_Game_Boy_games",
-          "domain": "en.wikipedia.org",
+          "id": "s-6-6695",
+          "url": "https://www.magnific.com/es/fotos-vectores-gratis/muneco-lupa",
+          "domain": "www.magnific.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -870,9 +776,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-7-668f",
-          "url": "https://www.mariowiki.com/Super_Game_Boy",
-          "domain": "www.mariowiki.com",
+          "id": "s-7-7ac1",
+          "url": "https://es.123rf.com/imagenes-de-archivo/personaje_blanco_lupa.html",
+          "domain": "es.123rf.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -881,9 +787,9 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-8-248e",
-          "url": "https://nintendo.fandom.com/wiki/Super_Game_Boy_2",
-          "domain": "nintendo.fandom.com",
+          "id": "s-8-d1c9",
+          "url": "https://www.pngwing.com/es/search?q=muñeco+con+lupa",
+          "domain": "www.pngwing.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "REJECTED_IRRELEVANT",
@@ -892,94 +798,94 @@
           "raw_text_length": 0
         },
         {
-          "id": "s-r2-1-f4cf",
+          "id": "s-r2-1-29d2",
           "url": "https://www.lillymedical.cn/zh-cn/answer/177799",
           "domain": "www.lillymedical.cn",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "FETCH_SUCCESS",
           "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
+          "content_hash": "48914549761e16d55d2618edc8d86fd8ffe9063666731f05661ef0ae73ad9659",
+          "raw_text_length": 259
         },
         {
-          "id": "s-r2-2-9ee3",
+          "id": "s-r2-2-7538",
           "url": "https://www.lillymedical.cn/zh-cn/answer/177140",
           "domain": "www.lillymedical.cn",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "FETCH_SUCCESS",
           "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
+          "content_hash": "66266b148f503f1ee25721fd6bd9720ed064709a5cc77087f19b3b87abca0abb",
+          "raw_text_length": 1291
         },
         {
-          "id": "s-r2-3-b47c",
+          "id": "s-r2-3-b0f6",
           "url": "https://www.jiemian.com/article/13127969.html",
           "domain": "www.jiemian.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "FETCH_SUCCESS",
           "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
+          "content_hash": "3983bc4b3ffbebd7e44854b2176547d97e3c28327f51089c79e7ec95f6dabc88",
+          "raw_text_length": 772
         },
         {
-          "id": "s-r2-4-ef63",
+          "id": "s-r2-4-d661",
           "url": "https://m.jiemian.com/article/13127969.html",
           "domain": "m.jiemian.com",
           "source_tier": "UNKNOWN",
           "is_synthetic": false,
           "fetch_status": "FETCH_SUCCESS",
           "fetch_mode": "LIVE",
-          "content_hash": null,
-          "raw_text_length": 0
+          "content_hash": "3983bc4b3ffbebd7e44854b2176547d97e3c28327f51089c79e7ec95f6dabc88",
+          "raw_text_length": 772
         }
       ],
       "evidences": [
         {
-          "id": "e-r2-d4e3b9",
-          "source_id": "s-r2-1-f4cf",
-          "exact_quote": "7月30日，礼来公司公布了其TRAILBLAZER-ALZ 2三期临床研究的长期扩展（LTE）结果。 数据显示，接受多奈单抗注射液（商品名：记能达）治疗的研究参",
+          "id": "e-r2-5d214b",
+          "source_id": "s-r2-1-29d2",
+          "exact_quote": "7月30日，礼来公司公布了其TRAILBLAZER-ALZ 2三期临床研究的长期扩展（LTE）结果。",
           "char_start": null,
           "char_end": null,
           "match_tier": "UNVERIFIED",
           "supports_claim": false,
           "contradicts_claim": false,
-          "is_admissible": true
+          "is_admissible": false
         },
         {
-          "id": "e-r2-d5e790",
-          "source_id": "s-r2-1-f4cf",
-          "exact_quote": "本文旨在提供关于TRAILBLAZER-ALZ 2长期扩展研究（TB2-LTE）的主要研究数据的相关信息，仅供医疗卫生专业人士参考。",
+          "id": "e-r2-c57e83",
+          "source_id": "s-r2-1-29d2",
+          "exact_quote": "Zimmer JA, Sims JR, Evans CD, et al; Alzheimer’s Disease Neuroimaging Initiative. Donanemab in early symptomatic Alzheimer's disease: results from the TRAILBLAZER-ALZ 2 long-term extension. J Prev Alzheimers Dis. 2026;13(2):100446.",
           "char_start": null,
           "char_end": null,
           "match_tier": "UNVERIFIED",
           "supports_claim": false,
           "contradicts_claim": false,
-          "is_admissible": true
+          "is_admissible": false
         },
         {
-          "id": "e-r2-fec136",
-          "source_id": "s-r2-1-f4cf",
-          "exact_quote": "本文旨在提供关于多奈单抗长期扩展研究的临床疗效相关信息，仅供医疗卫生专业人士参考。 完成 TRAILBLAZER-ALZ 2 研究安慰剂对照期的受试者",
+          "id": "e-r2-ee67d7",
+          "source_id": "s-r2-1-29d2",
+          "exact_quote": "TRAILBLAZER-ALZ 2 LTE研究的主要初步结果包括：",
           "char_start": null,
           "char_end": null,
           "match_tier": "UNVERIFIED",
           "supports_claim": false,
           "contradicts_claim": false,
-          "is_admissible": true
+          "is_admissible": false
         }
       ],
       "relations": [],
       "why_reasons": [
-        "! 现有检索到的证据仅提及TRAILBLAZER-ALZ 2的长期扩展（LTE）研究结果，未直接证实原三期临床试验是否达到主要终点。",
-        "ℹ️ 检索到的12个独立信息源中，未包含礼来公司官方公告或权威医学期刊的直接证实声明。",
-        "! 捕获的证据摘要中supports和contradicts均为false，说明现有信息无法提供支持或反驳该声明的直接证据。"
+        "ℹ️ 检索到的12个独立信息源中，捕获的摘要主要涉及TRAILBLAZER-ALZ 2三期临床研究的长期扩展（LTE）结果，而非声明中所述的原始三期试验主要终点结果。",
+        "! 现有捕获的证据摘要均标记为上下文相关（CONTEXTUAL），未包含直接支持或直接反驳该声明的明确表述。",
+        "! 缺乏礼来公司官方关于TRAILBLAZER-ALZ 2原始三期试验达到主要终点的直接证实或新闻稿原文。"
       ],
       "evidence_gaps": [
-        "尚未找到礼来公司关于TRAILBLAZER-ALZ 2三期临床试验达到主要终点的官方新闻稿或公告。",
-        "尚未找到发表在权威医学期刊上的TRAILBLAZER-ALZ 2三期临床试验主要终点结果数据。"
+        "尚未找到明确说明TRAILBLAZER-ALZ 2原始三期临床试验（非长期扩展研究）达到主要终点的官方公告或同行评议文献。",
+        "尚未找到直接引用该试验主要终点数据的官方新闻稿或临床试验结果数据库记录。"
       ]
     }
   ]

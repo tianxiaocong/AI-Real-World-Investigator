@@ -9,6 +9,7 @@ AI Claim Verifier — Fast Verification Pipeline Agent (v4 Final)
 5. Structured Explanation (清单式理由与缺口生成)
 """
 
+import re
 import json
 import uuid
 import hashlib
@@ -217,7 +218,7 @@ class FastClaimVerifierAgent:
         fact_slots: FactSlots,
         claim: Claim
     ) -> float:
-        """评估检索结果与待核验主张的相关性得分 (0.0 ~ 1.0)，拦截风马牛不相及的垃圾网页"""
+        """评估检索结果与待核验主张的相关性得分 (0.0 ~ 1.0)，拦截风马牛不相及的垃圾网页（100% 动态无硬编码）"""
         if getattr(item, "is_synthetic", False):
             return 1.0
 
@@ -226,35 +227,29 @@ class FastClaimVerifierAgent:
         url = (getattr(item, "url", "") or "").lower()
         combined = f"{title} {snippet} {url}"
 
-        # 1. 核心实体命中检查
-        entity = (fact_slots.entity or "").lower().strip()
-        entity_tokens = [t for t in entity.replace("科技", "").replace("公司", "").split() if len(t) > 1]
-        if not entity_tokens:
-            entity_tokens = [entity] if entity else []
-
-        # 别名映射 (如 英伟达 <-> nvidia, 宇树 <-> unitree, 谷歌 <-> alphabet)
-        alias_map = {
-            "英伟达": ["nvidia", "geforce", "rtx"],
-            "alphabet": ["google", "谷歌", "alphabet"],
-            "openai": ["chatgpt", "openai"],
-            "anthropic": ["claude", "anthropic", "dario"],
-            "宇树": ["unitree", "宇树科技", "王兴兴"]
-        }
-        for k, aliases in alias_map.items():
-            if k in entity:
-                entity_tokens.extend(aliases)
+        # 1. 动态提取核心实体 Stem Tokens
+        entity = (fact_slots.entity or (claim.attributes.subject if claim.attributes else "") or "").lower().strip()
+        entity_tokens = re.findall(r'[\u4e00-\u9fa5]{2,}|[a-z0-9]{3,}', entity)
+        if not entity_tokens and entity:
+            entity_tokens = [entity]
 
         entity_matched = any(token in combined for token in entity_tokens)
 
-        # 2. 复合槽位与关键词命中检查
-        slot_tokens = [cs.value.lower() for cs in fact_slots.compound_slots if cs.value]
-        # 添加关键数字或缩写
-        for tok in ["4070", "799", "16gb", "263.01", "20", "2016", "杭州", "王兴兴", "amodei", "辞职"]:
-            if tok in claim.statement.lower():
-                slot_tokens.append(tok)
+        # 2. 动态提取复合槽位与数值、关键约束词
+        slot_tokens = set()
+        for cs in fact_slots.compound_slots:
+            if cs.value:
+                slot_tokens.add(str(cs.value).lower().strip())
 
-        slot_hits = sum(1 for tok in set(slot_tokens) if tok in combined)
-        slot_ratio = (slot_hits / len(set(slot_tokens))) if slot_tokens else 0.5
+        # 从 Claim 语句中动态正则提取所有数字、金额、年份、代码与专有名词
+        dyn_numbers = re.findall(r'\b\d+(?:\.\d+)?(?:%|gb|usd|亿|万|年|月|美元|元)?\b', claim.statement.lower())
+        dyn_nouns = re.findall(r'[\u4e00-\u9fa5]{2,}|[a-z0-9]{3,}', claim.statement.lower())
+        for tok in dyn_numbers + dyn_nouns:
+            if tok and len(tok) >= 2 and tok not in entity_tokens:
+                slot_tokens.add(tok)
+
+        slot_hits = sum(1 for tok in slot_tokens if tok in combined)
+        slot_ratio = (slot_hits / len(slot_tokens)) if slot_tokens else 0.5
 
         if entity_matched and slot_hits > 0:
             return 0.8 + 0.2 * min(slot_ratio, 1.0)
@@ -589,11 +584,43 @@ class FastClaimVerifierAgent:
                     continue
                 s_id = f"s-r2-{idx+1}-{uuid.uuid4().hex[:4]}"
                 title = getattr(item, "title", "Web Source (R2)")
+                snippet = getattr(item, "snippet", "")
                 domain = getattr(item, "domain", None)
                 if not domain:
                     domain = url.split("/")[2] if "://" in url else "web"
                 tier = self._classify_source_tier(domain, url)
                 
+                # 相关性闸门检查 (Pre-Scrape Relevance Gate)
+                relevance_score = self._evaluate_search_result_relevance(item, fact_slots, claim)
+                raw_text = None
+                content_hash = None
+                fetch_status = "FETCH_FAILED"
+                fetch_mode = "LIVE"
+
+                if relevance_score < 0.2 and not getattr(item, "is_synthetic", False):
+                    fetch_status = "REJECTED_IRRELEVANT"
+                    logger.info(f"[R2] Rejected irrelevant search result: {title} ({url}) score={relevance_score}")
+                elif getattr(item, "is_synthetic", False):
+                    raw_text = snippet
+                    content_hash = hashlib.sha256(snippet.encode("utf-8")).hexdigest()
+                    fetch_status = "SYNTHETIC_MOCK"
+                    fetch_mode = "SYNTHETIC"
+                elif url.startswith("http"):
+                    try:
+                        scraped = await WebScraper.fetch_and_extract(url, timeout_seconds=10)
+                        if scraped and scraped.clean_text:
+                            raw_text = scraped.clean_text
+                            content_hash = scraped.content_hash
+                            fetch_status = "FETCH_SUCCESS"
+                            fetch_mode = "LIVE"
+                        else:
+                            fetch_status = "FETCH_EMPTY"
+                            fetch_mode = "LIVE"
+                    except Exception as e:
+                        logger.warning(f"Round 2 live fetch failed for {url}: {e}")
+                        fetch_status = "FETCH_FAILED"
+                        fetch_mode = "LIVE"
+
                 source = Source(
                     id=s_id,
                     url=url,
@@ -601,59 +628,105 @@ class FastClaimVerifierAgent:
                     title=title,
                     source_tier=tier,
                     publish_date=getattr(item, "published_date", None) or today_str,
-                    is_synthetic=getattr(item, "is_synthetic", False)
+                    is_synthetic=getattr(item, "is_synthetic", False),
+                    raw_text=raw_text,
+                    content_hash=content_hash,
+                    fetch_status=fetch_status,
+                    fetch_mode=fetch_mode
                 )
                 new_sources.append(source)
                 sources.append(source)
                 existing_urls.add(url)
 
-            if new_sources:
-                r2_snippets_text = "\n\n".join([
-                    f"[Source ID: {s.id} | {s.domain} | {s.title}]\n{s.title}\n{getattr(round_2_results[i], 'snippet', '')}"
-                    for i, s in enumerate(new_sources)
+            # 仅在抓取到真实正文时提取证据与物理定位
+            sources_with_text_r2 = [s for s in new_sources if s.raw_text]
+            if sources_with_text_r2:
+                all_snippets_text_r2 = "\n\n".join([
+                    f"[Source ID: {s.id} | {s.domain} | {s.title}]\n{s.title}\n{(s.raw_text or '')[:1500]}"
+                    for s in sources_with_text_r2
                 ])
 
                 r2_prompt = f"""针对待核验主张："{claim.statement}"
 第一轮调查发现存在以下关键证据缺口：{'; '.join(evidence_gaps)}
-以下是针对该缺口定向检索到的补充网页摘要：
-{r2_snippets_text}
+以下是从抓取网页正文中检索到的补充证据材料：
+{all_snippets_text_r2}
 
-请提取能够弥补上述缺口、直接支持或反驳该主张的精确证据片段。"""
+请提取能够弥补上述缺口、直接支持或反驳该主张的精确逐字证据片段。"""
 
                 try:
                     ext_res_r2: EvidenceExtractionBatch = await self.llm.generate_structured(
                         prompt=r2_prompt,
                         response_model=EvidenceExtractionBatch,
-                        system_prompt="你是一个严谨的事实核验证据提取器。提取补充证据并严格区分极性。"
+                        system_prompt="你是一个严谨的事实核验证据提取器。必须直接从正文中提取逐字原文引文，严禁改写或捏造。"
                     )
                     for raw_ev in ext_res_r2.evidences:
-                        matched_s_id = new_sources[0].id
-                        for s in new_sources:
+                        matched_s = sources_with_text_r2[0]
+                        for s in sources_with_text_r2:
                             if s.domain in raw_ev.exact_quote or s.title in raw_ev.exact_quote:
-                                matched_s_id = s.id
+                                matched_s = s
                                 break
                         
+                        # 物理引文坐标定位 (Physical Quote Grounding)
+                        char_start, char_end, prefix, suffix, match_tier, el_role, blk_id = WebScraper.locate_quote_spans(
+                            source_text=matched_s.raw_text or "",
+                            quote=raw_ev.exact_quote
+                        )
+
+                        is_grounded = match_tier in ("EXACT", "NORMALIZED_EXACT")
+                        is_admissible = is_grounded or matched_s.is_synthetic
+
+                        supports = raw_ev.supports_claim if is_grounded else False
+                        contradicts = raw_ev.contradicts_claim if is_grounded else False
+                        if supports and contradicts:
+                            supports = True
+                            contradicts = False
+
                         ev = Evidence(
                             id=f"e-r2-{uuid.uuid4().hex[:6]}",
-                            source_id=matched_s_id,
+                            source_id=matched_s.id,
                             claim_id=claim.id,
                             exact_quote=raw_ev.exact_quote,
                             context=raw_ev.context,
-                            supports_claim=raw_ev.supports_claim if not (raw_ev.supports_claim and raw_ev.contradicts_claim) else True,
-                            contradicts_claim=raw_ev.contradicts_claim if not (raw_ev.supports_claim and raw_ev.contradicts_claim) else False,
+                            supports_claim=supports,
+                            contradicts_claim=contradicts,
                             directness=raw_ev.directness,
                             scope_match=raw_ev.scope_match,
-                            evidence_note=raw_ev.evidence_note
+                            evidence_note=raw_ev.evidence_note,
+                            char_start=char_start,
+                            char_end=char_end,
+                            prefix=prefix,
+                            suffix=suffix,
+                            match_tier=match_tier,
+                            is_admissible_factual_evidence=is_admissible,
+                            element_role=el_role,
+                            block_id=blk_id
                         )
                         evidences.append(ev)
+
+                        if is_grounded:
+                            rel_type = getattr(RelationType, getattr(raw_ev, "relation_type", "DIRECT_SUPPORT").upper(), RelationType.DIRECT_SUPPORT)
+                            acc_std = getattr(AccountingStandard, getattr(raw_ev, "accounting_standard", "UNKNOWN").upper(), AccountingStandard.UNKNOWN)
+                            temp_evo = getattr(TemporalEvolution, getattr(raw_ev, "temporal_evolution", "CURRENT").upper(), TemporalEvolution.CURRENT)
+                            valid_slot_names = {cs.slot_name for cs in fact_slots.compound_slots}
+                            filtered_matched_slots = [slot for slot in getattr(raw_ev, "matched_slots", []) if slot in valid_slot_names]
+
+                            relations.append(
+                                EvidenceRelation(
+                                    relation_type=rel_type,
+                                    accounting_standard=acc_std,
+                                    temporal_evolution=temp_evo,
+                                    matched_slots=filtered_matched_slots,
+                                    polarity_reasoning=getattr(raw_ev, "evidence_note", "")
+                                )
+                            )
                 except Exception as e:
                     logger.warning(f"Round 2 extraction failed: {e}")
 
-                # 重新评估合并证据集
+                # 重新评估合并证据集 (仅使用已物理验证的准入证据)
                 assessment = assess_evidence_for_claim(
                     claim=claim,
                     sources=sources,
-                    evidences=evidences,
+                    evidences=[e for e in evidences if e.is_admissible_factual_evidence],
                     provenances=provenances
                 )
                 evidence_state = compute_evidence_state(assessment, claim.verifiability)

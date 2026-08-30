@@ -2,26 +2,31 @@
   {
     "id": "heldout-01",
     "domain": "Tech Hardware / Multi-Spec",
-    "claim": "苹果公司发布的 iPhone 15 Pro 起售价为 999 美元，搭载 3 纳米制程的 A17 Pro 芯片，并首次采用钛金属机身。"
+    "claim": "苹果公司发布的 iPhone 15 Pro 起售价为 999 美元，搭载 3 纳米制程的 A17 Pro 芯片，并首次采用钛金属机身。",
+    "gold_slots": ["iPhone 15 Pro", "999", "3", "A17 Pro", "钛金属", "苹果"]
   },
   {
     "id": "heldout-02",
     "domain": "Financial / GAAP Operating Margin",
-    "claim": "特斯拉(Tesla)在2024年第二季度财报中公布的GAAP营业利润为16.05亿美元，营业利润率为6.3%。"
+    "claim": "特斯拉(Tesla)在2024年第二季度财报中公布的GAAP营业利润为16.05亿美元，营业利润率为6.3%。",
+    "gold_slots": ["特斯拉", "2024", "Q2", "16.05", "6.3%", "GAAP"]
   },
   {
     "id": "heldout-03",
     "domain": "Corporate M&A / Equity Acquisition",
-    "claim": "微盟集团(Weimob)于2020年宣布以5.1亿元人民币收购餐饮SaaS服务商雅座61.8%的股权。"
+    "claim": "微盟集团(Weimob)于2020年宣布以5.1亿元人民币收购餐饮SaaS服务商雅座61.8%的股权。",
+    "gold_slots": ["微盟", "2020", "5.1", "雅座", "61.8%"]
   },
   {
     "id": "heldout-04",
     "domain": "Corporate Rumor / Official Refutation",
-    "claim": "网络传闻称波音公司(Boeing)因Starliner飞船故障已决定永久退出NASA商业载人航天计划(Commercial Crew Program)。"
+    "claim": "网络传闻称波音公司(Boeing)因Starliner飞船故障已决定永久退出NASA商业载人航天计划(Commercial Crew Program)。",
+    "gold_slots": ["波音", "Starliner", "NASA", "永久退出"]
   },
   {
     "id": "heldout-05",
     "domain": "Biotech / Clinical Trial Evolution",
-    "claim": "礼来(Eli Lilly)的阿兹海默症药物多奈单抗(Donanemab)在TRAILBLAZER-ALZ 2三期临床试验中达到主要终点，但在早期二期试验中部分次要认知指标曾呈现争议。"
+    "claim": "礼来(Eli Lilly)的阿兹海默症药物多奈单抗(Donanemab)在TRAILBLAZER-ALZ 2三期临床试验中达到主要终点，但在早期二期试验中部分次要认知指标曾呈现争议。",
+    "gold_slots": ["礼来", "多奈单抗", "TRAILBLAZER-ALZ 2", "主要终点", "二期"]
   }
 ]
