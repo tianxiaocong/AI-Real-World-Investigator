@@ -1,36 +1,34 @@
 {
   "metrics": {
     "execution_profile": "LIVE_EVALUATION",
-    "mode": "live",
-    "llm_tier": "sensenova",
+    "mode": "cached",
+    "llm_tier": "deepseek",
     "total_cases": 20,
-    "correct_count": 13,
-    "accuracy_pct": 65.0,
+    "correct_count": 16,
+    "accuracy_pct": 80.0,
     "overclaim_rate_pct": 0.0,
-    "conservative_miss_rate_pct": 35.0,
-    "quote_grounding_rate_pct": 90.78947368421053,
-    "pure_live_cases_evaluated": 1,
-    "pure_live_accuracy_pct": 0.0,
-    "scraper_live_success_rate_pct": 14.285714285714285,
+    "conservative_miss_rate_pct": 20.0,
+    "quote_grounding_rate_pct": 100.0,
+    "pure_live_cases_evaluated": 0,
+    "pure_live_accuracy_pct": null,
+    "scraper_live_success_rate_pct": null,
     "quote_tier_distribution": {
-      "EXACT": 68,
-      "NORMALIZED_EXACT": 1,
-      "UNVERIFIED": 7
+      "EXACT": 57
     },
     "confusion_matrix": {
       "SUFFICIENT": {
-        "SUFFICIENT": 2,
-        "INSUFFICIENT": 1
+        "SUFFICIENT": 3
       },
       "STRONG": {
-        "STRONG": 1,
-        "INSUFFICIENT": 2
+        "INSUFFICIENT": 1,
+        "STRONG": 2
       },
       "INSUFFICIENT": {
         "INSUFFICIENT": 4
       },
       "CONFLICTING": {
-        "INSUFFICIENT": 2,
+        "INSUFFICIENT": 1,
+        "CONFLICTING": 1,
         "UNSUPPORTED": 2
       },
       "UNSUPPORTED": {
@@ -41,38 +39,9 @@
       }
     },
     "failure_taxonomy": {
-      "SCRAPER_BLOCKED_FALLBACK": [
-        "rw-01/s-01 (https://openai.com/index/chatgpt-plus/)",
-        "rw-01/s-02 (https://www.reuters.com/technology/openai-launches-chatgpt-plus-subscription-20-month-2023-02-01/)",
-        "rw-02/s-02 (https://www.theverge.com/2024/1/8/24029802/apple-vision-pro-release-date-price)",
-        "rw-03/s-01 (https://www.sec.gov/Archives/edgar/data/789019/000119312523255788/d568435d8k.htm)",
-        "rw-03/s-02 (https://blogs.microsoft.com/blog/2023/10/13/welcoming-the-legendary-teams-at-activision-blizzard-king-to-team-xbox/)",
-        "rw-04/s-01 (https://36kr.com/p/2659821734912)",
-        "rw-04/s-02 (https://pandaily.com/unitree-robotics-secures-nearly-1b-yuan-in-series-b2-financing/)",
-        "rw-06/s-01 (https://www.bloomberg.com/news/articles/2024-04-18/tsmc-arizona-chip-trial-production-advanced-packaging)",
-        "rw-07/s-01 (https://reddit.com/r/appleleaks/comments/m5_cancelled_rumor)",
-        "rw-08/s-01 (https://techdailynews.org/amazon-brainwave-acquisition)",
-        "rw-08/s-02 (https://siliconvalleyinsider.blog/amazon-buys-brainwave)",
-        "rw-09/s-01 (https://www.pr-newswire-hub.com/quantumnexus-breakthrough-2025)",
-        "rw-10/s-01 (https://gamingrumorsforum.net/switch-2-199-price)",
-        "rw-11/s-01 (https://financialtimes.example/techcorp-q3-non-gaap)",
-        "rw-11/s-02 (https://secfilings.example/techcorp-10q-q3)",
-        "rw-12/s-01 (https://venturebeat.example/cleanenergy-2b-valuation)",
-        "rw-12/s-02 (https://techcrunch.example/cleanenergy-series-c-1-2b)",
-        "rw-13/s-01 (https://mednews.example/biopharma-trial-85-percent)",
-        "rw-13/s-02 (https://clinicaltrials.example/biopharma-full-results)",
-        "rw-14/s-01 (https://businessjournal.example/retail-corp-layoffs)",
-        "rw-14/s-02 (https://globalretailcorp.example/press/statement-on-layoff-rumors)",
-        "rw-15/s-01 (https://www.fda.gov/warning-letters/miracleherb-unapproved-drug)",
-        "rw-16/s-01 (https://www.sec.gov/edgar/data/1318605/tesla-q2-2024-10q)",
-        "rw-17/s-01 (https://www.ft.com/content/google-anthropic-investment-structure)"
-      ],
       "CONSERVATIVE_MISS": [
-        "rw-02 (Gold: SUFFICIENT -> Pred: INSUFFICIENT)",
-        "rw-05 (Gold: STRONG -> Pred: INSUFFICIENT)",
-        "rw-06 (Gold: STRONG -> Pred: INSUFFICIENT)",
+        "rw-04 (Gold: STRONG -> Pred: INSUFFICIENT)",
         "rw-11 (Gold: CONFLICTING -> Pred: INSUFFICIENT)",
-        "rw-12 (Gold: CONFLICTING -> Pred: INSUFFICIENT)",
         "rw-13 (Gold: CONFLICTING -> Pred: UNSUPPORTED)",
         "rw-14 (Gold: CONFLICTING -> Pred: UNSUPPORTED)"
       ]
@@ -97,13 +66,11 @@
         "EXACT",
         "EXACT",
         "EXACT",
-        "EXACT",
-        "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 13,
+      "num_evidences": 11,
       "summary": "Verification completed."
     },
     {
@@ -111,24 +78,14 @@
       "claim": "Apple Vision Pro is priced starting at $3,499 with 256GB of storage.",
       "domain": "Tech/Hardware",
       "gold_state": "SUFFICIENT",
-      "pred_state": "INSUFFICIENT",
-      "is_correct": false,
+      "pred_state": "SUFFICIENT",
+      "is_correct": true,
       "quote_tiers": [
-        "EXACT",
-        "EXACT",
-        "EXACT",
-        "EXACT",
-        "EXACT",
-        "EXACT",
-        "EXACT",
-        "NORMALIZED_EXACT",
-        "EXACT",
-        "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 11,
+      "num_evidences": 1,
       "summary": "Verification completed."
     },
     {
@@ -146,7 +103,7 @@
         "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 2,
       "num_evidences": 6,
       "summary": "Verification completed."
@@ -155,6 +112,24 @@
       "id": "rw-04",
       "claim": "Unitree Robotics raised nearly 1 billion RMB in Series B2 funding led by Meituan in 2024.",
       "domain": "Tech/Robotics",
+      "gold_state": "STRONG",
+      "pred_state": "INSUFFICIENT",
+      "is_correct": false,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT",
+        "EXACT",
+        "EXACT"
+      ],
+      "had_fallback": false,
+      "num_sources": 2,
+      "num_evidences": 4,
+      "summary": "Verification completed."
+    },
+    {
+      "id": "rw-05",
+      "claim": "DeepSeek-V3 is an open-weights Mixture-of-Experts AI model with 671 billion total parameters.",
+      "domain": "Tech/AI",
       "gold_state": "STRONG",
       "pred_state": "STRONG",
       "is_correct": true,
@@ -165,34 +140,11 @@
         "EXACT",
         "EXACT",
         "EXACT",
-        "EXACT",
-        "EXACT"
-      ],
-      "had_fallback": true,
-      "num_sources": 2,
-      "num_evidences": 8,
-      "summary": "Verification completed."
-    },
-    {
-      "id": "rw-05",
-      "claim": "DeepSeek-V3 is an open-weights Mixture-of-Experts AI model with 671 billion total parameters.",
-      "domain": "Tech/AI",
-      "gold_state": "STRONG",
-      "pred_state": "INSUFFICIENT",
-      "is_correct": false,
-      "quote_tiers": [
-        "UNVERIFIED",
-        "UNVERIFIED",
-        "UNVERIFIED",
-        "UNVERIFIED",
-        "UNVERIFIED",
-        "UNVERIFIED",
-        "UNVERIFIED",
         "EXACT"
       ],
       "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 8,
+      "num_evidences": 7,
       "summary": "Verification completed."
     },
     {
@@ -200,20 +152,18 @@
       "claim": "TSMC began engineering trial production of 4nm chips at its Arizona Fab 21 in 2024.",
       "domain": "Tech/Semiconductor",
       "gold_state": "STRONG",
-      "pred_state": "INSUFFICIENT",
-      "is_correct": false,
+      "pred_state": "STRONG",
+      "is_correct": true,
       "quote_tiers": [
-        "EXACT",
-        "EXACT",
         "EXACT",
         "EXACT",
         "EXACT",
         "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 7,
+      "num_evidences": 5,
       "summary": "Verification completed."
     },
     {
@@ -224,12 +174,11 @@
       "pred_state": "INSUFFICIENT",
       "is_correct": true,
       "quote_tiers": [
-        "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 1,
-      "num_evidences": 2,
+      "num_evidences": 1,
       "summary": "Verification completed."
     },
     {
@@ -240,13 +189,11 @@
       "pred_state": "INSUFFICIENT",
       "is_correct": true,
       "quote_tiers": [
-        "EXACT",
-        "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 3,
+      "num_evidences": 1,
       "summary": "Verification completed."
     },
     {
@@ -256,10 +203,13 @@
       "gold_state": "INSUFFICIENT",
       "pred_state": "INSUFFICIENT",
       "is_correct": true,
-      "quote_tiers": [],
-      "had_fallback": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "had_fallback": false,
       "num_sources": 1,
-      "num_evidences": 0,
+      "num_evidences": 2,
       "summary": "Verification completed."
     },
     {
@@ -269,10 +219,13 @@
       "gold_state": "INSUFFICIENT",
       "pred_state": "INSUFFICIENT",
       "is_correct": true,
-      "quote_tiers": [],
-      "had_fallback": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "had_fallback": false,
       "num_sources": 1,
-      "num_evidences": 0,
+      "num_evidences": 2,
       "summary": "Verification completed."
     },
     {
@@ -283,7 +236,7 @@
       "pred_state": "INSUFFICIENT",
       "is_correct": false,
       "quote_tiers": [],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 2,
       "num_evidences": 0,
       "summary": "Verification completed."
@@ -293,12 +246,15 @@
       "claim": "CleanEnergy Inc raised Series C funding at a post-money valuation of $2.0 billion.",
       "domain": "Venture Capital",
       "gold_state": "CONFLICTING",
-      "pred_state": "INSUFFICIENT",
-      "is_correct": false,
-      "quote_tiers": [],
-      "had_fallback": true,
+      "pred_state": "CONFLICTING",
+      "is_correct": true,
+      "quote_tiers": [
+        "EXACT",
+        "EXACT"
+      ],
+      "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 0,
+      "num_evidences": 2,
       "summary": "Verification completed."
     },
     {
@@ -311,11 +267,12 @@
       "quote_tiers": [
         "EXACT",
         "EXACT",
+        "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 3,
+      "num_evidences": 4,
       "summary": "Verification completed."
     },
     {
@@ -328,13 +285,11 @@
       "quote_tiers": [
         "EXACT",
         "EXACT",
-        "EXACT",
-        "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 2,
-      "num_evidences": 5,
+      "num_evidences": 3,
       "summary": "Verification completed."
     },
     {
@@ -349,7 +304,7 @@
         "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 1,
       "num_evidences": 3,
       "summary": "Verification completed."
@@ -363,12 +318,11 @@
       "is_correct": true,
       "quote_tiers": [
         "EXACT",
-        "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 1,
-      "num_evidences": 3,
+      "num_evidences": 2,
       "summary": "Verification completed."
     },
     {
@@ -381,12 +335,11 @@
       "quote_tiers": [
         "EXACT",
         "EXACT",
-        "EXACT",
         "EXACT"
       ],
-      "had_fallback": true,
+      "had_fallback": false,
       "num_sources": 1,
-      "num_evidences": 4,
+      "num_evidences": 3,
       "summary": "Verification completed."
     },
     {
