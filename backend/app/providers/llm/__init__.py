@@ -31,11 +31,15 @@ def get_llm_provider(
             key = api_key or settings.SENSENOVA_API_KEY or settings.OPENAI_API_KEY
             if key:
                 return OpenAICompatibleProvider(api_key=key, base_url=base_url, model=model)
+        elif p_name == "deepseek":
+            model = settings.DEEPSEEK_MODEL or "deepseek-chat"
+            base_url = settings.DEEPSEEK_BASE_URL or "https://api.deepseek.com/v1"
+            key = api_key or settings.DEEPSEEK_API_KEY or settings.OPENAI_API_KEY
+            if key:
+                return OpenAICompatibleProvider(api_key=key, base_url=base_url, model=model)
         else:
             model = settings.OPENAI_MODEL or ("gpt-4o" if tier == "reasoning" else "gpt-4o-mini")
-            if p_name == "deepseek":
-                model = "deepseek-chat"
-            key = api_key or settings.OPENAI_API_KEY or settings.DEEPSEEK_API_KEY
+            key = api_key or settings.OPENAI_API_KEY
             if key:
                 return OpenAICompatibleProvider(api_key=key, model=model)
         return MockLLMProvider()
