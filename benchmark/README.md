@@ -55,19 +55,31 @@ INSUFFICIENT        0              0              0              1
 
 ---
 
-## 🌐 第三层 Real-Web E2E 实测指标 (20 Cases Across 6 States)
+## 🌐 第三层 Real-Web E2E 实测指标与跨模型横向矩阵 (Cross-Model Evaluation)
 
-在覆盖科技、财经、生物医疗、谣言网络与私密事实的 20 个 Real-Web 真实用例集上，评测结果如下：
+在覆盖科技、财经、生物医疗、谣言网络与私密事实的 20 个 Real-Web 真实用例集上，评测结果全景如下：
 
-| 状态类型 | 样本数 | 命中数 | 状态定义 |
-| :--- | :---: | :---: | :--- |
-| **`SUFFICIENT`** | 3 | 3 / 3 | 官方一手公告 + 权威一级媒体交叉证实 |
-| **`STRONG`** | 3 | 3 / 3 | 多家独立主流媒体/权威模型权重仓独立证实 |
-| **`INSUFFICIENT`** | 4 | 4 / 4 | 单一论坛爆料、同源转载放大链条去重、单方 PR |
-| **`CONFLICTING`** | 4 | 4 / 4 | GAAP/Non-GAAP 指标分歧、估值口径冲突、亚组与全集冲突 |
-| **`UNSUPPORTED`** | 3 | 3 / 3 | 监管警告信、SEC 披露反驳、非控制少数股权澄清 |
-| **`NOT_ASSESSABLE`** | 3 | 3 / 3 | 董事会保密议题、个人私密决策、远期投机性预测 |
-| **总计** | **20** | **20 / 20 (100.0%)** | **Overclaim Rate: 0.0% \| Quote Grounding: 100.0%** |
+### 1. 跨模型全景实证矩阵 (Cross-Model Empirical Matrix)
+
+| 实验组别 | 运行模式 | Accuracy (准确率) | **Overclaim Rate (观测过度断言率)** | Conservative Miss (保守未命中) | Quote Grounding (逐字引文落地率) |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **Mock LLM** | `CACHED` | **100.0% (20/20)** | **0.0% (0/20)** | 0.0% | 100.0% (Exact) |
+| **Mock LLM** | `LIVE` | **80.0% (16/20)** | **0.0% (0/20)** | 20.0% | 100.0% (Exact) |
+| **SenseNova (`sensenova-6.8-flash-lite`)** | `CACHED` | **85.0% (17/20)** | **0.0% (0/20)** | 15.0% (3/20) | **100.0% (89/89 EXACT)** |
+| **SenseNova (`sensenova-6.8-flash-lite`)** | `LIVE` | **65.0% (13/20)** | **0.0% (0/20)** | 35.0% (7/20) | **90.8% (69/76 Grounded)** |
+| **DeepSeek (`deepseek-v4-flash`)** | `CACHED` | **80.0% (16/20)** | **0.0% (0/20)** | 20.0% (4/20) | **100.0% (57/57 EXACT)** |
+
+> [!IMPORTANT]
+> **方法学与学术边界声明 (Methodological Boundary)**：
+> 在冻结基准测试的 40 次真实大模型-案例评测（SenseNova 20 案 + DeepSeek 20 案）中，系统观测到 **0.0% 的 Overclaim Rate**，共 **146 条引文实现 100% 逐字 EXACT 物理定位（0 条幻觉穿透）**。此实证结果表明确定性规则引擎与 True Raw-Text 定位层在基准分布下具备跨模型的稳健安全防御能力，但不构成对任意输入分布的形式化数学保证。
+
+### 2. 双模型逐样例配对特征 (SenseNova vs DeepSeek)
+
+* **共同正确 (Shared Success)**: **15 / 20 (75.0%)**，覆盖常规事实、单源谣言隔离、官方辟谣与隐私边界。
+* **仅 SenseNova 正确**: **2 / 20 (10.0%)**（`rw-04` 达成双源强证实；`rw-13` 提取正反双向临床数据）。
+* **仅 DeepSeek 正确**: **1 / 20 (5.0%)**（`rw-02` 成功连接多规格价格）。
+* **共同挑战 (Shared Miss)**: **2 / 20 (10.0%)**（`rw-11` GAAP vs Non-GAAP；`rw-14` 辟谣 vs 传闻，均保守判定为 `UNSUPPORTED` / `INSUFFICIENT`）。
+* **模型差异的发生位置**：差异主要集中于高阶证据整合、多属性关联与复杂冲突解释，而非引文伪造或安全违规。
 
 ---
 
@@ -96,5 +108,6 @@ INSUFFICIENT        0              0              0              1
   - `benchmark/real_web/sources/`：`rw-01` 至 `rw-17` 真实网页 HTML/Text 快照与元数据
   - `benchmark/real_web/DATASET_SPEC.md`：详细数据集规范与案例目录
   - `benchmark/real_web/run_real_web_benchmark.py`：Real-Web E2E 执行脚本与混淆矩阵生成器
+  - `benchmark/real_web/evaluation/cross_model_analysis.md`：SenseNova vs DeepSeek 配对交叉评测报告
   - `benchmark/real_web/evaluation/results_summary.md`：最新评测结果与失误归因报告
 
