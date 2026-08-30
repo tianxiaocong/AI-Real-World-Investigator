@@ -43,6 +43,21 @@ from app.providers.llm.base import LLMProvider
 from app.providers.search.base import SearchProvider
 from app.providers.search import get_search_provider
 
+from app.models.reasoning_ir import (
+    FactSlots,
+    CompoundFactSlot,
+    EvidenceRelation,
+    RelationType,
+    AccountingStandard,
+    TemporalEvolution,
+    ScopeAlignment,
+    ReasoningAssessmentV2
+)
+from app.engine.reasoning_v2_engine import (
+    compute_reasoning_v2_verdict,
+    evaluate_compound_fact_fulfillment
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -50,12 +65,22 @@ logger = logging.getLogger(__name__)
 #  Structured LLM Output Schemas
 # ──────────────────────────────────────────────
 
+class RawCompoundSlot(BaseModel):
+    slot_name: str = Field(description="属性或数值槽位名，如 'price', 'memory', 'lead_investor'")
+    value: str = Field(description="属性值，如 '799', '16GB', 'Spark Capital'")
+    unit: Optional[str] = Field(default=None, description="单位，如 'USD', 'GB', 'RMB'")
+    is_required: bool = Field(default=True, description="是否为该主张成立所必需的属性")
+
+
 class RawDecomposedClaim(BaseModel):
     statement: str = Field(description="拆解出的单条可独立核验的陈述句子")
     subject: Optional[str] = Field(default=None, description="主语实体，例如 'OpenAI'、'马斯克'")
-    predicate: Optional[str] = Field(default=None, description="谓词动作/属性，例如 '融资'、'毕业于'")
-    object_value: Optional[str] = Field(default=None, description="宾语/数值，例如 '10亿美元'、'哈佛大学'")
-    time_context: Optional[str] = Field(default=None, description="时间限定，例如 '2025年'、'昨天'")
+    predicate: Optional[str] = Field(default=None, description="谓词动作/属性，例如 '融资'、'发布定价'")
+    object_value: Optional[str] = Field(default=None, description="宾语/数值，例如 '10亿美元'、'799美元'")
+    compound_slots: List[RawCompoundSlot] = Field(default_factory=list, description="多属性复合槽位列表")
+    time_context: Optional[str] = Field(default=None, description="时间限定，例如 '2024年', 'Q3 2024'")
+    accounting_basis: str = Field(default="UNKNOWN", description="会计准则口径: GAAP / NON_GAAP / UNKNOWN")
+    trial_phase: Optional[str] = Field(default=None, description="临床试验阶段: PRELIMINARY / FINAL_CONFIRMED / UNKNOWN")
     polarity: bool = Field(default=True, description="极性: True=肯定句, False=否定句")
     verifiability: Verifiability = Field(default=Verifiability.PUBLICLY_VERIFIABLE, description="公开可验证性评级")
     verifiability_reason: str = Field(default="", description="为什么该声明具有此级别的公开可验证性")
@@ -68,11 +93,15 @@ class DecomposeOutput(BaseModel):
 class RawExtractedEvidence(BaseModel):
     exact_quote: str = Field(description="原始网页中的精确原话或直接事实陈述")
     context: str = Field(default="", description="引文上下文")
-    supports_claim: bool = Field(default=False, description="是否直接支持该主张")
-    contradicts_claim: bool = Field(default=False, description="是否直接反驳/否定该主张")
+    supports_claim: bool = Field(default=False, description="是否支持该主张")
+    contradicts_claim: bool = Field(default=False, description="是否反驳/否定该主张")
+    relation_type: str = Field(default="DIRECT_SUPPORT", description="关系类型: DIRECT_SUPPORT / QUALIFIED_CONFLICT / AUTHORITATIVE_REFUTE / DIRECT_CONTRADICT / INDIRECT_SUPPORT / CONTEXTUAL")
+    accounting_standard: str = Field(default="UNKNOWN", description="证据体现的会计口径: GAAP / NON_GAAP / UNKNOWN")
+    temporal_evolution: str = Field(default="CURRENT", description="证据时态/试验阶段: PRELIMINARY / FINAL_CONFIRMED / HISTORICAL_SUPERSEDED / CURRENT")
+    matched_slots: List[str] = Field(default_factory=list, description="该证据直接匹配并证实的槽位名列表 (如 ['price', 'memory'])")
     directness: EvidenceDirectness = Field(default=EvidenceDirectness.CONTEXTUAL, description="直接性: DIRECT/INDIRECT/CONTEXTUAL")
     scope_match: bool = Field(default=True, description="讨论的事实和口径范围是否完全匹配")
-    evidence_note: str = Field(default="", description="关键备注，例如金额差异或限制条件")
+    evidence_note: str = Field(default="", description="关键备注，例如口径差异或限制条件")
     origin_credit: Optional[str] = Field(default=None, description="若该报道提及真实源头，注明其名字，如 'Bloomberg'、'公司官方声明'")
 
 
@@ -165,6 +194,26 @@ class FastClaimVerifierAgent:
             )
             claims: List[Claim] = []
             for i, raw in enumerate(res.claims):
+                compound_slots = [
+                    CompoundFactSlot(
+                        slot_name=cs.slot_name,
+                        value=cs.value,
+                        unit=cs.unit,
+                        is_required=cs.is_required
+                    )
+                    for cs in getattr(raw, "compound_slots", [])
+                ]
+                accounting_basis = getattr(AccountingStandard, getattr(raw, "accounting_basis", "UNKNOWN").upper(), AccountingStandard.UNKNOWN)
+                fact_slots = FactSlots(
+                    entity=raw.subject or raw.statement[:20],
+                    predicate=raw.predicate or "statement",
+                    compound_slots=compound_slots,
+                    time_context=raw.time_context,
+                    accounting_basis=accounting_basis,
+                    trial_phase=raw.trial_phase,
+                    polarity=raw.polarity
+                )
+
                 claims.append(
                     Claim(
                         id=f"c-{uuid.uuid4().hex[:8]}",
@@ -179,26 +228,16 @@ class FastClaimVerifierAgent:
                             time_context=raw.time_context,
                             polarity=raw.polarity
                         ),
+                        fact_slots=fact_slots,
                         verifiability=raw.verifiability,
-                        verifiability_reason=raw.verifiability_reason or "根据陈述性质评估",
+                        verifiability_reason=raw.verifiability_reason,
                         verified_as_of=today_str
                     )
                 )
             return claims
         except Exception as e:
-            logger.warning(f"Claim decomposition failed, using raw fallback: {e}")
-            return [
-                Claim(
-                    id=f"c-{uuid.uuid4().hex[:8]}",
-                    original_input=input_text,
-                    input_type=input_type,
-                    statement=input_text.strip(),
-                    claim_index=0,
-                    verifiability=Verifiability.PUBLICLY_VERIFIABLE,
-                    verifiability_reason="单句直接核验",
-                    verified_as_of=today_str
-                )
-            ]
+            logger.warning(f"Claim decomposition failed: {e}. Falling back to single claim.")
+            return []
 
     async def _verify_single_claim(self, claim: Claim, today_str: str) -> Verdict:
         """针对单个 Claim 执行检索、提取、溯源去重、规则引擎判定及解释生成"""
@@ -212,6 +251,15 @@ class FastClaimVerifierAgent:
         sources: List[Source] = []
         provenances: List[SourceProvenance] = []
         evidences: List[Evidence] = []
+        relations: List[EvidenceRelation] = []
+
+        # 确保 FactSlots 存在
+        fact_slots: FactSlots = claim.fact_slots or FactSlots(
+            entity=getattr(claim.attributes, "subject", None) or claim.statement[:20],
+            predicate=getattr(claim.attributes, "predicate", None) or "statement",
+            time_context=getattr(claim.attributes, "time_context", None),
+            polarity=getattr(claim.attributes, "polarity", True)
+        )
 
         for idx, item in enumerate(search_results):
             s_id = f"s-{idx+1}-{uuid.uuid4().hex[:4]}"
@@ -234,28 +282,40 @@ class FastClaimVerifierAgent:
             )
             sources.append(source)
 
-        # 2. 从检索内容中提取证据
+        # 2. 从检索内容中提取证据与 V2 关系
         if sources:
             all_snippets_text = "\n\n".join([
                 f"[Source ID: {s.id} | {s.domain} | {s.title}]\n{s.title}\n{getattr(search_results[i], 'snippet', '')}"
                 for i, s in enumerate(sources)
             ])
 
+            slot_names_str = ", ".join([f"{cs.slot_name}='{cs.value}'" for cs in fact_slots.compound_slots]) or "无复合槽位"
+
             extract_prompt = f"""针对待核验主张："{claim.statement}"
+主张核心实体：{fact_slots.entity}，谓词：{fact_slots.predicate}，复合属性槽位：[{slot_names_str}]
+
 以下是检索到的公开网页摘要：
 {all_snippets_text}
 
-请提取与该主张直接相关、精确的证据片段。判断每条证据是支持 (supports_claim=true)、反驳 (contradicts_claim=true) 还是仅为背景上下文。
-注意：
-- 若内容提到'据 XX 消息'、'援引 XX 报道'，请在 origin_credit 中填入真实信源名称（如 'Bloomberg' 或 '公司官方声明'）。
-- directness 标记为 DIRECT（直接证实或反驳）、INDIRECT（间接提及）或 CONTEXTUAL（背景说明）。
-- scope_match 标记讨论事实与口径是否与待核验主张一致。"""
+请提取与该主张直接相关、精确的证据片段，并完成关系分类：
+1. exact_quote: 原始网页中真实存在的逐字原话 (禁止凭空编写或概括)。
+2. relation_type:
+   - DIRECT_SUPPORT: 直接证实主张及其复合槽位
+   - QUALIFIED_CONFLICT: 存在合法口径分歧(如GAAP vs Non-GAAP)或时序演进(如临床一期 vs 三期)
+   - AUTHORITATIVE_REFUTE: 官方一手声明明确辟谣或监管机构直接否定
+   - DIRECT_CONTRADICT: 存在确定性的事实或数值冲突
+   - INDIRECT_SUPPORT: 二次转述或弱相关支持
+   - CONTEXTUAL: 背景说明
+3. accounting_standard: 若体现财务准则，填写 GAAP / NON_GAAP / UNKNOWN
+4. temporal_evolution: 若涉及试验时态，填写 PRELIMINARY / FINAL_CONFIRMED / CURRENT
+5. matched_slots: 填写该引文实际匹配证实的槽位名称列表
+6. origin_credit: 若内容提到'据 XX 消息'，填写真实源头名称。"""
 
             try:
                 ext_res: EvidenceExtractionBatch = await self.llm.generate_structured(
                     prompt=extract_prompt,
                     response_model=EvidenceExtractionBatch,
-                    system_prompt="你是一个严谨的事实核验证据提取器。仅提取真实存在的文本片段，严格区分支持与反驳。"
+                    system_prompt="你是一个严谨的事实核验证据与语义关系提取器。仅提取真实存在的文本，严格区分支持与反驳。"
                 )
                 for raw_ev in ext_res.evidences:
                     # 匹配所属 source
@@ -278,6 +338,25 @@ class FastClaimVerifierAgent:
                         evidence_note=raw_ev.evidence_note
                     )
                     evidences.append(ev)
+
+                    # 构建并校验 EvidenceRelation
+                    rel_type = getattr(RelationType, getattr(raw_ev, "relation_type", "DIRECT_SUPPORT").upper(), RelationType.DIRECT_SUPPORT)
+                    acc_std = getattr(AccountingStandard, getattr(raw_ev, "accounting_standard", "UNKNOWN").upper(), AccountingStandard.UNKNOWN)
+                    temp_evo = getattr(TemporalEvolution, getattr(raw_ev, "temporal_evolution", "CURRENT").upper(), TemporalEvolution.CURRENT)
+                    
+                    # 校验 matched_slots 是否真实存在于 FactSlots 中 (IR 完整性校验)
+                    valid_slot_names = {cs.slot_name for cs in fact_slots.compound_slots}
+                    filtered_matched_slots = [slot for slot in getattr(raw_ev, "matched_slots", []) if slot in valid_slot_names]
+
+                    relations.append(
+                        EvidenceRelation(
+                            relation_type=rel_type,
+                            accounting_standard=acc_std,
+                            temporal_evolution=temp_evo,
+                            matched_slots=filtered_matched_slots,
+                            polarity_reasoning=getattr(raw_ev, "evidence_note", "")
+                        )
+                    )
 
                     # 记录信源溯源 (Canonical strict identity resolution)
                     if raw_ev.origin_credit:
@@ -437,6 +516,8 @@ class FastClaimVerifierAgent:
             sources=sources,
             evidences=evidences,
             provenances=provenances,
+            fact_slots=fact_slots,
+            relations=relations,
             multi_round_audit=multi_round_audit
         )
 

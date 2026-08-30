@@ -135,6 +135,7 @@ class Claim(BaseModel):
     claim_index: int                    # 在原始输入中的序号 (0, 1, 2...)
 
     attributes: ClaimAttributes | None = None
+    fact_slots: Optional[Any] = None
     verifiability: Verifiability
     verifiability_reason: str           # "该声明涉及上市公司营收，应有公开财务披露"
 
@@ -267,6 +268,8 @@ class Verdict(BaseModel):
     sources: list[Source] = []
     evidences: list[Evidence] = []
     provenances: list[SourceProvenance] = []
+    fact_slots: Optional[Any] = None
+    relations: list[Any] = []
     multi_round_audit: Optional[Dict[str, Any]] = None
 
 

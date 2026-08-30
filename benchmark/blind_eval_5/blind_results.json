@@ -1,0 +1,110 @@
+[
+  {
+    "id": "blind-01",
+    "domain": "Hardware / Multi-Spec",
+    "claim": "英伟达正式发布的 GeForce RTX 4070 Ti Super 显卡官方建议零售价(MSRP)为799美元，并配备16GB GDDR6X显存。",
+    "verdict_state": "STRONG",
+    "fact_slots": {
+      "entity": "Nvidia RTX 4070 Ti Super",
+      "predicate": "hardware_spec_pricing",
+      "compound_slots": [
+        {
+          "slot_name": "price",
+          "value": "799",
+          "unit": "USD",
+          "is_required": true,
+          "qualifier": null
+        },
+        {
+          "slot_name": "memory",
+          "value": "16GB",
+          "unit": "GB",
+          "is_required": true,
+          "qualifier": null
+        }
+      ],
+      "time_context": "2024",
+      "accounting_basis": "UNKNOWN",
+      "trial_phase": null,
+      "polarity": true
+    },
+    "relations_count": 2,
+    "evidences_count": 4
+  },
+  {
+    "id": "blind-02",
+    "domain": "Financial / Accounting Duality",
+    "claim": "Alphabet公布的2024年第三季度财报中，按公认会计准则(GAAP)计算的净利润为263.01亿美元，而市场部分非GAAP分析口径给出了不同的利润表现。",
+    "verdict_state": "STRONG",
+    "fact_slots": {
+      "entity": "Alphabet",
+      "predicate": "q3_net_income",
+      "compound_slots": [],
+      "time_context": "Q3 2024",
+      "accounting_basis": "GAAP",
+      "trial_phase": null,
+      "polarity": true
+    },
+    "relations_count": 2,
+    "evidences_count": 4
+  },
+  {
+    "id": "blind-03",
+    "domain": "Temporal / Pricing Evolution",
+    "claim": "OpenAI 针对个人用户的 ChatGPT Plus 订阅服务最初定价为每月20美元，截至2024年全球官方标准月费仍维持在20美元。",
+    "verdict_state": "STRONG",
+    "fact_slots": {
+      "entity": "OpenAI ChatGPT Plus",
+      "predicate": "subscription_pricing",
+      "compound_slots": [
+        {
+          "slot_name": "price",
+          "value": "20",
+          "unit": "USD",
+          "is_required": true,
+          "qualifier": null
+        }
+      ],
+      "time_context": "2024",
+      "accounting_basis": "UNKNOWN",
+      "trial_phase": null,
+      "polarity": true
+    },
+    "relations_count": 2,
+    "evidences_count": 3
+  },
+  {
+    "id": "blind-04",
+    "domain": "Corporate / Denial vs Rumor",
+    "claim": "网络传闻称大模型初创公司Anthropic的CEO Dario Amodei已于2024年8月辞职并卸任所有职务。",
+    "verdict_state": "CONFLICTING",
+    "fact_slots": {
+      "entity": "Dario Amodei",
+      "predicate": "resignation_departure",
+      "compound_slots": [],
+      "time_context": "2024-08",
+      "accounting_basis": "UNKNOWN",
+      "trial_phase": null,
+      "polarity": false
+    },
+    "relations_count": 2,
+    "evidences_count": 3
+  },
+  {
+    "id": "blind-05",
+    "domain": "Standard Factual Assertion",
+    "claim": "具身智能人形机器人企业宇树科技(Unitree Robotics)总部位于中国杭州，由创始人兼CEO王兴兴于2016年创立。",
+    "verdict_state": "STRONG",
+    "fact_slots": {
+      "entity": "调查目标",
+      "predicate": "事实陈述",
+      "compound_slots": [],
+      "time_context": "最新",
+      "accounting_basis": "UNKNOWN",
+      "trial_phase": null,
+      "polarity": true
+    },
+    "relations_count": 2,
+    "evidences_count": 4
+  }
+]

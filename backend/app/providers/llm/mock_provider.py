@@ -316,50 +316,215 @@ class MockLLMProvider(LLMProvider):
 
         # 5. Fast Claim Verification Pipeline Models
         if response_model.__name__ == "DecomposeOutput":
-            from app.agents.fast_verifier import DecomposeOutput, RawDecomposedClaim
+            from app.agents.fast_verifier import DecomposeOutput, RawDecomposedClaim, RawCompoundSlot
             from app.models.verification_models import Verifiability
-            return DecomposeOutput(
-                claims=[
-                    RawDecomposedClaim(
-                        statement=target_name if len(target_name) > 5 else f"{target_name} 于2024年完成近10亿元人民币B2轮融资，美团领投",
-                        subject=target_name[:20],
-                        predicate="事实陈述",
-                        object_value="",
-                        time_context="最新",
-                        polarity=True,
-                        verifiability=Verifiability.PUBLICLY_VERIFIABLE,
-                        verifiability_reason="公开事实核验通常有权威媒体或官方渠道披露"
-                    )
-                ]
-            )  # type: ignore
+
+            if "RTX 4070" in prompt:
+                return DecomposeOutput(
+                    claims=[
+                        RawDecomposedClaim(
+                            statement="英伟达 GeForce RTX 4070 Ti Super 建议零售价为799美元，配备16GB GDDR6X显存",
+                            subject="Nvidia RTX 4070 Ti Super",
+                            predicate="hardware_spec_pricing",
+                            object_value="799美元 16GB",
+                            compound_slots=[
+                                RawCompoundSlot(slot_name="price", value="799", unit="USD", is_required=True),
+                                RawCompoundSlot(slot_name="memory", value="16GB", unit="GB", is_required=True)
+                            ],
+                            time_context="2024",
+                            polarity=True,
+                            verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+                            verifiability_reason="公开硬件产品规格与官方建议零售价"
+                        )
+                    ]
+                )  # type: ignore
+            elif "GAAP" in prompt or "Alphabet" in prompt:
+                return DecomposeOutput(
+                    claims=[
+                        RawDecomposedClaim(
+                            statement="Alphabet公布2024年Q3财报GAAP净利润为263.01亿美元，市场非GAAP口径呈现不同分析",
+                            subject="Alphabet",
+                            predicate="q3_net_income",
+                            object_value="263.01亿美元",
+                            accounting_basis="GAAP",
+                            time_context="Q3 2024",
+                            polarity=True,
+                            verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+                            verifiability_reason="SEC官方10-Q财报定期披露事项"
+                        )
+                    ]
+                )  # type: ignore
+            elif "ChatGPT Plus" in prompt:
+                return DecomposeOutput(
+                    claims=[
+                        RawDecomposedClaim(
+                            statement="OpenAI ChatGPT Plus 订阅月费维持在20美元",
+                            subject="OpenAI ChatGPT Plus",
+                            predicate="subscription_pricing",
+                            object_value="20美元/月",
+                            compound_slots=[
+                                RawCompoundSlot(slot_name="price", value="20", unit="USD", is_required=True)
+                            ],
+                            time_context="2024",
+                            polarity=True,
+                            verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+                            verifiability_reason="官方订阅定价公开透明"
+                        )
+                    ]
+                )  # type: ignore
+            elif "Dario Amodei" in prompt or "辞职" in prompt:
+                return DecomposeOutput(
+                    claims=[
+                        RawDecomposedClaim(
+                            statement="Anthropic CEO Dario Amodei 于2024年8月辞职并卸任",
+                            subject="Dario Amodei",
+                            predicate="resignation_departure",
+                            time_context="2024-08",
+                            polarity=False,
+                            verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+                            verifiability_reason="知名AI独角兽重大人事变动必有官方或主流媒体报道"
+                        )
+                    ]
+                )  # type: ignore
+            else:
+                return DecomposeOutput(
+                    claims=[
+                        RawDecomposedClaim(
+                            statement=target_name if len(target_name) > 5 else f"{target_name} 于2024年完成近10亿元人民币B2轮融资，美团领投",
+                            subject=target_name[:20],
+                            predicate="事实陈述",
+                            object_value="",
+                            time_context="最新",
+                            polarity=True,
+                            verifiability=Verifiability.PUBLICLY_VERIFIABLE,
+                            verifiability_reason="公开事实核验通常有权威媒体或官方渠道披露"
+                        )
+                    ]
+                )  # type: ignore
 
         if response_model.__name__ == "EvidenceExtractionBatch":
             from app.agents.fast_verifier import EvidenceExtractionBatch, RawExtractedEvidence
             from app.models.verification_models import EvidenceDirectness
-            return EvidenceExtractionBatch(
-                evidences=[
-                    RawExtractedEvidence(
-                        exact_quote=f"{target_name} 官方正式宣布完成近10亿元人民币B2轮融资，美团领投",
-                        context="官方公告与财经快讯均有详细报道",
-                        supports_claim=True,
-                        contradicts_claim=False,
-                        directness=EvidenceDirectness.DIRECT,
-                        scope_match=True,
-                        evidence_note="官方渠道直接确认",
-                        origin_credit="公司官方公告"
-                    ),
-                    RawExtractedEvidence(
-                        exact_quote=f"36氪科技创投报道：{target_name} 完成近10亿元B2轮融资，投资方包括美团与金石投资",
-                        context="主流财经媒体独立跟进报道",
-                        supports_claim=True,
-                        contradicts_claim=False,
-                        directness=EvidenceDirectness.DIRECT,
-                        scope_match=True,
-                        evidence_note="主流财经媒体独立印证",
-                        origin_credit="36氪"
-                    )
-                ]
-            )  # type: ignore
+
+            if "RTX 4070" in prompt:
+                return EvidenceExtractionBatch(
+                    evidences=[
+                        RawExtractedEvidence(
+                            exact_quote="NVIDIA 官方宣布 GeForce RTX 4070 Ti Super 建议零售价为 $799，搭载 16GB GDDR6X 显存",
+                            context="NVIDIA 官方发布会与产品规格表",
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            relation_type="DIRECT_SUPPORT",
+                            matched_slots=["price", "memory"],
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="官方渠道直接证实价格与显存槽位",
+                            origin_credit="NVIDIA 官方公告"
+                        ),
+                        RawExtractedEvidence(
+                            exact_quote="AnandTech 评测：RTX 4070 Ti Super 以 799 美元起售，升级至 16GB 显存",
+                            context="权威硬件媒体评测报道",
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            relation_type="DIRECT_SUPPORT",
+                            matched_slots=["price", "memory"],
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="权威第三方独立印证",
+                            origin_credit="AnandTech"
+                        )
+                    ]
+                )  # type: ignore
+            elif "GAAP" in prompt or "Alphabet" in prompt:
+                return EvidenceExtractionBatch(
+                    evidences=[
+                        RawExtractedEvidence(
+                            exact_quote="Alphabet SEC 10-Q 披露：2024年第三季度 GAAP 净利润录得 263.01 亿美元",
+                            context="SEC 官方备案合规财报文件",
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            relation_type="DIRECT_SUPPORT",
+                            accounting_standard="GAAP",
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="GAAP 会计准则下官方权威确认",
+                            origin_credit="SEC 官方财报"
+                        ),
+                        RawExtractedEvidence(
+                            exact_quote="彭博分析师报告：剔除特定股权激励与税费后，部分非GAAP调整后运营指标呈现差异化统计",
+                            context="主流财经分析师报告",
+                            supports_claim=False,
+                            contradicts_claim=False,
+                            relation_type="QUALIFIED_CONFLICT",
+                            accounting_standard="NON_GAAP",
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="合法会计口径分歧",
+                            origin_credit="Bloomberg"
+                        )
+                    ]
+                )  # type: ignore
+            elif "Dario Amodei" in prompt or "辞职" in prompt:
+                return EvidenceExtractionBatch(
+                    evidences=[
+                        RawExtractedEvidence(
+                            exact_quote="Anthropic 官方发言人发布正式声明：关于 CEO Dario Amodei 辞职的传闻纯属谣言，Dario 仍在正常履职",
+                            context="Anthropic 官方新闻发言人明确声明",
+                            supports_claim=False,
+                            contradicts_claim=True,
+                            relation_type="AUTHORITATIVE_REFUTE",
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="官方权威一手辟谣否认传闻",
+                            origin_credit="Anthropic 官方声明"
+                        )
+                    ]
+                )  # type: ignore
+            elif "ChatGPT Plus" in prompt:
+                return EvidenceExtractionBatch(
+                    evidences=[
+                        RawExtractedEvidence(
+                            exact_quote="OpenAI 官方页面显示 ChatGPT Plus 个人版订阅价格为 20 美元/月",
+                            context="OpenAI 官方定价页面",
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            relation_type="DIRECT_SUPPORT",
+                            matched_slots=["price"],
+                            temporal_evolution="CURRENT",
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="官方最新订阅价格确认",
+                            origin_credit="OpenAI 官网"
+                        )
+                    ]
+                )  # type: ignore
+            else:
+                return EvidenceExtractionBatch(
+                    evidences=[
+                        RawExtractedEvidence(
+                            exact_quote=f"{target_name} 官方正式宣布完成近10亿元人民币B2轮融资，美团领投",
+                            context="官方公告与财经快讯均有详细报道",
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            relation_type="DIRECT_SUPPORT",
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="官方渠道直接确认",
+                            origin_credit="公司官方公告"
+                        ),
+                        RawExtractedEvidence(
+                            exact_quote=f"36氪科技创投报道：{target_name} 完成近10亿元B2轮融资，投资方包括美团与金石投资",
+                            context="主流财经媒体独立跟进报道",
+                            supports_claim=True,
+                            contradicts_claim=False,
+                            relation_type="DIRECT_SUPPORT",
+                            directness=EvidenceDirectness.DIRECT,
+                            scope_match=True,
+                            evidence_note="主流财经媒体独立印证",
+                            origin_credit="36氪"
+                        )
+                    ]
+                )  # type: ignore
 
         if response_model.__name__ == "VerdictExplanationOutput":
             from app.agents.fast_verifier import VerdictExplanationOutput
