@@ -1,8 +1,53 @@
 # 🕵️‍♂️ AI Real-World Investigator (AI 现实世界侦察兵)
 
-> **基于 Evidence-First 原则的多源事实核验与深度侦察平台**  
+> **基于 Evidence-First 原则的多源事实核验与深度侦察系统**  
 > 旗舰核心引擎：**🔍 AI Claim Verifier (事实核验透视镜)**  
-> 不下主观断言，只回答一个核心问题：**「现有公开证据是否足以支持这个说法？」**
+> 不下主观断言，只回答一个核心问题：**「现有公开证据是否足以支持这个说法？」**  
+> *Evidence-First Web Investigation with Exact Quote Grounding, Provenance Graph Resolution, and Deterministic Evidence Adjudication.*
+
+---
+
+## 🧭 系统核心研究主线 (Core Research Narrative & Philosophy)
+
+在开放世界事实核查中，端到端大模型（LLM-only）天然存在引文幻觉、同源转载回音壁、口径与时效失真以及过度断言（Overclaim）等系统性脆弱性。
+
+本系统遵循 **职责分离（Separation of Concerns）** 哲学：
+$$\text{LLM is the Semantic Reader, not the Final Judge.}$$
+
+* **物理证据层 (Raw Web Documents)**：提供不可篡改的事实原材料与 DOM 快照；
+* **语义理解层 (LLM Extractor)**：负责理解自然语言陈述、抽取候选引文、识别断言极性与范围冲突（Scope Issues）；
+* **物理定位层 (Exact Quote Locator)**：基于 Unicode 码点进行字符级物理锚定，实时拒认幻觉引用；
+* **来源血缘层 (Provenance Graph)**：穿透 `REPUBLISHES` 与 `CITES` 图谱，还原真实的独立信源数量；
+* **确定性裁决层 (Deterministic Rules Engine)**：由规则代码实施时空/数量一致性门禁与状态状态机，杜绝 Overclaim。
+
+```mermaid
+flowchart TD
+    subgraph S1["1. 物理证据获取与安全防御 (Physical Evidence Layer)"]
+        A["待核验文本 / 网页 / 复合陈述"] --> B["原子主张解构 (Atomic Claims Decomposition)"]
+        B --> C["检索调度 (Search & Retrieval)"]
+        C --> D["安全爬虫 (Hop-by-Hop SSRF, IPv4/IPv6 getaddrinfo, Anti-Spoofing)"]
+        D --> E["Raw HTML & NFC 标准化文本"]
+    end
+
+    subgraph S2["2. 语义抽取与物理引文定位 (Semantic & Grounding Layer)"]
+        E --> F["动态相关窗口聚焦 (Relevant Window Selector)"]
+        F --> G["LLM 语义提取 (Quote, Polarity, Scope Issues)"]
+        G --> H["Unicode 码点精确物理定位 (EXACT / NORMALIZED_EXACT)"]
+    end
+
+    subgraph S3["3. 来源血缘图谱解析 (Provenance Resolution Layer)"]
+        H --> I["Canonical URL & Source ID 严格归属"]
+        I --> J["REPUBLISHES / CITES 溯源图遍历"]
+        J --> K["Ultimate Origin 根源聚类 (去重同源转载)"]
+    end
+
+    subgraph S4["4. 确定性规则裁决 (Deterministic Adjudication Layer)"]
+        K --> L["Scope & Consistency 门禁 (Temporal & Quantifier)"]
+        L --> M["Deterministic Verdict Rules Engine (verdict_rules.py)"]
+        M --> N["6 级 EvidenceState 状态判定"]
+        N --> O["OverallCoverage 多主张完整性覆盖报告"]
+    end
+```
 
 ---
 
@@ -29,13 +74,13 @@
 │  ─── 核验结论 (Verdict Card) ────────────────────────────────────────────── │
 │                                                                             │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │ 🟢 证据充分 (SUFFICIENT)   [公开可验证事实]           核验时间: 2026-08-28 │  │
+│  │ 🟢 证据充分 (SUFFICIENT)   [公开可验证事实]           核验时间: 动态实时   │  │
 │  │                                                                       │  │
 │  │ “宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投”                  │  │
 │  │                                                                       │  │
 │  │ ▍ 为什么这样判断？(核验依据)                                          │  │
 │  │  ✓ 找到 2 个相互独立的权威信息源证实该融资事件                          │  │
-│  │  ✓ 获得企业官方公告与主流财经创投(36氪)直接确认                        │  │
+│  │  ✓ 获得企业官方公告与主流财经创投直接确认                               │  │
 │  │  ℹ️ 未发现主要投资方或监管层面的相悖反驳                              │  │
 │  │                                                                       │  │
 │  │ ▍ 关键证据缺口                                                        │  │
@@ -51,102 +96,60 @@
 
 ---
 
-## 🎯 系统核心哲学 (Core Philosophy)
-
-> **AI 不是上帝，不能直接宣称现实世界某件事情是绝对的“真”或“假”。**  
-> 本系统的使命是：**寻找公开证据 → 判断证据质量与直接性 → 识别同源与转载链条 → 寻找支持与反证 → 用保守的确定性规则引擎，告诉用户目前公开证据支持到什么程度。**
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│              User Input / Fast Claim / Investigation Target             │
-└────────────────────────────────────┬────────────────────────────────────┘
-                                     │
-                                     ▼
-        ┌─────────────────────────────────────────────────────────┐
-        │            Claim Decomposition (原子事实拆解)             │
-        └────────────────────────────┬────────────────────────────┘
-                                     │
-                                     ▼
-        ┌─────────────────────────────────────────────────────────┐
-        │   Search & Web Retrieval (真实网页安全抓取 / SSRF 防护)   │
-        └────────────────────────────┬────────────────────────────┘
-                                     │
-                                     ▼
-        ┌─────────────────────────────────────────────────────────┐
-        │      Relevant Window Selection (正文相关滑窗定位)        │
-        └────────────────────────────┬────────────────────────────┘
-                                     │
-                                     ▼
-        ┌─────────────────────────────────────────────────────────┐
-        │        ClaimExtractorAgent & Exact Quote Grounding      │
-        │    * 四级物理定位 (EXACT / NORMALIZED_EXACT / FUZZY / UNVERIFIED) │
-        │    * 信源溯源关系提取 (CITES / REPUBLISHES)              │
-        └────────────────────────────┬────────────────────────────┘
-                                     │
-                                     ▼
-        ┌─────────────────────────────────────────────────────────┐
-        │               Canonical Provenance Resolver             │
-        │            (Strict Identity: 规范映射至 source_id)       │
-        └────────────────────────────┬────────────────────────────┘
-                                     │
-                                     ▼
-        ┌─────────────────────────────────────────────────────────┐
-        │      Deterministic Verdict Engine (统一确定性规则引擎)    │
-        │                   verdict_rules.py                      │
-        │    * 独立信息源去重 (_resolve_ultimate_origin)           │
-        │    * 范围极性与反驳过滤 (Scope & Negation Filtering)     │
-        │    * 标准 6 级证据状态计算 (6-State EvidenceState)        │
-        └────────────────────────────┬────────────────────────────┘
-                                     │
-                                     ▼
-        ┌─────────────────────────────────────────────────────────┐
-        │     Overall Coverage & Structured Verdict Card / Report │
-        │              (人话解释清单、证据缺口与核实建议)            │
-        └─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 💡 为什么不是普通的 AI 搜索总结？(Core Moat)
+## 💡 为什么不是普通的 AI 搜索总结？(Core Technical Moat)
 
 | 维度 | 普通 AI 搜索总结 (Search + LLM) | AI Claim Verifier 证据核验引擎 |
 |---|---|---|
-| **核心机制** | 搜索抓取 10 篇网页 → LLM 生成总结 | **拆解主张 → 溯源去重 → 提取直接引文 → 规则引擎判定** |
-| **转载识别** | 10 家媒体转载同一条通稿，被误认为“10 个独立证实” | **穿透 `REPUBLISHES` / `CITES` 链条，准确识别实际仅有 1 个原始源** |
-| **真伪表达** | “我认为是真的 (置信度 85%)” | **给出严谨证据状态（如 `🟢 证据充分` 或 `🟡 证据不足`）与依据清单** |
-| **反证处理** | 容易忽略少数对立信源或把矛盾信息强行调和 | **明确识别 `🟠 存在冲突` 或 `🔴 有可靠证据反驳`，单列异议材料** |
-| **判定确定性** | 每次询问由于 Temperature 产生不同回答 | **底层由 `verdict_rules.py` 规则引擎进行确定性边界计算** |
+| **核心机制** | 搜索抓取若干网页 → LLM 直接生成结论 | **主张解构 → 逐字物理锚定 → 来源血缘穿透 → 确定性规则裁决** |
+| **同源转载识别** | 10 家媒体转载同一通稿被误认为“10 个独立证实” | **遍历 `REPUBLISHES` / `CITES` 图谱，识别实际仅有 1 个原始源** |
+| **引文可信度** | 依赖 LLM 自行生成的带引号句子（容易幻觉） | **Unicode 码点级逐字切片，未物理落地的引文直接标记 `UNVERIFIED`** |
+| **时效与口径** | 容易忽略生效时间（旧价格）与口径差异（GAAP vs Non-GAAP） | **提取 `ScopeIssue`（TEMPORAL / QUANTIFIER），实质阻断假证实** |
+| **判定确定性** | 每次询问受 Temperature 扰动输出不同结果 | **由 `verdict_rules.py` 规则引擎执行确定性状态转移** |
+| **安全防护** | 爬虫直接请求目标 URL，易受 SSRF 与域名仿冒攻击 | **IPv4/IPv6 `getaddrinfo` + 逐跳重定向验证 + 后缀严格防伪** |
 
 ---
 
-## 🌟 6 级证据状态体系 (Evidence States)
+## 🌟 6 级证据状态体系 (Canonical EvidenceState Ontology)
 
-用户端展示严格对应以下 6 种证据状态：
+系统统一以 `EvidenceState` 作为第一类 Canonical Ontology（旧 `VerificationStatus` 仅作为向下兼容层）：
 
-| 证据状态 | 英文枚举 | 核心判定逻辑 |
+| 证据状态 | 英文枚举 | 核心判定逻辑与门禁要求 |
 |---|---|---|
-| 🟢 **证据充分** | `SUFFICIENT` | 拥有 ≥2 个独立信息源直接支持，且包含官方/一手渠道直接证实，无可信反驳 |
-| 🟢 **证据较强** | `STRONG` | 拥有 ≥2 个独立可靠信息源直接证实，无可信反驳 |
-| 🟡 **证据不足** | `INSUFFICIENT` | 证据链不完整、仅有单一信息源、均为二次转载，或尚未检索到有效证据（**“没搜到 ≠ 证明是假的”**） |
-| 🟠 **存在冲突** | `CONFLICTING` | 可靠信源之间存在直接对立或口径差异（如融资金额或统计数据不一） |
+| 🟢 **证据充分** | `SUFFICIENT` | $\ge 2$ 个独立信息源直接支持 + 包含官方/一手渠道证实 + 无可信反驳 + 时空与数量口径一致 (`time/value_consistent is not False`) |
+| 🟢 **证据较强** | `STRONG` | $\ge 2$ 个独立可靠信息源直接证实 + 无可信反驳 + 时空与数量口径一致 |
+| 🟡 **证据不足** | `INSUFFICIENT` | 证据链不完整、仅有单一信息源、均为二次转载、时空/数值冲突降级，或尚未检索到有效证据（**“没搜到 ≠ 证明是假的”**） |
+| 🟠 **存在冲突** | `CONFLICTING` | 可靠信源之间存在直接对立或口径冲突（如融资金额或统计数据不一） |
 | 🔴 **有可靠证据反驳** | `UNSUPPORTED` | 存在权威/第一手渠道的明确否定反证，且缺乏对等的可靠支持 |
 | ⚪ **公开资料无法核验** | `NOT_ASSESSABLE` | 涉及私人行为或非公开未披露事项，无法通过公开互联网资料进行有效判定 |
 
 ---
 
-## 🔍 真实场景核验示例 (Case Studies)
+## 🎯 10 类对抗性陷阱分类法 (The 10-Trap Taxonomy)
 
-### 案例 1：复合主张拆解与完整覆盖 (Multi-Claim Coverage)
-- **用户输入**：“OpenAI 2025 年营收达到 130 亿美元，且已经实现全年盈利。”
-- **系统拆解**：
-  1. `Claim 1`: OpenAI 2025 年营收达到 130 亿美元 → `🟢 证据较强` (多权威外媒报道知情人士数据)
-  2. `Claim 2`: OpenAI 已经实现全年盈利 → `🔴 有可靠证据反驳` (财务披露与公开报道均证实处于研发高额亏损期)
-- **整体结论**：`🟠 结论存在分歧 (MIXED)` —— 该说法包含 2 个事实点：1 个证据较强，1 个有明确证据反驳，不能作为整体事实引用。
+系统的 Benchmark 与规则引擎专门针对真实世界最容易误导大模型的 10 种对抗场景设计：
 
-### 案例 2：穿透 10 个转载的同源新闻 (Origin Provenance)
-- **用户输入**：“某小众科技团队被某巨头以 5 亿美元收购”
-- **核验过程**：检索到 8 篇科技博客与自媒体文章，但文本均注明“据 X 博主爆料”或互相转述。
-- **系统判定**：`🟡 证据不足 (INSUFFICIENT)` —— 检索到 8 个页面，但追溯后仅有 1 个未证实的传闻源头，缺乏官方公告与独立第三方报道。
+1. **`TEMPORAL_SUPERSEDING`**（时间更替）：早期历史价格/旧版本被后续更新更替（如 $20/月涨至 $30/月）。
+2. **`GEOGRAPHIC_SCOPE`**（地域限定）：局部国家/地区政策或促销被错误泛化为全球通用。
+3. **`REPUBLICATION_CASCADE`**（同源转载回音壁）：1 篇原始泄漏被 10 家科技自媒体转载，伪装成 10 个独立来源。
+4. **`NUMERICAL_QUANTIFIER`**（数量级混淆）：金额或数字量级混淆（如 1000 万美元 A 轮 vs 10 亿美元融资）。
+5. **`CONDITION_EXCEPTION`**（条件与例外）：忽略前置适用条件或明确排除条款（如“除特定企业客户外”）。
+6. **`NEGATION_DENIAL`**（否定与辟谣）：官方发言人明确辟谣否认，反被大模型理解为证实离职。
+7. **`ENTITY_VERSION`**（实体与版本张冠李戴）：不同产品型号或概念实体的属性产生混淆。
+8. **`BOILERPLATE_NOISE`**（侧边栏与模板噪声）：把网页侧边栏热搜推荐、页脚版权声明当正文事实提取。
+9. **`POPULATION_RESTRICTION`**（人群/实验对象限定）：动物模型实验数据套用到人体临床获批。
+10. **`TEMPORAL_OMISSION`**（时间定语缺失）：缺失时间状语导致陈述与最新现状冲突。
+
+---
+
+## 📊 非线性解耦评测指标体系 (Safety-First Metric Definitions)
+
+为避免将无序的证据状态误当作线性标尺，评测体系严格解耦为四项独立指标：
+
+1. **Exact State Accuracy**：$\frac{1}{N} \sum \mathbb{I}(\hat{y}_i = y_i)$，预测状态与人工黄金标签完全吻合率。
+2. **Safety Overclaim Rate (核心安全红线，目标严格为 0.0%)**：
+   $$\text{Overclaim Rate} = \frac{\sum_{i=1}^N \mathbb{I}(y_i \in \{\text{INSU}, \text{UNSP}, \text{CONF}, \text{N\_AS}\} \land \hat{y}_i \in \{\text{SUFF}, \text{STRO}\})}{N}$$
+3. **Conservative Miss Rate**：真实充分的事实被保守降级为证据不足的比率。
+4. **Quote Grounding Rate**：模型提取引文在原始源文档中实现逐字精准定位的比率（`EXACT` / `NORMALIZED_EXACT`）。
 
 ---
 
@@ -154,14 +157,9 @@
 
 ### 1. 激活虚拟环境与启动服务
 
-在项目根目录下运行：
-
 ```powershell
 # PowerShell 环境
 .\.venv\Scripts\Activate.ps1
-
-# 或 Windows CMD 环境
-.\.venv\Scripts\activate.bat
 
 # 启动一体化服务 (FastAPI 后端 + 前端静态托管)
 .\.venv\Scripts\python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --reload
@@ -172,29 +170,45 @@
 ### 2. 打开网页控制台
 浏览器访问：[http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-### 3. 运行自动化测试套件
+### 3. 运行全量自动化测试套件
 ```powershell
 .\.venv\Scripts\pytest backend\tests -v
 ```
 
+### 4. 运行评测基准套件
+```powershell
+# 1. 合成规则引擎边界回归评测 (10 案)
+.\.venv\Scripts\python benchmark/run_benchmark.py
+
+# 2. 真实世界端到端拟真基准评测 (35 案)
+.\.venv\Scripts\python benchmark/real_world/run_real_world_benchmark.py --mock
+
+# 3. 冻结长篇网页消融研究 (Phase 5E Control & Ablations)
+.\.venv\Scripts\python benchmark/real_factual/run_phase_5e_ablations.py --mode mock --run control
+```
+
 ---
 
-## ⚙️ 运行模式与 API 密钥配置
+## 📁 核心代码工程架构 (Project Structure)
 
-系统默认内置**离线拟真引擎与事实库**（无需任何 API Key 即可全流程离线体验与测试）。如需接入实时公网大模型与搜索：
-
-1. **网页端配置**：点击页面右上角 **「API 配置」**，在弹出窗口中填写您的 `Google Gemini`、`OpenAI / DeepSeek` 或 `Tavily` 密钥（仅保存在本地浏览器）。
-2. **环境变量配置**：复制 `.env.example` 到 `.env`：
-
-```env
-# 推理模型 (支持 Gemini, OpenAI, DeepSeek, Mock)
-DEFAULT_LLM_PROVIDER=gemini
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# 搜索引擎 (支持 DuckDuckGo 免费搜索, Tavily, Mock)
-DEFAULT_SEARCH_PROVIDER=duckduckgo
-TAVILY_API_KEY=your_tavily_api_key_here
-
-# 数据库
-DATABASE_URL=sqlite+aiosqlite:///./investigator.db
+```text
+AI-Real-World-Investigator/
+├── backend/
+│   └── app/
+│       ├── agents/          # 智能体层 (ClaimExtractor, Verifier, FastVerifier, Synthesizer)
+│       ├── api/             # FastAPI 路由 (/verify, /investigations, /health)
+│       ├── core/            # 核心安全与网络防御 (security.py: SSRF, IPv6, Anti-Spoofing)
+│       ├── engine/          # 确定性裁决状态机 (verdict_rules.py)
+│       ├── models/          # 数据模型 (verification_models.py: Canonical EvidenceState)
+│       ├── providers/       # LLM 与搜索提供方抽象 (Gemini, OpenAI, DeepSeek, Tavily)
+│       ├── scraper/         # 安全爬虫与逐字物理定位 (extractor.py: WebScraper)
+│       └── services/        # 统一核验业务流 (verification_service.py)
+├── benchmark/
+│   ├── real_factual/        # 冻结长网页 20 案快照与 Phase 5E 单组件消融评测
+│   ├── real_web/            # Live Real-Web 端到端跨模型横向评测套件
+│   ├── real_world/          # 35 案真实场景端到端流水线评测
+│   └── run_benchmark.py     # 合成规则引擎边界回归运行器
+├── frontend/                # 前端单页应用 (Vanilla HTML/CSS/JS, 响应式深色玻璃拟态)
+└── paper/
+    └── MANUSCRIPT.md        # 学术论文手稿 (Evidence-First Web Investigation)
 ```

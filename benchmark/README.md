@@ -9,8 +9,8 @@
 本评测体系严格分为三层，拒绝将纯规则回归混淆为真实世界能力，保障评测科学性与可复现性：
 
 1. **第一层：合成规则引擎边界回归评测 (Synthetic Rule Regression Benchmark)**
-   - **目标**：验证 5 级证据状态转移、独立信源去重与反驳过滤在所有预设极端边界条件下的确定性逻辑。
-   - **测试套件**：`backend/tests/test_verdict_boundaries.py` (44 passed)
+   - **目标**：验证 6 级证据状态转移（SUFFICIENT / STRONG / INSUFFICIENT / CONFLICTING / UNSUPPORTED / NOT_ASSESSABLE）、独立信源去重与时空/数量冲突门禁在极端边界条件下的确定性逻辑。
+   - **测试套件**：`backend/tests/test_verdict_boundaries.py` (18 passed)
    - **运行命令**：`pytest backend/tests/test_verdict_boundaries.py -v`
 
 2. **第二层：冻结真实网页快照端到端评测与消融研究 (Frozen Real-Factual Snapshot E2E Benchmark & Ablation Study)**
