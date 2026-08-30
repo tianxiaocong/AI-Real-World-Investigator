@@ -1,0 +1,337 @@
+[
+  {
+    "id": "h2-01",
+    "domain": "Tech/Hardware",
+    "claim": "Nvidia officially launched GeForce RTX 4080 Super at an MSRP of $999 with 16GB of GDDR6X memory in January 2024.",
+    "gold_state": "SUFFICIENT",
+    "fact_slots": {
+      "entity": "Nvidia GeForce RTX 4080 Super",
+      "predicate": "retail_msrp_memory_launch",
+      "compound_slots": [
+        {"slot_name": "msrp", "value": "999", "unit": "USD", "is_required": true, "qualifier": "msrp"},
+        {"slot_name": "memory", "value": "16GB", "unit": "GB", "is_required": true, "qualifier": "gddr6x"}
+      ],
+      "time_context": "2024-01",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "nvidia.com",
+        "title": "Nvidia Press Release: RTX 4080 Super",
+        "source_tier": "OFFICIAL",
+        "text": "Nvidia today announced the GeForce RTX 4080 Super starting at an MSRP of $999, featuring 16GB of ultra-fast GDDR6X memory, launching January 2024."
+      },
+      {
+        "id": "s-02",
+        "domain": "theverge.com",
+        "title": "The Verge: Nvidia RTX 4080 Super details",
+        "source_tier": "AUTHORITATIVE",
+        "text": "Nvidia has launched the RTX 4080 Super at $999 with 16GB of GDDR6X VRAM, lowering the price point compared to the original 4080."
+      }
+    ]
+  },
+  {
+    "id": "h2-02",
+    "domain": "Aerospace/Tech",
+    "claim": "SpaceX Starship successfully reached orbital velocity on its third integrated test flight in March 2024.",
+    "gold_state": "SUFFICIENT",
+    "fact_slots": {
+      "entity": "SpaceX Starship",
+      "predicate": "orbital_velocity_flight_3",
+      "compound_slots": [
+        {"slot_name": "milestone", "value": "orbital velocity", "is_required": true},
+        {"slot_name": "flight", "value": "third flight", "is_required": true}
+      ],
+      "time_context": "2024-03",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "spacex.com",
+        "title": "SpaceX: Starship Flight 3 Update",
+        "source_tier": "OFFICIAL",
+        "text": "Starship successfully lifted off and reached orbital velocity during its third flight test in March 2024, achieving key milestone demonstrations."
+      },
+      {
+        "id": "s-02",
+        "domain": "reuters.com",
+        "title": "Reuters: SpaceX Starship achieves orbital speed",
+        "source_tier": "AUTHORITATIVE",
+        "text": "Elon Musk's SpaceX achieved a major breakthrough in March 2024 as Starship reached orbital velocity on its third test mission before reentry."
+      }
+    ]
+  },
+  {
+    "id": "h2-03",
+    "domain": "Tech/AI",
+    "claim": "AI startup Anthropic raised $450 million in Series C funding led by Spark Capital in May 2023.",
+    "gold_state": "STRONG",
+    "fact_slots": {
+      "entity": "Anthropic",
+      "predicate": "series_c_funding",
+      "compound_slots": [
+        {"slot_name": "amount", "value": "450", "unit": "million_usd", "is_required": true},
+        {"slot_name": "lead_investor", "value": "Spark Capital", "is_required": true}
+      ],
+      "time_context": "2023-05",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "techcrunch.com",
+        "title": "TechCrunch: Anthropic lands $450M Series C",
+        "source_tier": "AUTHORITATIVE",
+        "text": "AI research lab Anthropic has raised $450 million in Series C funding led by venture firm Spark Capital in May 2023."
+      },
+      {
+        "id": "s-02",
+        "domain": "bloomberg.com",
+        "title": "Bloomberg: Spark Capital leads $450M Anthropic round",
+        "source_tier": "AUTHORITATIVE",
+        "text": "Anthropic secured $450 million in a new financing round led by Spark Capital, accelerating AI safety model development."
+      }
+    ]
+  },
+  {
+    "id": "h2-04",
+    "domain": "Executive Rumor",
+    "claim": "Apple has completely abandoned all generative AI development and disbanded its foundation model team in 2024.",
+    "gold_state": "INSUFFICIENT",
+    "fact_slots": {
+      "entity": "Apple",
+      "predicate": "abandoned_foundation_model_team",
+      "time_context": "2024",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "techrumorsforum.example",
+        "title": "Forum Post: Apple AI cancelled?",
+        "source_tier": "COMMUNITY",
+        "text": "An unverified forum post claims Apple has completely abandoned generative AI development internally."
+      }
+    ]
+  },
+  {
+    "id": "h2-05",
+    "domain": "Press Release Claim",
+    "claim": "QuantumSilicon achieved Room Temperature Quantum Computing with 1 million stable logical qubits in 2024.",
+    "gold_state": "INSUFFICIENT",
+    "fact_slots": {
+      "entity": "QuantumSilicon",
+      "predicate": "one_million_qubits_room_temperature",
+      "time_context": "2024",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "prdistribution.example",
+        "title": "PR: QuantumSilicon Announcement",
+        "source_tier": "COMMUNITY",
+        "text": "Startup QuantumSilicon issued a press release claiming it built a 1,000,000 logical qubit room-temperature processor without providing peer-reviewed evidence."
+      }
+    ]
+  },
+  {
+    "id": "h2-06",
+    "domain": "Republishing Chain",
+    "claim": "Microsoft acquired DuckDuckGo for $5 billion in cash in 2024.",
+    "gold_state": "INSUFFICIENT",
+    "fact_slots": {
+      "entity": "Microsoft and DuckDuckGo",
+      "predicate": "acquisition",
+      "compound_slots": [
+        {"slot_name": "amount", "value": "5", "unit": "billion_usd", "is_required": true}
+      ],
+      "time_context": "2024",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "techleakblog.example",
+        "title": "Leak: Microsoft buys DuckDuckGo",
+        "source_tier": "COMMUNITY",
+        "text": "According to @SearchInsider on social media, Microsoft agreed to buy DuckDuckGo for $5 billion in cash."
+      },
+      {
+        "id": "s-02",
+        "domain": "dailysearchnews.example",
+        "title": "Report: Acquisition Rumor",
+        "source_tier": "COMMUNITY",
+        "text": "Citing reports from techleakblog.example, Microsoft is reportedly acquiring DuckDuckGo for $5B."
+      }
+    ]
+  },
+  {
+    "id": "h2-07",
+    "domain": "Biomedical/Clinical",
+    "claim": "BioHealth oncology drug candidate demonstrated a 78% overall response rate in human clinical trials.",
+    "gold_state": "CONFLICTING",
+    "fact_slots": {
+      "entity": "BioHealth Oncology Candidate",
+      "predicate": "clinical_trial_orr",
+      "compound_slots": [
+        {"slot_name": "orr_rate", "value": "78", "unit": "percentage", "is_required": true}
+      ],
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "medicalearlytrials.example",
+        "title": "Phase 1 Early Cohort Readout",
+        "source_tier": "INDUSTRY",
+        "text": "Preliminary Phase 1 data in an exploratory cohort showed a 78% overall response rate for the candidate."
+      },
+      {
+        "id": "s-02",
+        "domain": "thelancet-oncology.example",
+        "title": "Phase 3 Confirmed Results",
+        "source_tier": "AUTHORITATIVE",
+        "text": "In the definitive randomized Phase 3 trial, confirmed overall response rate was 34%, showing significant divergence from early phase 1 estimates."
+      }
+    ]
+  },
+  {
+    "id": "h2-08",
+    "domain": "Corporate/Finance",
+    "claim": "FinTech Corp Q2 2024 net income reached $400 million.",
+    "gold_state": "CONFLICTING",
+    "fact_slots": {
+      "entity": "FinTech Corp",
+      "predicate": "q2_net_income",
+      "compound_slots": [
+        {"slot_name": "net_income", "value": "400", "unit": "million_usd", "is_required": true}
+      ],
+      "time_context": "2024-Q2",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "ft.com",
+        "title": "Financial Times: FinTech Corp Q2 earnings",
+        "source_tier": "AUTHORITATIVE",
+        "text": "FinTech Corp reported adjusted Non-GAAP net income of $400 million in Q2 2024, beating analyst expectations."
+      },
+      {
+        "id": "s-02",
+        "domain": "sec.gov",
+        "title": "SEC 10-Q Filing: FinTech Corp Q2",
+        "source_tier": "OFFICIAL",
+        "text": "According to GAAP financial accounting in the SEC Form 10-Q, GAAP net income for the second quarter was $250 million."
+      }
+    ]
+  },
+  {
+    "id": "h2-09",
+    "domain": "Venture Capital",
+    "claim": "CleanBattery Inc raised Series D funding at a post-money valuation of $3.0 billion in 2024.",
+    "gold_state": "CONFLICTING",
+    "fact_slots": {
+      "entity": "CleanBattery Inc",
+      "predicate": "series_d_valuation",
+      "compound_slots": [
+        {"slot_name": "valuation", "value": "3.0", "unit": "billion_usd", "is_required": true}
+      ],
+      "time_context": "2024",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "ventureblog.example",
+        "title": "CleanBattery Valuation $3.0B",
+        "source_tier": "AUTHORITATIVE",
+        "text": "Sources state CleanBattery raised Series D at a $3.0 billion post-money valuation."
+      },
+      {
+        "id": "s-02",
+        "domain": "wsj.com",
+        "title": "WSJ: CleanBattery closes round at $1.8B valuation",
+        "source_tier": "AUTHORITATIVE",
+        "text": "Regulatory disclosures confirm CleanBattery closed its Series D round at a $1.8 billion valuation, conflicting with higher rumors."
+      }
+    ]
+  },
+  {
+    "id": "h2-10",
+    "domain": "Medical/Regulatory",
+    "claim": "The FDA officially approved HerbRemedy capsules for treating and curing Alzheimer's disease.",
+    "gold_state": "UNSUPPORTED",
+    "fact_slots": {
+      "entity": "HerbRemedy",
+      "predicate": "fda_approval_alzheimers",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "fda.gov",
+        "title": "FDA Warning Letter: HerbRemedy fraudulent marketing",
+        "source_tier": "OFFICIAL",
+        "text": "FDA issued an explicit warning letter confirming HerbRemedy is unapproved, illegal for disease treatment, and has never received FDA approval for Alzheimer's."
+      }
+    ]
+  },
+  {
+    "id": "h2-11",
+    "domain": "Corporate/Executive",
+    "claim": "MegaCorp CEO stepped down from his position and resigned immediately in August 2024.",
+    "gold_state": "UNSUPPORTED",
+    "fact_slots": {
+      "entity": "MegaCorp CEO",
+      "predicate": "resignation_august_2024",
+      "time_context": "2024-08",
+      "polarity": true
+    },
+    "sources": [
+      {
+        "id": "s-01",
+        "domain": "megacorp.com",
+        "title": "MegaCorp Corporate Statement",
+        "source_tier": "OFFICIAL",
+        "text": "MegaCorp issued an official statement explicitly denying false rumors: the CEO remains fully in his post and has not resigned."
+      },
+      {
+        "id": "s-02",
+        "domain": "gossipblog.example",
+        "title": "Rumor: CEO departure",
+        "source_tier": "COMMUNITY",
+        "text": "Unverified social media gossip alleged the CEO was stepping down."
+      }
+    ]
+  },
+  {
+    "id": "h2-12",
+    "domain": "Private Matters",
+    "claim": "Executive Jane Doe privately decided in her personal diary to purchase a luxury yacht next summer.",
+    "gold_state": "NOT_ASSESSABLE",
+    "fact_slots": {
+      "entity": "Jane Doe",
+      "predicate": "private_diary_decision",
+      "polarity": true
+    },
+    "verifiability": "NOT_PUBLICLY_VERIFIABLE",
+    "sources": []
+  },
+  {
+    "id": "h2-13",
+    "domain": "Speculative Prediction",
+    "claim": "Commercial asteroid mining will supply more than 40% of all industrial platinum on Earth by the year 2080.",
+    "gold_state": "NOT_ASSESSABLE",
+    "fact_slots": {
+      "entity": "Asteroid Mining Industry",
+      "predicate": "platinum_supply_2080",
+      "polarity": true
+    },
+    "verifiability": "NOT_PUBLICLY_VERIFIABLE",
+    "sources": []
+  }
+]
