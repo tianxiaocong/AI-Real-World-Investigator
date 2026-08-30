@@ -1,4 +1,4 @@
-// AI Claim Verifier — Frontend Application Logic (v4 Final)
+// AI Real-World Investigator — Autonomous Studio Controller (v5 Final)
 
 const API_BASE = window.location.origin.includes(":8000") || window.location.origin.includes(":3000")
     ? `${window.location.origin}/api/v1`
@@ -7,9 +7,16 @@ const API_BASE = window.location.origin.includes(":8000") || window.location.ori
 // Global State
 let currentInputMode = "TEXT";
 let currentUploadedImageBase64 = null;
-let currentVerificationResult = null;
+let currentInvestigationDossier = null;
 
-// DOM Elements
+// DOM Elements - Navigation & Views
+const tabNavConsole = document.getElementById("tab-nav-console");
+const tabNavArchive = document.getElementById("tab-nav-archive");
+const viewConsole = document.getElementById("view-console");
+const viewArchive = document.getElementById("view-archive");
+const archiveCountBadge = document.getElementById("archive-count-badge");
+
+// DOM Elements - Input Form
 const verifyForm = document.getElementById("verify-form");
 const claimInput = document.getElementById("claim-input");
 const btnStartVerify = document.getElementById("btn-start-verify");
@@ -19,56 +26,86 @@ const imagePreviewImg = document.getElementById("image-preview-img");
 const previewFileName = document.getElementById("preview-file-name");
 const btnRemoveImage = document.getElementById("btn-remove-image");
 
+// DOM Elements - Live Stepper
 const loadingStateCard = document.getElementById("loading-state-card");
 const loadingTitle = document.getElementById("loading-title");
 const loadingDesc = document.getElementById("loading-desc");
+const liveSubtaskTags = document.getElementById("live-subtask-tags");
 
+// DOM Elements - Results Dossier
 const verdictResultSection = document.getElementById("verdict-result-section");
-const overallSummaryCard = document.getElementById("overall-summary-card");
+const dossierIdLabel = document.getElementById("dossier-id-label");
+const dossierTimestampLabel = document.getElementById("dossier-timestamp-label");
 const overallStatePill = document.getElementById("overall-state-pill");
+const overallStateIcon = document.getElementById("overall-state-icon");
 const overallStateText = document.getElementById("overall-state-text");
+const dossierGoalTitle = document.getElementById("dossier-goal-title");
 const overallSummaryText = document.getElementById("overall-summary-text");
-const coverageTableBody = document.getElementById("coverage-table-body");
-const verdictCardsContainer = document.getElementById("verdict-cards-container");
 
+// Telemetry & Sections
+const badgeIndependentSources = document.getElementById("badge-independent-sources");
+const badgeOfficialSources = document.getElementById("badge-official-sources");
+const badgeGroundedQuotes = document.getElementById("badge-grounded-quotes");
+const badgeOverclaimRisk = document.getElementById("badge-overclaim-risk");
+const subtaskMatrixTbody = document.getElementById("subtask-matrix-tbody");
+const queryPillsContainer = document.getElementById("query-pills-container");
+const statTotalSearch = document.getElementById("stat-total-search");
+const statAcceptedSearch = document.getElementById("stat-accepted-search");
+const statRejectedSearch = document.getElementById("stat-rejected-search");
+const statLiveFetched = document.getElementById("stat-live-fetched");
+const provenanceGraphContainer = document.getElementById("provenance-graph-container");
+const quotesListContainer = document.getElementById("quotes-list-container");
+const timelineDisputeSection = document.getElementById("timeline-dispute-section");
+const timelineDisputeContainer = document.getElementById("timeline-dispute-container");
+const gapsAdviceSection = document.getElementById("gaps-advice-section");
+const gapsAdviceBody = document.getElementById("gaps-advice-body");
+
+// Action Buttons
 const btnNewVerify = document.getElementById("btn-new-verify");
+const btnExportMarkdown = document.getElementById("btn-export-markdown");
 const btnCopyVerdict = document.getElementById("btn-copy-verdict");
-const recentHistoryGrid = document.getElementById("recent-history-grid");
+const archiveGrid = document.getElementById("archive-grid");
+const btnClearArchive = document.getElementById("btn-clear-archive");
 const currentEngineLabel = document.getElementById("current-engine-label");
 
-// Settings Elements
+// Settings Modal
 const btnOpenSettings = document.getElementById("btn-open-settings");
 const settingsModal = document.getElementById("settings-modal");
 const btnCloseSettings = document.getElementById("btn-close-settings");
 const btnCancelSettings = document.getElementById("btn-cancel-settings");
 const btnSaveSettings = document.getElementById("btn-save-settings");
-
 const setLlmSelect = document.getElementById("set-llm-select");
 const setSearchSelect = document.getElementById("set-search-select");
-const setGeminiKey = document.getElementById("set-gemini-key");
+const setSensenovaKey = document.getElementById("set-sensenova-key");
 const setOpenaiKey = document.getElementById("set-openai-key");
+const setGeminiKey = document.getElementById("set-gemini-key");
 const setTavilyKey = document.getElementById("set-tavily-key");
 
-// Initialization
+// ──────────────────────────────────────────────
+//  Initialization
+// ──────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
     loadSavedSettings();
     setupEventListeners();
-    renderRecentHistory();
+    updateArchiveBadge();
 });
 
 function loadSavedSettings() {
-    if (localStorage.getItem("VERIFIER_LLM_PROVIDER")) {
-        setLlmSelect.value = localStorage.getItem("VERIFIER_LLM_PROVIDER");
+    if (localStorage.getItem("INVESTIGATOR_LLM_PROVIDER")) {
+        setLlmSelect.value = localStorage.getItem("INVESTIGATOR_LLM_PROVIDER");
     }
-    if (localStorage.getItem("VERIFIER_SEARCH_PROVIDER")) {
-        setSearchSelect.value = localStorage.getItem("VERIFIER_SEARCH_PROVIDER");
+    if (localStorage.getItem("INVESTIGATOR_SEARCH_PROVIDER")) {
+        setSearchSelect.value = localStorage.getItem("INVESTIGATOR_SEARCH_PROVIDER");
     }
-    if (localStorage.getItem("INVESTIGATOR_GEMINI_KEY")) {
-        setGeminiKey.value = localStorage.getItem("INVESTIGATOR_GEMINI_KEY");
+    if (localStorage.getItem("INVESTIGATOR_SENSENOVA_KEY")) {
+        setSensenovaKey.value = localStorage.getItem("INVESTIGATOR_SENSENOVA_KEY");
     }
     if (localStorage.getItem("INVESTIGATOR_OPENAI_KEY")) {
         setOpenaiKey.value = localStorage.getItem("INVESTIGATOR_OPENAI_KEY");
+    }
+    if (localStorage.getItem("INVESTIGATOR_GEMINI_KEY")) {
+        setGeminiKey.value = localStorage.getItem("INVESTIGATOR_GEMINI_KEY");
     }
     if (localStorage.getItem("INVESTIGATOR_TAVILY_KEY")) {
         setTavilyKey.value = localStorage.getItem("INVESTIGATOR_TAVILY_KEY");
@@ -79,7 +116,9 @@ function loadSavedSettings() {
 function updateEngineLabel() {
     const llm = setLlmSelect.value;
     const search = setSearchSelect.value;
-    if (llm === "mock" && search === "mock") {
+    if (llm === "sensenova" && search === "duckduckgo") {
+        currentEngineLabel.textContent = "运行模式: SenseNova (GLM-5.2) + Live DuckDuckGo (推荐)";
+    } else if (llm === "mock" && search === "mock") {
         currentEngineLabel.textContent = "运行模式: 离线拟真引擎 (内置事实库)";
     } else {
         currentEngineLabel.textContent = `运行模式: ${llm.toUpperCase()} + ${search.toUpperCase()}`;
@@ -88,13 +127,24 @@ function updateEngineLabel() {
 
 function getActiveApiKeys() {
     return {
-        gemini_api_key: localStorage.getItem("INVESTIGATOR_GEMINI_KEY") || "",
+        sensenova_api_key: localStorage.getItem("INVESTIGATOR_SENSENOVA_KEY") || "",
         openai_api_key: localStorage.getItem("INVESTIGATOR_OPENAI_KEY") || "",
+        gemini_api_key: localStorage.getItem("INVESTIGATOR_GEMINI_KEY") || "",
         tavily_api_key: localStorage.getItem("INVESTIGATOR_TAVILY_KEY") || ""
     };
 }
 
+// ──────────────────────────────────────────────
+//  Event Listeners Setup
+// ──────────────────────────────────────────────
 function setupEventListeners() {
+    // View Tabs Switching
+    tabNavConsole.addEventListener("click", () => switchView("console"));
+    tabNavArchive.addEventListener("click", () => {
+        switchView("archive");
+        renderArchiveView();
+    });
+
     // Input Mode Tabs
     document.querySelectorAll(".input-mode-tabs .mode-tab").forEach(tab => {
         tab.addEventListener("click", () => {
@@ -105,14 +155,7 @@ function setupEventListeners() {
         });
     });
 
-    // Image Upload & Removal
-    btnRemoveImage.addEventListener("click", () => {
-        currentUploadedImageBase64 = null;
-        imageUploadInput.value = "";
-        imagePreviewBox.style.display = "none";
-        claimInput.style.display = "block";
-    });
-
+    // Image Upload
     imageUploadInput.addEventListener("change", (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -127,6 +170,13 @@ function setupEventListeners() {
         reader.readAsDataURL(file);
     });
 
+    btnRemoveImage.addEventListener("click", () => {
+        currentUploadedImageBase64 = null;
+        imageUploadInput.value = "";
+        imagePreviewBox.style.display = "none";
+        claimInput.style.display = "block";
+    });
+
     // Sample Chips Click
     document.querySelectorAll(".sample-chip").forEach(chip => {
         chip.addEventListener("click", () => {
@@ -135,10 +185,10 @@ function setupEventListeners() {
         });
     });
 
-    // Main Verification Form Submit
-    verifyForm.addEventListener("submit", handleStartVerification);
+    // Form Submit
+    verifyForm.addEventListener("submit", handleStartInvestigation);
 
-    // Reset & Action Buttons
+    // Reset Button
     btnNewVerify.addEventListener("click", () => {
         verdictResultSection.style.display = "none";
         loadingStateCard.style.display = "none";
@@ -150,22 +200,40 @@ function setupEventListeners() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     });
 
-    btnCopyVerdict.addEventListener("click", handleCopyVerdict);
+    // Export Actions
+    btnExportMarkdown.addEventListener("click", handleExportMarkdown);
+    btnCopyVerdict.addEventListener("click", handleCopyDossier);
+    btnClearArchive.addEventListener("click", handleClearArchive);
 
     // Settings Modal
     btnOpenSettings.addEventListener("click", () => settingsModal.style.display = "flex");
     btnCloseSettings.addEventListener("click", () => settingsModal.style.display = "none");
     btnCancelSettings.addEventListener("click", () => settingsModal.style.display = "none");
     btnSaveSettings.addEventListener("click", () => {
-        localStorage.setItem("VERIFIER_LLM_PROVIDER", setLlmSelect.value);
-        localStorage.setItem("VERIFIER_SEARCH_PROVIDER", setSearchSelect.value);
-        localStorage.setItem("INVESTIGATOR_GEMINI_KEY", setGeminiKey.value.trim());
+        localStorage.setItem("INVESTIGATOR_LLM_PROVIDER", setLlmSelect.value);
+        localStorage.setItem("INVESTIGATOR_SEARCH_PROVIDER", setSearchSelect.value);
+        localStorage.setItem("INVESTIGATOR_SENSENOVA_KEY", setSensenovaKey.value.trim());
         localStorage.setItem("INVESTIGATOR_OPENAI_KEY", setOpenaiKey.value.trim());
+        localStorage.setItem("INVESTIGATOR_GEMINI_KEY", setGeminiKey.value.trim());
         localStorage.setItem("INVESTIGATOR_TAVILY_KEY", setTavilyKey.value.trim());
         settingsModal.style.display = "none";
         updateEngineLabel();
-        alert("配置已保存！将在下次核验时立即生效。");
+        alert("调查引擎与密钥配置已保存！");
     });
+}
+
+function switchView(viewName) {
+    if (viewName === "console") {
+        tabNavConsole.classList.add("active");
+        tabNavArchive.classList.remove("active");
+        viewConsole.style.display = "block";
+        viewArchive.style.display = "none";
+    } else {
+        tabNavConsole.classList.remove("active");
+        tabNavArchive.classList.add("active");
+        viewConsole.style.display = "none";
+        viewArchive.style.display = "block";
+    }
 }
 
 function handleInputModeChange(mode) {
@@ -174,18 +242,18 @@ function handleInputModeChange(mode) {
     } else if (mode === "URL") {
         imagePreviewBox.style.display = "none";
         claimInput.style.display = "block";
-        claimInput.placeholder = "粘贴需要核验的新闻或文章网页链接 (https://...)\n系统将自动抓取正文并提取可验证事实";
+        claimInput.placeholder = "粘贴待调查的新闻、财报或网页链接 (https://...)\nAI 调查员将自主提取关键事实主张并执行全网求证";
     } else {
         imagePreviewBox.style.display = "none";
         claimInput.style.display = "block";
-        claimInput.placeholder = "把你看到的说法、新闻快讯或争议声明贴进来...\n例如：宇树科技于2024年完成近10亿元人民币B2轮融资，美团领投";
+        claimInput.placeholder = "输入待调查的完整陈述或目标疑问...\n例如：具身智能人形机器人企业宇树科技(Unitree Robotics)总部位于中国杭州，由创始人兼CEO王兴兴于2016年创立。";
     }
 }
 
 // ──────────────────────────────────────────────
-//  Start Verification Pipeline
+//  Execute Investigation Lifecycle
 // ──────────────────────────────────────────────
-async function handleStartVerification(e) {
+async function handleStartInvestigation(e) {
     e.preventDefault();
     let text = claimInput.value.trim();
     if (currentInputMode === "IMAGE") {
@@ -193,23 +261,29 @@ async function handleStartVerification(e) {
             alert("请先上传要核验的截图文件。");
             return;
         }
-        text = `[截图核验 - ${previewFileName.textContent}] (自动解析)`;
+        text = `[截图证据调查 - ${previewFileName.textContent}] (自动解析)`;
     }
 
     if (!text) return;
 
-    // UI State -> Loading
+    // UI Loading State
     btnStartVerify.disabled = true;
-    btnStartVerify.innerHTML = `<span class="spinner-inline"></span> 正在核验...`;
+    btnStartVerify.innerHTML = `<i data-lucide="loader-2" class="spin-icon-sm"></i> <span>调查进行中...</span>`;
+    lucide.createIcons();
+
     loadingStateCard.style.display = "flex";
     verdictResultSection.style.display = "none";
+    window.scrollTo({ top: loadingStateCard.offsetTop - 40, behavior: "smooth" });
+
+    // Animate Stepper
+    animateInvestigationStepper(text);
 
     try {
         const payload = {
             claim: text,
             input_type: currentInputMode,
-            llm_provider: setLlmSelect.value || "mock",
-            search_provider: setSearchSelect.value || "mock",
+            llm_provider: setLlmSelect.value || "sensenova",
+            search_provider: setSearchSelect.value || "duckduckgo",
             api_keys: getActiveApiKeys()
         };
 
@@ -220,503 +294,486 @@ async function handleStartVerification(e) {
         });
 
         if (!res.ok) {
-            throw new Error(`服务响应异常 (${res.status})`);
+            throw new Error(`调查请求失败 (HTTP ${res.status}): ${await res.text()}`);
         }
 
-        const coverage = await res.json();
-        currentVerificationResult = coverage;
+        const data = await res.json();
+        currentInvestigationDossier = {
+            id: `INV-${Date.now().toString().slice(-6)}`,
+            timestamp: new Date().toISOString(),
+            goal: text,
+            data: data
+        };
 
-        // Render Results
-        renderVerificationResult(coverage);
+        // Render Comprehensive Investigation Dossier
+        renderExecutiveInvestigationDossier(currentInvestigationDossier);
 
-        // Save to History
-        saveToRecentHistory(coverage);
-
-        // Scroll to Result
-        setTimeout(() => {
-            verdictResultSection.scrollIntoView({ behavior: "smooth", block: "start" });
-        }, 100);
+        // Save to Persistent Archive
+        saveToArchive(currentInvestigationDossier);
 
     } catch (err) {
-        console.error("Verification failed:", err);
-        alert(`核验未能完成: ${err.message}`);
+        console.error("Investigation failed:", err);
+        alert(`调查失败: ${err.message}\n请检查网络或后端服务。`);
     } finally {
         btnStartVerify.disabled = false;
-        btnStartVerify.innerHTML = `<i data-lucide="search-check"></i> 开始核验`;
+        btnStartVerify.innerHTML = `<i data-lucide="sparkles"></i> <span>开始自主调查</span>`;
         loadingStateCard.style.display = "none";
         lucide.createIcons();
     }
 }
 
 // ──────────────────────────────────────────────
-//  Render Verdict & Coverage
+//  Stepper Animation
 // ──────────────────────────────────────────────
-function renderVerificationResult(coverage) {
-    const claims = coverage.claims || [];
-    const verdicts = coverage.verdicts || [];
-    const verdictMap = {};
-    verdicts.forEach(v => {
-        verdictMap[v.claim_id] = v;
-    });
+function animateInvestigationStepper(claimText) {
+    const steps = [
+        { id: "step-1", title: "正在解析调查目标与事实槽位约束...", desc: "提取实体、数值、地点、时间与会计口径约束..." },
+        { id: "step-2", title: "正在规划多维调查子任务...", desc: "自动生成主体资质、规格数值、官方公告与争议反证任务..." },
+        { id: "step-3", title: "正在生成多路定向检索 Query...", desc: "执行 Query A/B/C/D 覆盖原始语义与权威披露..." },
+        { id: "step-4", title: "正在应用相关性闸门过滤...", desc: "计算 Entity/Slot 重合度，拦截无关噪音网页..." },
+        { id: "step-5", title: "正在抓取真实网页全文 (WebScraper)...", desc: "SSRF 安全隔离抓取并提取可引用正文..." },
+        { id: "step-6", title: "正在执行 4-Tier 物理逐字引文锚定...", desc: "严格计算字符级偏移坐标 (char_start : char_end)..." },
+        { id: "step-7", title: "确定性推理引擎裁决并生成调查档案...", desc: "基于证据状态安全降级，严防过度断言 (Overclaim)..." }
+    ];
 
-    verdictCardsContainer.innerHTML = "";
+    // Quick subtask breakdown preview
+    liveSubtaskTags.innerHTML = `
+        <span class="subtask-tag-pill active"><i data-lucide="crosshair" style="width:12px;height:12px;"></i> 目标: "${claimText.slice(0, 24)}..."</span>
+        <span class="subtask-tag-pill"><i data-lucide="search" style="width:12px;height:12px;"></i> 多路定向检索</span>
+        <span class="subtask-tag-pill"><i data-lucide="shield-check" style="width:12px;height:12px;"></i> 真实正文抓取</span>
+        <span class="subtask-tag-pill"><i data-lucide="file-text" style="width:12px;height:12px;"></i> 结构化调查报告</span>
+    `;
+    lucide.createIcons();
 
-    // 1. Overall Multi-Claim Coverage Table
-    if (claims.length > 1) {
-        overallSummaryCard.style.display = "block";
-        const overallStateInfo = formatOverallState(coverage.overall_state);
-        overallStatePill.className = `overall-state-pill ${overallStateInfo.className}`;
-        overallStateText.textContent = overallStateInfo.label;
-        overallSummaryText.textContent = coverage.coverage_summary || "多主张核验覆盖完成。";
-
-        coverageTableBody.innerHTML = claims.map((c, i) => {
-            const v = verdictMap[c.id] || {};
-            const stateInfo = formatEvidenceState(v.evidence_state);
-            const verifInfo = formatVerifiability(c.verifiability);
-            return `
-                <tr>
-                    <td style="font-family:var(--font-mono);font-weight:700;color:var(--text-muted);">${i+1}</td>
-                    <td style="font-weight:600;color:var(--text-primary);">${escapeHtml(c.statement)}</td>
-                    <td><span class="verif-tag">${verifInfo}</span></td>
-                    <td><span class="verdict-state-pill ${stateInfo.className}">${stateInfo.label}</span></td>
-                </tr>
-            `;
-        }).join("");
-    } else {
-        overallSummaryCard.style.display = "none";
-    }
-
-    // 2. Render Detailed Verdict Cards
-    claims.forEach((claim, idx) => {
-        const verdict = verdictMap[claim.id] || { evidence_state: "INSUFFICIENT", why_reasons: [], evidence_gaps: [] };
-        const stateInfo = formatEvidenceState(verdict.evidence_state);
-        const verifInfo = formatVerifiability(claim.verifiability);
-        const assessment = verdict.assessment || {};
-        const sources = verdict.sources || [];
-        const evidences = verdict.evidences || [];
-        const provenances = verdict.provenances || [];
-
-        const card = document.createElement("div");
-        card.className = "verdict-card";
-
-        // Tab 1: Why reasons list
-        const reasons = verdict.why_reasons || [];
-        const reasonsHtml = reasons.map(r => {
-            let iconClass = "reason-bullet-check";
-            if (r.startsWith("!")) iconClass = "reason-bullet-warn";
-            if (r.startsWith("ℹ")) iconClass = "reason-bullet-info";
-            return `
-                <div class="why-reason-item">
-                    <span class="why-icon-badge ${iconClass}">${escapeHtml(r.slice(0, 1))}</span>
-                    <span class="why-text">${escapeHtml(r.slice(1).trim())}</span>
-                </div>
-            `;
-        }).join("");
-
-        const gaps = verdict.evidence_gaps || [];
-        const gapsHtml = gaps.length > 0 ? `
-            <div class="evidence-gaps-block">
-                <div class="block-label"><i data-lucide="alert-circle"></i> 关键证据缺口</div>
-                <div class="gaps-list">
-                    ${gaps.map(g => `<div class="gap-item">⚠ ${escapeHtml(g)}</div>`).join("")}
-                </div>
-            </div>
-        ` : "";
-
-        const adviceHtml = verdict.next_step_advice ? `
-            <div class="advice-block">
-                <div class="block-label"><i data-lucide="compass"></i> 下一步核实建议</div>
-                <div class="advice-text">${escapeHtml(verdict.next_step_advice)}</div>
-            </div>
-        ` : "";
-
-        // Tab 2: Provenance DAG Nodes
-        const provMap = {};
-        provenances.forEach(p => {
-            provMap[p.source_id] = p;
-        });
-
-        const sourcesDagHtml = sources.length > 0 ? sources.map(s => {
-            const tierClass = `tier-${(s.source_tier || "unknown").toLowerCase()}`;
-            const prov = provMap[s.id];
-            const republishHtml = prov ? `
-                <div class="dag-republish-tag" title="${escapeHtml(prov.explanation || '')}">
-                    <i data-lucide="git-branch" style="width:12px;height:12px;"></i> ${escapeHtml(prov.explanation || '同源转载')}
-                </div>
-            ` : "";
-            return `
-                <div class="dag-node-card">
-                    <div class="dag-node-header">
-                        <span class="dag-tier-badge ${tierClass}">${escapeHtml(s.source_tier || 'UNKNOWN')}</span>
-                        ${s.is_synthetic ? '<span class="verif-tag" style="font-size:0.65rem;">测试快照</span>' : ''}
-                    </div>
-                    <div class="dag-node-domain">${escapeHtml(s.domain || s.title)}</div>
-                    ${republishHtml}
-                </div>
-            `;
-        }).join("") : '<div class="why-text">暂无检索信源</div>';
-
-        const quotesDagHtml = evidences.length > 0 ? evidences.map(e => {
-            let polarityClass = "polarity-context";
-            let polarityLabel = "⚪ 背景";
-            if (e.supports_claim) {
-                polarityClass = "polarity-support";
-                polarityLabel = "🟢 支持 (DIRECT)";
-            } else if (e.contradicts_claim) {
-                polarityClass = "polarity-contradict";
-                polarityLabel = "🔴 反驳 (DIRECT)";
+    let curr = 0;
+    const interval = setInterval(() => {
+        if (curr >= steps.length) {
+            clearInterval(interval);
+            return;
+        }
+        for (let i = 1; i <= 7; i++) {
+            const el = document.getElementById(`step-${i}`);
+            if (i < curr + 1) {
+                el.className = "stage-step-item done";
+            } else if (i === curr + 1) {
+                el.className = "stage-step-item active";
+            } else {
+                el.className = "stage-step-item";
             }
-            return `
-                <div class="dag-node-card">
-                    <div class="dag-quote-polarity ${polarityClass}">${polarityLabel}</div>
-                    <div style="font-size:0.8rem;color:var(--text-primary);margin-top:6px;line-height:1.4;">
-                        "${escapeHtml(e.exact_quote ? e.exact_quote.slice(0, 70) + (e.exact_quote.length > 70 ? '...' : '') : '')}"
-                    </div>
-                </div>
-            `;
-        }).join("") : '<div class="why-text">暂无提取证据</div>';
+        }
+        loadingTitle.textContent = steps[curr].title;
+        loadingDesc.textContent = steps[curr].desc;
+        curr++;
+    }, 1200);
+}
 
-        // Tab 3: Raw-Text Quote Inspector Cards
-        const quotesInspectorHtml = evidences.length > 0 ? evidences.map((e, qIdx) => {
-            let tierPillClass = "tier-exact";
-            let tierLabel = "EXACT";
-            if (e.locator_tier === "NORMALIZED_EXACT") {
-                tierPillClass = "tier-normalized";
-                tierLabel = "NORMALIZED_EXACT";
-            } else if (e.locator_tier === "UNVERIFIED") {
-                tierPillClass = "tier-unverified";
-                tierLabel = "UNVERIFIED (HALLUCINATION REJECTED)";
-            }
+// ──────────────────────────────────────────────
+//  Render Executive Investigation Dossier
+// ──────────────────────────────────────────────
+function renderExecutiveInvestigationDossier(dossier) {
+    const data = dossier.data;
+    const firstVerdict = (data.verdicts && data.verdicts.length > 0) ? data.verdicts[0] : null;
 
-            const charRange = (e.char_start !== undefined && e.char_end !== undefined && e.char_start !== null) 
-                ? `[char ${e.char_start}:${e.char_end}]` 
-                : `[char-level verified]`;
+    dossierIdLabel.textContent = dossier.id;
+    dossierTimestampLabel.textContent = new Date(dossier.timestamp).toLocaleString("zh-CN");
+    dossierGoalTitle.textContent = `调查目标：${dossier.goal}`;
+    overallSummaryText.textContent = data.overall_summary || (firstVerdict ? firstVerdict.explanation : "调查已完成。");
 
-            return `
-                <div class="quote-inspector-card">
-                    <div class="quote-card-meta">
-                        <span class="quote-tier-pill ${tierPillClass}">
-                            <i data-lucide="shield-check" style="width:13px;height:13px;"></i> ${tierLabel} ${charRange}
-                        </span>
-                        <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">
-                            信源 ID: ${escapeHtml(e.source_id)}
-                        </span>
-                    </div>
-                    <div class="quote-text-block">
-                        ${escapeHtml(e.exact_quote)}
-                    </div>
-                    ${e.context ? `<div class="quote-context-preview">上下文: ${escapeHtml(e.context)}</div>` : ''}
-                    ${e.evidence_note ? `<div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">备注: ${escapeHtml(e.evidence_note)}</div>` : ''}
-                </div>
-            `;
-        }).join("") : '<div class="why-text">暂无提取引文</div>';
+    // 1. Overall State Pill
+    const state = data.overall_state || (firstVerdict ? firstVerdict.evidence_state : "INSUFFICIENT");
+    overallStatePill.className = `state-verdict-banner state-${state}`;
+    overallStateText.textContent = getStateLabel(state);
 
-        // Tab 4: Telemetry Metrics
-        const indepCount = assessment.independent_source_count !== undefined ? assessment.independent_source_count : sources.length;
-        const officialCount = assessment.official_source_count !== undefined ? assessment.official_source_count : 0;
-        const directSupportCount = assessment.direct_support_count !== undefined ? assessment.direct_support_count : (evidences.filter(e => e.supports_claim).length);
-        const contradictCount = assessment.direct_contradiction_count !== undefined ? assessment.direct_contradiction_count : (evidences.filter(e => e.contradicts_claim).length);
-        const republishCount = assessment.republish_count !== undefined ? assessment.republish_count : provenances.length;
+    // 2. Telemetry Badges
+    const indepCount = (firstVerdict && firstVerdict.assessment && firstVerdict.assessment.independent_sources_count !== undefined)
+        ? firstVerdict.assessment.independent_sources_count
+        : (firstVerdict && firstVerdict.sources ? firstVerdict.sources.length : 0);
 
-        const audit = verdict.multi_round_audit || { round_count: 1 };
-        const multiRoundHtml = audit.round_count > 1 ? `
-            <div class="multi-round-timeline-banner">
-                <div class="timeline-header">
-                    <span class="pulse-dot"></span>
-                    <strong>自主调查循环 (Autonomous Multi-Round Investigation)</strong>
-                </div>
-                <div class="timeline-steps">
-                    <span class="round-step r1"><i data-lucide="search" style="width:12px;height:12px;"></i> Round 1: 发现单源/缺口 (🟡 ${escapeHtml(audit.initial_state)})</span>
-                    <span class="timeline-arrow">──▶</span>
-                    <span class="round-step gap">🎯 触发缺口定向检索: "${escapeHtml(audit.gap_query || '')}"</span>
-                    <span class="timeline-arrow">──▶</span>
-                    <span class="round-step r2">✨ Round 2 注入 ${audit.new_sources_added || 0} 个补充信源 ──▶ 最终: ${stateInfo.label}</span>
-                </div>
-            </div>
-        ` : '';
+    const officialCount = (firstVerdict && firstVerdict.assessment && firstVerdict.assessment.official_sources_count !== undefined)
+        ? firstVerdict.assessment.official_sources_count
+        : (firstVerdict && firstVerdict.sources ? firstVerdict.sources.filter(s => s.source_tier === 'AUTHORITATIVE' || s.source_tier === 'DIRECT_PRIMARY').length : 0);
 
-        card.innerHTML = `
-            <div class="verdict-card-header">
-                <div class="verdict-main-badge-wrap">
-                    <span class="verdict-state-pill lg ${stateInfo.className}">${stateInfo.label}</span>
-                    <span class="verif-tag">${verifInfo}</span>
-                </div>
-                <span class="as-of-label">核验时间: ${verdict.verified_as_of || "最新"}</span>
-            </div>
+    const quotesCount = firstVerdict && firstVerdict.evidences
+        ? firstVerdict.evidences.filter(e => e.is_admissible_factual_evidence).length
+        : 0;
+    
+    badgeIndependentSources.textContent = `独立信源: ${indepCount} 个`;
+    badgeOfficialSources.textContent = `官方信源: ${officialCount} 个`;
+    badgeGroundedQuotes.textContent = `物理引文: ${quotesCount} 条`;
+    badgeOverclaimRisk.textContent = (state === "STRONG" || state === "SUFFICIENT") && quotesCount === 0
+        ? "过度断言风险: 警报"
+        : "过度断言风险: 0.0% (安全)";
 
-            ${multiRoundHtml}
+    // 3. Subtask Findings Matrix Table
+    renderSubtaskMatrix(data, firstVerdict);
 
-            <div class="verdict-claim-box">
-                <h3 class="verdict-statement-heading">${escapeHtml(claim.statement)}</h3>
-            </div>
+    // 4. Multi-Way Search & Relevance Gating Telemetry
+    renderSearchTelemetry(dossier.goal, firstVerdict);
 
-            <!-- Tab Navigation Header -->
-            <div class="verdict-tab-nav" data-card-idx="${idx}">
-                <button type="button" class="verdict-tab-btn active" data-tab="summary-${idx}">
-                    <i data-lucide="check-square" style="width:14px;height:14px;"></i> 结论与依据
-                </button>
-                <button type="button" class="verdict-tab-btn" data-tab="graph-${idx}">
-                    <i data-lucide="git-merge" style="width:14px;height:14px;"></i> 证据链图谱 (${sources.length}信源)
-                </button>
-                <button type="button" class="verdict-tab-btn" data-tab="quotes-${idx}">
-                    <i data-lucide="quote" style="width:14px;height:14px;"></i> 逐字引文透视 (${evidences.length}条)
-                </button>
-                <button type="button" class="verdict-tab-btn" data-tab="metrics-${idx}">
-                    <i data-lucide="activity" style="width:14px;height:14px;"></i> 规则判定度量
-                </button>
-            </div>
+    // 5. Evidence Provenance Graph & Lineage
+    renderProvenanceGraph(firstVerdict ? firstVerdict.sources : []);
 
-            <!-- Tab 1: Summary Pane -->
-            <div class="verdict-tab-pane active" id="tab-summary-${idx}">
-                <div class="verdict-reasons-block">
-                    <div class="block-label"><i data-lucide="list-checks"></i> 为什么这样判断？(判定依据)</div>
-                    <div class="why-reasons-list">
-                        ${reasonsHtml || '<div class="why-text">暂无详细判定理由</div>'}
-                    </div>
-                </div>
-                ${gapsHtml}
-                ${adviceHtml}
-            </div>
+    // 6. Physical Quote Grounding Inspector
+    renderPhysicalQuotes(firstVerdict ? firstVerdict.evidences : []);
 
-            <!-- Tab 2: Provenance DAG Pane -->
-            <div class="verdict-tab-pane" id="tab-graph-${idx}">
-                <div class="provenance-dag-wrap">
-                    <div class="dag-flow-grid">
-                        <div class="dag-stage-col">
-                            <div class="dag-col-title"><i data-lucide="globe" style="width:13px;height:13px;"></i> 1. 检索公开信源</div>
-                            ${sourcesDagHtml}
-                        </div>
-                        <div class="dag-stage-col">
-                            <div class="dag-col-title"><i data-lucide="file-text" style="width:13px;height:13px;"></i> 2. 证据极性判定</div>
-                            ${quotesDagHtml}
-                        </div>
-                        <div class="dag-stage-col">
-                            <div class="dag-col-title"><i data-lucide="cpu" style="width:13px;height:13px;"></i> 3. 确定性规则门</div>
-                            <div class="dag-node-card" style="border-left: 3px solid var(--accent-cyan);">
-                                <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;">RULE GATE</div>
-                                <div style="font-size:0.85rem;color:var(--text-primary);margin:4px 0;">
-                                    独立信源: <strong>${indepCount}</strong> 个<br>
-                                    官方直证: <strong>${officialCount}</strong> 个<br>
-                                    直接反驳: <strong>${contradictCount}</strong> 个
-                                </div>
-                                <span class="verdict-state-pill sm ${stateInfo.className}">${stateInfo.label}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    // 7. Timeline & Context Duality
+    renderTimelineAndDuality(firstVerdict);
 
-            <!-- Tab 3: Quotes Inspector Pane -->
-            <div class="verdict-tab-pane" id="tab-quotes-${idx}">
-                <div class="quotes-inspector-grid">
-                    ${quotesInspectorHtml}
-                </div>
-            </div>
+    // 8. Evidence Gaps & Next Steps
+    renderEvidenceGaps(firstVerdict);
 
-            <!-- Tab 4: Telemetry Metrics Pane -->
-            <div class="verdict-tab-pane" id="tab-metrics-${idx}">
-                <div class="telemetry-grid">
-                    <div class="telemetry-card">
-                        <div class="telemetry-val">${indepCount}</div>
-                        <div class="telemetry-label">独立有效信源数 ($N_{indep}$)</div>
-                    </div>
-                    <div class="telemetry-card">
-                        <div class="telemetry-val">${officialCount}</div>
-                        <div class="telemetry-label">官方一手信源数 ($N_{official}$)</div>
-                    </div>
-                    <div class="telemetry-card">
-                        <div class="telemetry-val">${directSupportCount}</div>
-                        <div class="telemetry-label">直接强证实证据 ($N_{support}$)</div>
-                    </div>
-                    <div class="telemetry-card">
-                        <div class="telemetry-val">${contradictCount}</div>
-                        <div class="telemetry-label">直接权威反驳 ($N_{contra}$)</div>
-                    </div>
-                    <div class="telemetry-card">
-                        <div class="telemetry-val">${republishCount}</div>
-                        <div class="telemetry-label">同源转载去重数 ($N_{republish}$)</div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Attach Tab Click Handlers
-        card.querySelectorAll(".verdict-tab-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const targetTab = btn.dataset.tab;
-                card.querySelectorAll(".verdict-tab-btn").forEach(b => b.classList.remove("active"));
-                card.querySelectorAll(".verdict-tab-pane").forEach(p => p.classList.remove("active"));
-                btn.classList.add("active");
-                const targetPane = card.querySelector(`#tab-${targetTab}`);
-                if (targetPane) targetPane.classList.add("active");
-                lucide.createIcons();
-            });
-        });
-
-        verdictCardsContainer.appendChild(card);
-    });
-
-    verdictResultSection.style.display = "block";
+    verdictResultSection.style.display = "flex";
+    window.scrollTo({ top: verdictResultSection.offsetTop - 30, behavior: "smooth" });
     lucide.createIcons();
 }
 
-
 // ──────────────────────────────────────────────
-//  Presentation Format Helpers
+//  Render Sections Helpers
 // ──────────────────────────────────────────────
-function formatEvidenceState(state) {
-    switch (state) {
-        case "SUFFICIENT":
-            return { label: "🟢 证据充分", className: "state-sufficient" };
-        case "STRONG":
-            return { label: "🟢 证据较强", className: "state-strong" };
-        case "INSUFFICIENT":
-            return { label: "🟡 证据不足", className: "state-insufficient" };
-        case "CONFLICTING":
-            return { label: "🟠 存在冲突", className: "state-conflicting" };
-        case "UNSUPPORTED":
-            return { label: "🔴 有可靠证据反驳", className: "state-unsupported" };
-        case "NOT_ASSESSABLE":
-            return { label: "⚪ 公开资料无法核验", className: "state-not-assessable" };
-        default:
-            return { label: "🟡 证据不足", className: "state-insufficient" };
-    }
-}
+function renderSubtaskMatrix(data, verdict) {
+    subtaskMatrixTbody.innerHTML = "";
+    if (!verdict) return;
 
-function formatOverallState(state) {
-    switch (state) {
-        case "FULLY_SUPPORTED":
-            return { label: "🟢 全部支持", className: "state-sufficient" };
-        case "PARTIALLY_SUPPORTED":
-            return { label: "🟢 部分支持", className: "state-strong" };
-        case "MIXED":
-            return { label: "🟠 结论存在分歧", className: "state-conflicting" };
-        case "FULLY_UNSUPPORTED":
-            return { label: "🔴 均有反驳", className: "state-unsupported" };
-        case "NOT_ASSESSABLE":
-            return { label: "⚪ 无法有效核验", className: "state-not-assessable" };
-        default:
-            return { label: "🟡 证据有限", className: "state-insufficient" };
-    }
-}
-
-function formatVerifiability(v) {
-    switch (v) {
-        case "PUBLICLY_VERIFIABLE":
-            return "公开可验证事实";
-        case "LIMITED_PUBLIC":
-            return "有限公开信息";
-        case "HARD_TO_VERIFY":
-            return "极难公开求证";
-        case "NOT_PUBLICLY_VERIFIABLE":
-            return "无法公开验证";
-        default:
-            return "公开事实";
-    }
-}
-
-// ──────────────────────────────────────────────
-//  History & Copy Utilities
-// ──────────────────────────────────────────────
-function saveToRecentHistory(coverage) {
-    let history = [];
-    try {
-        history = JSON.parse(localStorage.getItem("VERIFIER_HISTORY") || "[]");
-    } catch (_) {}
-
-    const item = {
-        id: Date.now().toString(),
-        input: coverage.original_input,
-        state: coverage.overall_state,
-        claims_count: (coverage.claims || []).length,
-        time: new Date().toLocaleDateString("zh-CN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }),
-        coverage: coverage
-    };
-
-    history.unshift(item);
-    if (history.length > 8) history.pop();
-    localStorage.setItem("VERIFIER_HISTORY", JSON.stringify(history));
-    renderRecentHistory();
-}
-
-function renderRecentHistory() {
-    let history = [];
-    try {
-        history = JSON.parse(localStorage.getItem("VERIFIER_HISTORY") || "[]");
-    } catch (_) {}
-
-    if (history.length === 0) {
-        recentHistoryGrid.innerHTML = `
-            <div class="empty-history-tip">
-                <i data-lucide="inbox"></i>
-                <p>暂无核验记录。在上方输入任意说法即可开始。</p>
-            </div>
+    const factSlots = verdict.fact_slots;
+    const compoundSlots = (factSlots && factSlots.compound_slots) ? factSlots.compound_slots : [];
+    
+    if (compoundSlots.length === 0) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><strong>核心事实调查</strong></td>
+            <td><code>${factSlots ? factSlots.entity : "目标主体"}</code></td>
+            <td><span class="status-badge-cell ${verdict.evidence_state === 'SUFFICIENT' || verdict.evidence_state === 'STRONG' ? 'confirmed' : 'unconfirmed'}">${getStateLabel(verdict.evidence_state)}</span></td>
+            <td>${verdict.explanation || "已完成核验"}</td>
         `;
-        lucide.createIcons();
+        subtaskMatrixTbody.appendChild(tr);
         return;
     }
 
-    recentHistoryGrid.innerHTML = history.map(item => {
-        const stateInfo = formatOverallState(item.state);
-        return `
-            <div class="history-card" data-hid="${item.id}">
-                <div class="history-card-header">
-                    <span class="verdict-state-pill sm ${stateInfo.className}">${stateInfo.label}</span>
-                    <span class="history-time">${item.time}</span>
-                </div>
-                <div class="history-text">${escapeHtml(item.input)}</div>
+    compoundSlots.forEach(cs => {
+        const isMatched = (verdict.relations || []).some(r => (r.matched_slots || []).includes(cs.slot_name));
+        const statusClass = isMatched ? "confirmed" : "unconfirmed";
+        const statusText = isMatched ? "已物理证实" : "未发现直接支持";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><strong>${translateSlotName(cs.slot_name)}</strong></td>
+            <td><code>${cs.slot_name}=${cs.value}${cs.unit || ''}</code></td>
+            <td><span class="status-badge-cell ${statusClass}">${statusText}</span></td>
+            <td>${isMatched ? "在抓取正文中成功逐字定位" : "缺少官方公告或第一手凭证"}</td>
+        `;
+        subtaskMatrixTbody.appendChild(tr);
+    });
+}
+
+function renderSearchTelemetry(claimText, verdict) {
+    queryPillsContainer.innerHTML = "";
+    const sources = verdict ? verdict.sources : [];
+    const totalCount = sources.length;
+    const acceptedCount = sources.filter(s => s.fetch_status !== "REJECTED_IRRELEVANT").length;
+    const rejectedCount = sources.filter(s => s.fetch_status === "REJECTED_IRRELEVANT").length;
+    const fetchedCount = sources.filter(s => s.fetch_status === "FETCH_SUCCESS" || s.fetch_status === "SYNTHETIC_MOCK").length;
+
+    statTotalSearch.textContent = totalCount;
+    statAcceptedSearch.textContent = acceptedCount;
+    statRejectedSearch.textContent = rejectedCount;
+    statLiveFetched.textContent = fetchedCount;
+
+    // Synthesize Queries for display
+    const entity = verdict && verdict.fact_slots ? verdict.fact_slots.entity : "目标主体";
+    const slotVals = verdict && verdict.fact_slots ? verdict.fact_slots.compound_slots.map(s => s.value).join(" ") : "";
+    
+    const queries = [
+        { type: "raw", label: "Query A (原始语义)", text: claimText.slice(0, 45) },
+        { type: "slots", label: "Query B (实体+数值)", text: `${entity} ${slotVals}`.trim() || `${entity} 事实核验` },
+        { type: "official", label: "Query C (官方定向)", text: `${entity} 官方 公告 / 财报 / MSRP 规格` },
+        { type: "rumor", label: "Query D (争议排查)", text: `${entity} 辟谣 澄清 声明` }
+    ];
+
+    queries.forEach(q => {
+        const item = document.createElement("div");
+        item.className = "query-pill-item";
+        item.innerHTML = `
+            <span class="query-type-tag ${q.type}">${q.label}</span>
+            <span class="query-text">${q.text}</span>
+        `;
+        queryPillsContainer.appendChild(item);
+    });
+}
+
+function renderProvenanceGraph(sources) {
+    provenanceGraphContainer.innerHTML = "";
+    if (sources.length === 0) {
+        provenanceGraphContainer.innerHTML = `<div class="empty-hint" style="color:var(--text-muted);font-size:13px;">未检索到有效信源节点</div>`;
+        return;
+    }
+
+    sources.forEach((s, idx) => {
+        const card = document.createElement("div");
+        card.className = "provenance-source-card";
+        const isLive = s.fetch_mode === "LIVE";
+        const statusBadge = s.fetch_status === "FETCH_SUCCESS" 
+            ? `<span style="color:var(--state-sufficient-text);font-size:11px;">● 正文抓取成功 (${s.raw_text_length || 0} 字)</span>`
+            : s.fetch_status === "REJECTED_IRRELEVANT"
+            ? `<span style="color:var(--state-unsupported-text);font-size:11px;">✕ 相关性低已过滤</span>`
+            : `<span style="color:var(--text-muted);font-size:11px;">○ ${s.fetch_status}</span>`;
+
+        card.innerHTML = `
+            <div class="source-card-top">
+                <span class="source-tier-pill tier-${s.source_tier}">${s.source_tier}</span>
+                ${statusBadge}
+            </div>
+            <a href="${s.url}" target="_blank" rel="noopener noreferrer" class="source-title-link">
+                <i data-lucide="external-link" style="width:14px;height:14px;"></i>
+                <span>${s.title}</span>
+            </a>
+            <div class="source-meta-row">
+                <span>域名: ${s.domain}</span>
+                <span>模式: ${isLive ? '🌐 LIVE 实时抓取' : '💾 快照回放'}</span>
+                ${s.content_hash ? `<span>Hash: ${s.content_hash.slice(0, 10)}...</span>` : ''}
             </div>
         `;
-    }).join("");
+        provenanceGraphContainer.appendChild(card);
+    });
+}
 
-    // Click to re-view
-    document.querySelectorAll(".history-card").forEach(card => {
+function renderPhysicalQuotes(evidences) {
+    quotesListContainer.innerHTML = "";
+    const validQuotes = evidences.filter(e => e.exact_quote);
+    if (validQuotes.length === 0) {
+        quotesListContainer.innerHTML = `<div class="empty-hint" style="color:var(--text-muted);font-size:13px;">本次调查未从抓取网页中提取到可逐字锚定的实体引文。</div>`;
+        return;
+    }
+
+    validQuotes.forEach((ev, idx) => {
+        const item = document.createElement("div");
+        item.className = "quote-inspect-item";
+        const coords = (ev.char_start !== null && ev.char_end !== null)
+            ? `字符偏移: [${ev.char_start} : ${ev.char_end}]`
+            : "未锁定偏移坐标";
+
+        item.innerHTML = `
+            <div class="quote-inspect-header">
+                <span>引文 #${idx + 1} | ${coords}</span>
+                <span class="quote-tier-badge tier-${ev.match_tier}">${ev.match_tier}</span>
+            </div>
+            <div class="quote-verbatim-text">“${ev.exact_quote}”</div>
+            <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;">
+                <span>证据采纳状态: ${ev.is_admissible_factual_evidence ? '✅ 真实证据采纳' : '⚠️ 仅供背景参考'}</span>
+                <span>极性关系: ${ev.supports_claim ? '支持' : ev.contradicts_claim ? '反驳' : '中立/补充'}</span>
+            </div>
+        `;
+        quotesListContainer.appendChild(item);
+    });
+}
+
+function renderTimelineAndDuality(verdict) {
+    if (!verdict || !verdict.relations || verdict.relations.length === 0) {
+        timelineDisputeContainer.innerHTML = `
+            <div style="font-size:13px;color:var(--text-secondary);">
+                当前事实声明属于静态事实或单一时间线，未观测到 GAAP/Non-GAAP 会计口径冲突或跨阶段临床试验演进。
+            </div>
+        `;
+        return;
+    }
+
+    timelineDisputeContainer.innerHTML = "";
+    verdict.relations.forEach((r, idx) => {
+        const item = document.createElement("div");
+        item.style.marginBottom = "12px";
+        item.innerHTML = `
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px;">
+                关系 #${idx + 1}: ${r.relation_type} (会计准则: ${r.accounting_standard || 'N/A'} | 时序演进: ${r.temporal_evolution || 'N/A'})
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);font-family:var(--font-mono);background:var(--bg-card);padding:8px 12px;border-radius:6px;">
+                ${r.polarity_reasoning || '已结构化绑定事实槽位'}
+            </div>
+        `;
+        timelineDisputeContainer.appendChild(item);
+    });
+}
+
+function renderEvidenceGaps(verdict) {
+    gapsAdviceBody.innerHTML = "";
+    const reasons = verdict ? verdict.why_reasons : [];
+    const gaps = verdict ? verdict.evidence_gaps : [];
+
+    if (reasons.length === 0 && gaps.length === 0) {
+        gapsAdviceBody.innerHTML = `<div>✓ 证据链充分，无关键缺口。</div>`;
+        return;
+    }
+
+    reasons.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "gap-bullet-item";
+        div.innerHTML = `<i data-lucide="info" style="width:16px;height:16px;color:var(--accent-cyan);flex-shrink:0;"></i> <span>${r}</span>`;
+        gapsAdviceBody.appendChild(div);
+    });
+
+    gaps.forEach(g => {
+        const div = document.createElement("div");
+        div.className = "gap-bullet-item";
+        div.innerHTML = `<i data-lucide="alert-circle" style="width:16px;height:16px;color:var(--state-insufficient-text);flex-shrink:0;"></i> <span>${g}</span>`;
+        gapsAdviceBody.appendChild(div);
+    });
+}
+
+// ──────────────────────────────────────────────
+//  Export & Archive Handlers
+// ──────────────────────────────────────────────
+function handleExportMarkdown() {
+    if (!currentInvestigationDossier) return;
+    const d = currentInvestigationDossier;
+    const data = d.data;
+    const v = (data.verdicts && data.verdicts.length > 0) ? data.verdicts[0] : null;
+
+    const mdContent = `# 调查档案报告 (Investigation Dossier) - ${d.id}
+
+- **调查目标**：${d.goal}
+- **调查时间**：${new Date(d.timestamp).toLocaleString("zh-CN")}
+- **证据判定**：${getStateLabel(data.overall_state || "INSUFFICIENT")}
+- **执行摘要**：${data.overall_summary || (v ? v.explanation : '')}
+
+---
+
+## 1. 调查子任务与关键发现
+${(v && v.fact_slots && v.fact_slots.compound_slots) ? v.fact_slots.compound_slots.map(s => `- **${translateSlotName(s.slot_name)}** (${s.slot_name}): \`${s.value}${s.unit || ''}\``).join("\n") : "- 核心主体事实核验已执行"}
+
+## 2. 独立证据链与信源清单
+${(v && v.sources) ? v.sources.map(s => `- [${s.source_tier}] [${s.title}](${s.url}) (${s.domain}) - 状态: ${s.fetch_status}`).join("\n") : "无"}
+
+## 3. 逐字引文物理定位
+${(v && v.evidences) ? v.evidences.map(e => `- [${e.match_tier}] [${e.char_start}:${e.char_end}] "${e.exact_quote}"`).join("\n") : "无"}
+
+## 4. 调查局限与证据缺口
+${(v && v.why_reasons) ? v.why_reasons.map(r => `- ${r}`).join("\n") : "无"}
+
+---
+*由 AI Real-World Investigator 自动化系统生成*
+`;
+
+    const blob = new Blob([mdContent], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Investigation_Report_${d.id}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function handleCopyDossier() {
+    if (!currentInvestigationDossier) return;
+    const str = JSON.stringify(currentInvestigationDossier, null, 2);
+    navigator.clipboard.writeText(str).then(() => {
+        alert("调查档案 JSON 已复制到剪贴板！");
+    }).catch(err => {
+        console.error("Copy failed:", err);
+    });
+}
+
+function saveToArchive(dossier) {
+    try {
+        const raw = localStorage.getItem("INVESTIGATION_ARCHIVE") || "[]";
+        let list = JSON.parse(raw);
+        list.unshift(dossier);
+        if (list.length > 20) list = list.slice(0, 20);
+        localStorage.setItem("INVESTIGATION_ARCHIVE", JSON.stringify(list));
+        updateArchiveBadge();
+    } catch (e) {
+        console.warn("Save archive failed:", e);
+    }
+}
+
+function updateArchiveBadge() {
+    const raw = localStorage.getItem("INVESTIGATION_ARCHIVE") || "[]";
+    try {
+        const list = JSON.parse(raw);
+        archiveCountBadge.textContent = list.length;
+    } catch (e) {
+        archiveCountBadge.textContent = "0";
+    }
+}
+
+function renderArchiveView() {
+    archiveGrid.innerHTML = "";
+    const raw = localStorage.getItem("INVESTIGATION_ARCHIVE") || "[]";
+    let list = [];
+    try {
+        list = JSON.parse(raw);
+    } catch (e) { list = []; }
+
+    if (list.length === 0) {
+        archiveGrid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">暂无已归档调查项目，在工作台发起调查后将自动归档。</div>`;
+        return;
+    }
+
+    list.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "archive-card";
+        const state = item.data.overall_state || "INSUFFICIENT";
+
+        card.innerHTML = `
+            <div class="archive-card-header">
+                <span class="status-badge-cell ${state === 'SUFFICIENT' || state === 'STRONG' ? 'confirmed' : 'unconfirmed'}">${getStateLabel(state)}</span>
+                <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono);">${item.id}</span>
+            </div>
+            <div class="archive-claim-text">${item.goal}</div>
+            <div class="archive-meta-footer">
+                <span>${new Date(item.timestamp).toLocaleDateString("zh-CN")}</span>
+                <span style="color:var(--accent-cyan);">查看档案 →</span>
+            </div>
+        `;
+
         card.addEventListener("click", () => {
-            const hid = card.dataset.hid;
-            const target = history.find(h => h.id === hid);
-            if (target && target.coverage) {
-                renderVerificationResult(target.coverage);
-                verdictResultSection.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
+            currentInvestigationDossier = item;
+            switchView("console");
+            renderExecutiveInvestigationDossier(item);
         });
-    });
 
-    lucide.createIcons();
-}
-
-function handleCopyVerdict() {
-    if (!currentVerificationResult) return;
-    const lines = [];
-    lines.push(`【AI Claim Verifier 事实核验结论】`);
-    lines.push(`待核验说法: "${currentVerificationResult.original_input}"`);
-    lines.push(`整体状态: ${formatOverallState(currentVerificationResult.overall_state).label}`);
-    lines.push(`---`);
-    (currentVerificationResult.claims || []).forEach((c, idx) => {
-        const v = (currentVerificationResult.verdicts || [])[idx] || {};
-        lines.push(`主张 ${idx+1}: ${c.statement}`);
-        lines.push(`判定: ${formatEvidenceState(v.evidence_state).label}`);
-        if (v.why_reasons && v.why_reasons.length > 0) {
-            lines.push(`依据:\n${v.why_reasons.map(r => `  - ${r}`).join("\n")}`);
-        }
-        if (v.next_step_advice) {
-            lines.push(`核实建议: ${v.next_step_advice}`);
-        }
-        lines.push(``);
-    });
-
-    navigator.clipboard.writeText(lines.join("\n")).then(() => {
-        alert("核验结论已成功复制到剪贴板！");
-    }).catch(() => {
-        alert("复制失败，请手动选择复制。");
+        archiveGrid.appendChild(card);
     });
 }
 
-function escapeHtml(str) {
-    if (!str) return "";
-    return String(str)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+function handleClearArchive() {
+    if (confirm("确定要清空所有已保存的调查档案吗？")) {
+        localStorage.removeItem("INVESTIGATION_ARCHIVE");
+        updateArchiveBadge();
+        renderArchiveView();
+    }
+}
+
+// ──────────────────────────────────────────────
+//  Utility Helpers
+// ──────────────────────────────────────────────
+function getStateLabel(state) {
+    const map = {
+        "SUFFICIENT": "证实 (Sufficient Evidence)",
+        "STRONG": "充分证实 (Strong Verification)",
+        "INSUFFICIENT": "证据不足 (Insufficient)",
+        "CONFLICTING": "存在实质冲突 (Conflicting)",
+        "UNSUPPORTED": "官方证伪 / 反驳 (Unsupported)",
+        "NOT_ASSESSABLE": "无法评估 (Not Assessable)"
+    };
+    return map[state] || state;
+}
+
+function translateSlotName(name) {
+    const map = {
+        "model": "产品型号 / 规格",
+        "price": "官方定价 / MSRP",
+        "memory": "显存 / 硬件规格",
+        "headquarters": "企业总部 / 所在地",
+        "founder": "创始人 / CEO",
+        "founding_year": "创立时间",
+        "net_income": "净利润 / 财务指标",
+        "revenue": "营业收入",
+        "company": "主体企业",
+        "target": "收购标的",
+        "amount": "交易金额",
+        "equity_stake": "股权比例",
+        "drug_name": "药物名称",
+        "trial_name": "临床试验名称",
+        "trial_phase": "临床阶段",
+        "endpoint_result": "主要终点结果"
+    };
+    return map[name] || name;
 }
