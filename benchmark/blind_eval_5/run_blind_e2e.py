@@ -125,6 +125,9 @@ async def run_blind_evaluation(llm_provider_name: str = "mock", search_provider_
                     "domain": s.domain,
                     "source_tier": s.source_tier.value,
                     "is_synthetic": s.is_synthetic,
+                    "fetch_status": getattr(s, "fetch_status", "UNKNOWN"),
+                    "fetch_mode": getattr(s, "fetch_mode", "LIVE"),
+                    "content_hash": getattr(s, "content_hash", None),
                     "raw_text_length": len(s.raw_text or "")
                 }
                 for s in verdict.sources
@@ -169,8 +172,8 @@ async def run_blind_evaluation(llm_provider_name: str = "mock", search_provider_
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--llm", default="mock", help="LLM Provider: mock, sensenova, deepseek")
-    parser.add_argument("--search", default="mock", help="Search Provider: mock, duckduckgo, tavily")
+    parser.add_argument("--llm", default="sensenova", help="LLM Provider: sensenova, deepseek, mock")
+    parser.add_argument("--search", default="duckduckgo", help="Search Provider: duckduckgo, tavily, mock")
     args = parser.parse_args()
 
     asyncio.run(run_blind_evaluation(args.llm, args.search))

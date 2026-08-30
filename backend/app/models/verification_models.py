@@ -156,6 +156,8 @@ class Source(BaseModel):
     is_synthetic: bool = False          # True = mock/demo 数据
     raw_text: Optional[str] = None      # 网页正文原始文本
     content_hash: Optional[str] = None  # SHA-256 唯一正文哈希
+    fetch_status: str = "FETCH_SUCCESS" # FETCH_SUCCESS, FETCH_FAILED, SYNTHETIC_MOCK
+    fetch_mode: str = "LIVE"            # LIVE, CACHED_FALLBACK, SYNTHETIC
 
 
 # ──────────────────────────────────────────────

@@ -11,6 +11,7 @@ AI Claim Verifier — Fast Verification Pipeline Agent (v4 Final)
 
 import json
 import uuid
+import hashlib
 import datetime
 import logging
 from typing import List, Dict, Any, Optional
@@ -272,18 +273,31 @@ class FastClaimVerifierAgent:
                 domain = url.split("/")[2] if "://" in url else "web"
             tier = self._classify_source_tier(domain, url)
             
-            raw_text = snippet
+            raw_text = None
             content_hash = None
+            fetch_status = "FETCH_FAILED"
+            fetch_mode = "LIVE"
 
-            # 真实在线抓取与 SSRF 防御
-            if url.startswith("http") and not getattr(item, "is_synthetic", False):
+            if getattr(item, "is_synthetic", False):
+                raw_text = snippet
+                content_hash = hashlib.sha256(snippet.encode("utf-8")).hexdigest()
+                fetch_status = "SYNTHETIC_MOCK"
+                fetch_mode = "SYNTHETIC"
+            elif url.startswith("http"):
                 try:
-                    scraped = await WebScraper.fetch_and_extract(url, timeout_seconds=8)
+                    scraped = await WebScraper.fetch_and_extract(url, timeout_seconds=10)
                     if scraped and scraped.clean_text:
                         raw_text = scraped.clean_text
                         content_hash = scraped.content_hash
+                        fetch_status = "FETCH_SUCCESS"
+                        fetch_mode = "LIVE"
+                    else:
+                        fetch_status = "FETCH_EMPTY"
+                        fetch_mode = "LIVE"
                 except Exception as e:
-                    logger.warning(f"Live fetch failed for {url}: {e}, using snippet fallback.")
+                    logger.warning(f"Live fetch failed for {url}: {e}")
+                    fetch_status = "FETCH_FAILED"
+                    fetch_mode = "LIVE"
             
             source = Source(
                 id=s_id,
@@ -294,15 +308,18 @@ class FastClaimVerifierAgent:
                 publish_date=getattr(item, "published_date", None) or today_str,
                 is_synthetic=getattr(item, "is_synthetic", False),
                 raw_text=raw_text,
-                content_hash=content_hash
+                content_hash=content_hash,
+                fetch_status=fetch_status,
+                fetch_mode=fetch_mode
             )
             sources.append(source)
 
         # 2. 从检索内容中提取证据与 V2 关系
-        if sources:
+        sources_with_text = [s for s in sources if s.raw_text]
+        if sources_with_text:
             all_snippets_text = "\n\n".join([
                 f"[Source ID: {s.id} | {s.domain} | {s.title}]\n{s.title}\n{(s.raw_text or '')[:1500]}"
-                for i, s in enumerate(sources)
+                for s in sources_with_text
             ])
 
             slot_names_str = ", ".join([f"{cs.slot_name}='{cs.value}'" for cs in fact_slots.compound_slots]) or "无复合槽位"
@@ -335,8 +352,8 @@ class FastClaimVerifierAgent:
                 )
                 for raw_ev in ext_res.evidences:
                     # 匹配所属 source
-                    matched_s = sources[0]
-                    for s in sources:
+                    matched_s = sources_with_text[0]
+                    for s in sources_with_text:
                         if (s.raw_text and raw_ev.exact_quote in s.raw_text) or s.domain in raw_ev.exact_quote or s.title in raw_ev.exact_quote:
                             matched_s = s
                             break
@@ -347,7 +364,8 @@ class FastClaimVerifierAgent:
                         quote=raw_ev.exact_quote
                     )
 
-                    is_grounded = match_tier in ("EXACT", "NORMALIZED_EXACT", "FUZZY")
+                    # 严格准入闸门：仅允许 EXACT 或 NORMALIZED_EXACT 作为有效事实依据
+                    is_grounded = match_tier in ("EXACT", "NORMALIZED_EXACT")
 
                     ev = Evidence(
                         id=f"e-{uuid.uuid4().hex[:6]}",

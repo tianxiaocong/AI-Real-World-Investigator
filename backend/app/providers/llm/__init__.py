@@ -24,9 +24,9 @@ def get_llm_provider(
             return GeminiProvider(api_key=key, model=model)
         return MockLLMProvider()
 
-    elif p_name in ("openai", "deepseek", "sensenova"):
-        if p_name == "sensenova":
-            model = settings.SENSENOVA_MODEL or "sensenova-6.8-flash-lite"
+    elif p_name in ("openai", "deepseek", "sensenova", "glm"):
+        if p_name in ("sensenova", "glm"):
+            model = settings.SENSENOVA_MODEL or "glm-5.2"
             base_url = settings.SENSENOVA_BASE_URL or "https://token.sensenova.cn/v1"
             key = api_key or settings.SENSENOVA_API_KEY or settings.OPENAI_API_KEY
             if key:

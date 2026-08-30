@@ -4,161 +4,32 @@
     "domain": "Hardware / Multi-Spec",
     "claim": "英伟达正式发布的 GeForce RTX 4070 Ti Super 显卡官方建议零售价(MSRP)为799美元，并配备16GB GDDR6X显存。",
     "execution_metadata": {
-      "llm_provider": "mock",
-      "model": "mock",
-      "search_provider": "mock",
-      "timestamp": "2026-08-30T07:59:30.606580+00:00"
+      "llm_provider": "sensenova",
+      "model": "glm-5.2",
+      "search_provider": "duckduckgo",
+      "timestamp": "2026-08-30T08:07:01.391578+00:00"
     },
     "verdict_state": "INSUFFICIENT",
     "fact_slots": {
-      "entity": "Nvidia RTX 4070 Ti Super",
-      "predicate": "hardware_spec_pricing",
-      "compound_slots": [
-        {
-          "slot_name": "price",
-          "value": "799",
-          "unit": "USD",
-          "is_required": true,
-          "qualifier": null
-        },
-        {
-          "slot_name": "memory",
-          "value": "16GB",
-          "unit": "GB",
-          "is_required": true,
-          "qualifier": null
-        }
-      ],
-      "time_context": "2024",
+      "entity": "英伟达",
+      "predicate": "正式发布",
+      "compound_slots": [],
+      "time_context": null,
       "accounting_basis": "UNKNOWN",
       "trial_phase": null,
       "polarity": true
     },
-    "sources": [
-      {
-        "id": "s-1-d9af",
-        "url": "mock://reuters.com/business/nvidia-rtx-4070-ti-super-hardware_spec_pricing-799美元-16gb-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 98
-      },
-      {
-        "id": "s-2-4091",
-        "url": "mock://sec.gov/edgar/data/nvidia-rtx-4070-ti-super-hardware_spec_pricing-799美元-16gb",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 94
-      },
-      {
-        "id": "s-3-ca21",
-        "url": "mock://reddit.com/r/tech/nvidia-rtx-4070-ti-super-hardware_spec_pricing-799美元-16gb_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 90
-      },
-      {
-        "id": "s-r2-1-f23e",
-        "url": "mock://reuters.com/business/英伟达-geforce-rtx-4070-ti-super-建议零售价为799美元，配备16gb-gddr6x显存-证实-辟谣-声明-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-2-cc2c",
-        "url": "mock://sec.gov/edgar/data/英伟达-geforce-rtx-4070-ti-super-建议零售价为799美元，配备16gb-gddr6x显存-证实-辟谣-声明",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-3-3739",
-        "url": "mock://reddit.com/r/tech/英伟达-geforce-rtx-4070-ti-super-建议零售价为799美元，配备16gb-gddr6x显存-证实-辟谣-声明_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      }
-    ],
-    "evidences": [
-      {
-        "id": "e-66c780",
-        "source_id": "s-1-d9af",
-        "exact_quote": "NVIDIA 官方宣布 GeForce RTX 4070 Ti Super 建议零售价为 $799，搭载 16GB GDDR6X 显存",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-5eb94c",
-        "source_id": "s-1-d9af",
-        "exact_quote": "AnandTech 评测：RTX 4070 Ti Super 以 799 美元起售，升级至 16GB 显存",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-r2-f3f565",
-        "source_id": "s-r2-1-f23e",
-        "exact_quote": "NVIDIA 官方宣布 GeForce RTX 4070 Ti Super 建议零售价为 $799，搭载 16GB GDDR6X 显存",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": true,
-        "contradicts_claim": false,
-        "is_admissible": true
-      },
-      {
-        "id": "e-r2-8bae04",
-        "source_id": "s-r2-1-f23e",
-        "exact_quote": "AnandTech 评测：RTX 4070 Ti Super 以 799 美元起售，升级至 16GB 显存",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": true,
-        "contradicts_claim": false,
-        "is_admissible": true
-      }
-    ],
-    "relations": [
-      {
-        "relation_type": "DIRECT_SUPPORT",
-        "accounting_standard": "UNKNOWN",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [
-          "price",
-          "memory"
-        ],
-        "polarity_reasoning": "官方渠道直接证实价格与显存槽位"
-      },
-      {
-        "relation_type": "DIRECT_SUPPORT",
-        "accounting_standard": "UNKNOWN",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [
-          "price",
-          "memory"
-        ],
-        "polarity_reasoning": "权威第三方独立印证"
-      }
-    ],
+    "sources": [],
+    "evidences": [],
+    "relations": [],
     "why_reasons": [
-      "✓ 找到 2 个相互独立的权威信息源证实该融资事件",
-      "✓ 获得企业官方公告与主流财经创投直接确认",
-      "ℹ️ 未发现主要投资方或监管层面的相悖反驳"
+      "ℹ️ 当前检索引擎未返回任何相关来源，无法获取关于该显卡发布状态的任何公开信息。",
+      "! 缺乏英伟达官方的直接证实或新闻稿，无法确认“正式发布”这一动作的真实性。",
+      "! 未检索到任何科技媒体或可靠反证对该声明进行报道或反驳。"
     ],
     "evidence_gaps": [
-      "尚未查验对应工商登记实缴资本变更记录"
+      "尚未找到英伟达官方网站或新闻室关于 GeForce RTX 4070 Ti Super 显卡发布的公告。",
+      "尚未找到主流科技媒体对该款显卡发布的新闻报道或评测文章。"
     ]
   },
   {
@@ -166,140 +37,32 @@
     "domain": "Financial / Accounting Duality",
     "claim": "Alphabet公布的2024年第三季度财报中，按公认会计准则(GAAP)计算的净利润为263.01亿美元，而市场部分非GAAP分析口径给出了不同的利润表现。",
     "execution_metadata": {
-      "llm_provider": "mock",
-      "model": "mock",
-      "search_provider": "mock",
-      "timestamp": "2026-08-30T07:59:30.606580+00:00"
+      "llm_provider": "sensenova",
+      "model": "glm-5.2",
+      "search_provider": "duckduckgo",
+      "timestamp": "2026-08-30T08:07:01.391578+00:00"
     },
     "verdict_state": "INSUFFICIENT",
     "fact_slots": {
       "entity": "Alphabet",
-      "predicate": "q3_net_income",
+      "predicate": "净利润",
       "compound_slots": [],
-      "time_context": "Q3 2024",
+      "time_context": "2024年第三季度",
       "accounting_basis": "GAAP",
       "trial_phase": null,
       "polarity": true
     },
-    "sources": [
-      {
-        "id": "s-1-eefc",
-        "url": "mock://reuters.com/business/alphabet-q3_net_income-263.01亿美元-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 73
-      },
-      {
-        "id": "s-2-0083",
-        "url": "mock://sec.gov/edgar/data/alphabet-q3_net_income-263.01亿美元",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 69
-      },
-      {
-        "id": "s-3-efde",
-        "url": "mock://reddit.com/r/tech/alphabet-q3_net_income-263.01亿美元_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 65
-      },
-      {
-        "id": "s-r2-1-ffb3",
-        "url": "mock://reuters.com/business/alphabet公布2024年q3财报gaap净利润为263.01亿美元，市场非gaap口径呈现不同分析-证实-辟谣-声明-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-2-dddc",
-        "url": "mock://sec.gov/edgar/data/alphabet公布2024年q3财报gaap净利润为263.01亿美元，市场非gaap口径呈现不同分析-证实-辟谣-声明",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-3-fb6c",
-        "url": "mock://reddit.com/r/tech/alphabet公布2024年q3财报gaap净利润为263.01亿美元，市场非gaap口径呈现不同分析-证实-辟谣-声明_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      }
-    ],
-    "evidences": [
-      {
-        "id": "e-31123c",
-        "source_id": "s-1-eefc",
-        "exact_quote": "Alphabet SEC 10-Q 披露：2024年第三季度 GAAP 净利润录得 263.01 亿美元",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-3daefb",
-        "source_id": "s-1-eefc",
-        "exact_quote": "彭博分析师报告：剔除特定股权激励与税费后，部分非GAAP调整后运营指标呈现差异化统计",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-r2-cab6a3",
-        "source_id": "s-r2-1-ffb3",
-        "exact_quote": "Alphabet SEC 10-Q 披露：2024年第三季度 GAAP 净利润录得 263.01 亿美元",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": true,
-        "contradicts_claim": false,
-        "is_admissible": true
-      },
-      {
-        "id": "e-r2-91bf4c",
-        "source_id": "s-r2-1-ffb3",
-        "exact_quote": "彭博分析师报告：剔除特定股权激励与税费后，部分非GAAP调整后运营指标呈现差异化统计",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": true
-      }
-    ],
-    "relations": [
-      {
-        "relation_type": "DIRECT_SUPPORT",
-        "accounting_standard": "GAAP",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [],
-        "polarity_reasoning": "GAAP 会计准则下官方权威确认"
-      },
-      {
-        "relation_type": "QUALIFIED_CONFLICT",
-        "accounting_standard": "NON_GAAP",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [],
-        "polarity_reasoning": "合法会计口径分歧"
-      }
-    ],
+    "sources": [],
+    "evidences": [],
+    "relations": [],
     "why_reasons": [
-      "✓ 找到 2 个相互独立的权威信息源证实该融资事件",
-      "✓ 获得企业官方公告与主流财经创投直接确认",
-      "ℹ️ 未发现主要投资方或监管层面的相悖反驳"
+      "ℹ️ 当前检索未捕获到任何与该声明相关的信息源，无法进行交叉验证。",
+      "! 缺乏Alphabet官方财报或SEC 10-Q文件作为直接证实来源。",
+      "! 未找到第三方财经媒体（如路透社、彭博社）对该具体财务数据的报道作为旁证。"
     ],
     "evidence_gaps": [
-      "尚未查验对应工商登记实缴资本变更记录"
+      "尚未找到Alphabet官方投资者关系页面发布的2024年第三季度财报原文或新闻稿。",
+      "尚未找到美国证券交易委员会（SEC）EDGAR系统中Alphabet提交的2024年第三季度10-Q季度报告。"
     ]
   },
   {
@@ -307,137 +70,54 @@
     "domain": "Temporal / Pricing Evolution",
     "claim": "OpenAI 针对个人用户的 ChatGPT Plus 订阅服务最初定价为每月20美元，截至2024年全球官方标准月费仍维持在20美元。",
     "execution_metadata": {
-      "llm_provider": "mock",
-      "model": "mock",
-      "search_provider": "mock",
-      "timestamp": "2026-08-30T07:59:30.606580+00:00"
+      "llm_provider": "sensenova",
+      "model": "glm-5.2",
+      "search_provider": "duckduckgo",
+      "timestamp": "2026-08-30T08:07:01.391578+00:00"
     },
     "verdict_state": "INSUFFICIENT",
     "fact_slots": {
-      "entity": "OpenAI ChatGPT Plus",
-      "predicate": "subscription_pricing",
+      "entity": "OpenAI",
+      "predicate": "最初定价",
       "compound_slots": [
+        {
+          "slot_name": "product",
+          "value": "ChatGPT Plus",
+          "unit": null,
+          "is_required": true,
+          "qualifier": null
+        },
         {
           "slot_name": "price",
           "value": "20",
           "unit": "USD",
           "is_required": true,
           "qualifier": null
+        },
+        {
+          "slot_name": "billing_cycle",
+          "value": "month",
+          "unit": null,
+          "is_required": true,
+          "qualifier": null
         }
       ],
-      "time_context": "2024",
+      "time_context": "最初发布时",
       "accounting_basis": "UNKNOWN",
       "trial_phase": null,
       "polarity": true
     },
-    "sources": [
-      {
-        "id": "s-1-26fd",
-        "url": "mock://reuters.com/business/openai-chatgpt-plus-subscription_pricing-20美元/月-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 88
-      },
-      {
-        "id": "s-2-79f8",
-        "url": "mock://sec.gov/edgar/data/openai-chatgpt-plus-subscription_pricing-20美元/月",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 84
-      },
-      {
-        "id": "s-3-7630",
-        "url": "mock://reddit.com/r/tech/openai-chatgpt-plus-subscription_pricing-20美元/月_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 80
-      },
-      {
-        "id": "s-r2-1-e216",
-        "url": "mock://reuters.com/business/openai-chatgpt-plus-订阅月费维持在20美元-证实-辟谣-声明-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-2-b1c7",
-        "url": "mock://sec.gov/edgar/data/openai-chatgpt-plus-订阅月费维持在20美元-证实-辟谣-声明",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-3-9a04",
-        "url": "mock://reddit.com/r/tech/openai-chatgpt-plus-订阅月费维持在20美元-证实-辟谣-声明_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      }
-    ],
-    "evidences": [
-      {
-        "id": "e-25de73",
-        "source_id": "s-1-26fd",
-        "exact_quote": "Alphabet SEC 10-Q 披露：2024年第三季度 GAAP 净利润录得 263.01 亿美元",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-a3a0a8",
-        "source_id": "s-1-26fd",
-        "exact_quote": "彭博分析师报告：剔除特定股权激励与税费后，部分非GAAP调整后运营指标呈现差异化统计",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-r2-fe27fa",
-        "source_id": "s-r2-1-e216",
-        "exact_quote": "OpenAI 官方页面显示 ChatGPT Plus 个人版订阅价格为 20 美元/月",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": true,
-        "contradicts_claim": false,
-        "is_admissible": true
-      }
-    ],
-    "relations": [
-      {
-        "relation_type": "DIRECT_SUPPORT",
-        "accounting_standard": "GAAP",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [],
-        "polarity_reasoning": "GAAP 会计准则下官方权威确认"
-      },
-      {
-        "relation_type": "QUALIFIED_CONFLICT",
-        "accounting_standard": "NON_GAAP",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [],
-        "polarity_reasoning": "合法会计口径分歧"
-      }
-    ],
+    "sources": [],
+    "evidences": [],
+    "relations": [],
     "why_reasons": [
-      "✓ 找到 2 个相互独立的权威信息源证实该融资事件",
-      "✓ 获得企业官方公告与主流财经创投直接确认",
-      "ℹ️ 未发现主要投资方或监管层面的相悖反驳"
+      "ℹ️ 当前检索未捕获到任何相关来源，无法对声明进行事实核查。",
+      "! 缺乏OpenAI官方公告或可靠新闻报道来证实ChatGPT Plus最初定价为每月20美元。",
+      "! 没有发现任何反证或矛盾信息来推翻该定价声明。"
     ],
     "evidence_gaps": [
-      "尚未查验对应工商登记实缴资本变更记录"
+      "尚未找到OpenAI关于ChatGPT Plus订阅服务最初定价的官方公告或新闻稿。",
+      "尚未找到权威科技媒体对ChatGPT Plus发布初期定价的报道记录。"
     ]
   },
   {
@@ -445,129 +125,32 @@
     "domain": "Corporate / Denial vs Rumor",
     "claim": "网络传闻称大模型初创公司Anthropic的CEO Dario Amodei已于2024年8月辞职并卸任所有职务。",
     "execution_metadata": {
-      "llm_provider": "mock",
-      "model": "mock",
-      "search_provider": "mock",
-      "timestamp": "2026-08-30T07:59:30.606580+00:00"
+      "llm_provider": "sensenova",
+      "model": "glm-5.2",
+      "search_provider": "duckduckgo",
+      "timestamp": "2026-08-30T08:07:01.391578+00:00"
     },
-    "verdict_state": "UNSUPPORTED",
+    "verdict_state": "INSUFFICIENT",
     "fact_slots": {
       "entity": "Dario Amodei",
-      "predicate": "resignation_departure",
+      "predicate": "担任",
       "compound_slots": [],
-      "time_context": "2024-08",
+      "time_context": null,
       "accounting_basis": "UNKNOWN",
       "trial_phase": null,
-      "polarity": false
+      "polarity": true
     },
-    "sources": [
-      {
-        "id": "s-1-9a51",
-        "url": "mock://reuters.com/business/dario-amodei-resignation_departure-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 75
-      },
-      {
-        "id": "s-2-ef4f",
-        "url": "mock://sec.gov/edgar/data/dario-amodei-resignation_departure",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 71
-      },
-      {
-        "id": "s-3-8f36",
-        "url": "mock://reddit.com/r/tech/dario-amodei-resignation_departure_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 67
-      },
-      {
-        "id": "s-r2-1-e4a5",
-        "url": "mock://reuters.com/business/anthropic-ceo-dario-amodei-于2024年8月辞职并卸任-证实-辟谣-声明-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-2-e596",
-        "url": "mock://sec.gov/edgar/data/anthropic-ceo-dario-amodei-于2024年8月辞职并卸任-证实-辟谣-声明",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-3-b071",
-        "url": "mock://reddit.com/r/tech/anthropic-ceo-dario-amodei-于2024年8月辞职并卸任-证实-辟谣-声明_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 0
-      }
-    ],
-    "evidences": [
-      {
-        "id": "e-de580a",
-        "source_id": "s-1-9a51",
-        "exact_quote": "Alphabet SEC 10-Q 披露：2024年第三季度 GAAP 净利润录得 263.01 亿美元",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-94a784",
-        "source_id": "s-1-9a51",
-        "exact_quote": "彭博分析师报告：剔除特定股权激励与税费后，部分非GAAP调整后运营指标呈现差异化统计",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-r2-d15c83",
-        "source_id": "s-r2-1-e4a5",
-        "exact_quote": "Anthropic 官方发言人发布正式声明：关于 CEO Dario Amodei 辞职的传闻纯属谣言，Dario 仍在正常履职",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": true,
-        "is_admissible": true
-      }
-    ],
-    "relations": [
-      {
-        "relation_type": "DIRECT_SUPPORT",
-        "accounting_standard": "GAAP",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [],
-        "polarity_reasoning": "GAAP 会计准则下官方权威确认"
-      },
-      {
-        "relation_type": "QUALIFIED_CONFLICT",
-        "accounting_standard": "NON_GAAP",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [],
-        "polarity_reasoning": "合法会计口径分歧"
-      }
-    ],
+    "sources": [],
+    "evidences": [],
+    "relations": [],
     "why_reasons": [
-      "✓ 找到 2 个相互独立的权威信息源证实该融资事件",
-      "✓ 获得企业官方公告与主流财经创投直接确认",
-      "ℹ️ 未发现主要投资方或监管层面的相悖反驳"
+      "ℹ️ 当前检索未获取到任何相关来源信息，缺乏可溯源的数据基础。",
+      "! 未找到任何直接支持或反驳该声明的证据记录。",
+      "! 缺乏 Anthropic 官方或权威媒体对该人员职务的直接证实。"
     ],
     "evidence_gaps": [
-      "尚未查验对应工商登记实缴资本变更记录"
+      "尚未找到 Anthropic 官方网站或公开新闻稿中关于 Dario Amodei 职务的明确表述",
+      "尚未找到权威商业或科技媒体对该高管任命的公开报道"
     ]
   },
   {
@@ -575,162 +158,151 @@
     "domain": "Standard Factual Assertion",
     "claim": "具身智能人形机器人企业宇树科技(Unitree Robotics)总部位于中国杭州，由创始人兼CEO王兴兴于2016年创立。",
     "execution_metadata": {
-      "llm_provider": "mock",
-      "model": "mock",
-      "search_provider": "mock",
-      "timestamp": "2026-08-30T07:59:30.606580+00:00"
+      "llm_provider": "sensenova",
+      "model": "glm-5.2",
+      "search_provider": "duckduckgo",
+      "timestamp": "2026-08-30T08:07:01.391578+00:00"
     },
     "verdict_state": "INSUFFICIENT",
     "fact_slots": {
       "entity": "宇树科技",
-      "predicate": "corporate_headquarters_and_founding",
+      "predicate": "行业属性",
       "compound_slots": [
         {
-          "slot_name": "headquarters",
-          "value": "杭州",
-          "unit": null,
-          "is_required": true,
-          "qualifier": null
-        },
-        {
-          "slot_name": "founder",
-          "value": "王兴兴",
-          "unit": null,
-          "is_required": true,
-          "qualifier": null
-        },
-        {
-          "slot_name": "founding_year",
-          "value": "2016",
+          "slot_name": "industry",
+          "value": "具身智能人形机器人企业",
           "unit": null,
           "is_required": true,
           "qualifier": null
         }
       ],
-      "time_context": "2016-至今",
+      "time_context": null,
       "accounting_basis": "UNKNOWN",
       "trial_phase": null,
       "polarity": true
     },
     "sources": [
       {
-        "id": "s-1-44a3",
-        "url": "mock://reuters.com/business/宇树科技-corporate_headquarters_and_founding-中国杭州-王兴兴-2016年-analysis",
-        "domain": "reuters.com",
+        "id": "s-1-b83c",
+        "url": "https://apnews.com/projects/elections-2026/",
+        "domain": "apnews.com",
         "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
-        "raw_text_length": 96
+        "is_synthetic": false,
+        "fetch_status": "FETCH_SUCCESS",
+        "fetch_mode": "LIVE",
+        "content_hash": "2ba6d1daa2cc9c25ea9c5a862969855c49ae6bb4bf6bce9c99ed9f932aba7fa0",
+        "raw_text_length": 2921
       },
       {
-        "id": "s-2-29a0",
-        "url": "mock://sec.gov/edgar/data/宇树科技-corporate_headquarters_and_founding-中国杭州-王兴兴-2016年",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
-        "raw_text_length": 92
-      },
-      {
-        "id": "s-3-dd67",
-        "url": "mock://reddit.com/r/tech/宇树科技-corporate_headquarters_and_founding-中国杭州-王兴兴-2016年_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
-        "raw_text_length": 88
-      },
-      {
-        "id": "s-r2-1-6664",
-        "url": "mock://reuters.com/business/宇树科技总部位于中国杭州，由创始人兼ceo王兴兴于2016年创立-证实-辟谣-声明-analysis",
-        "domain": "reuters.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": true,
+        "id": "s-2-a1be",
+        "url": "https://en.m.wikipedia.org/wiki/2024_United_States_presidential_election",
+        "domain": "en.m.wikipedia.org",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_EMPTY",
+        "fetch_mode": "LIVE",
+        "content_hash": null,
         "raw_text_length": 0
       },
       {
-        "id": "s-r2-2-07ca",
-        "url": "mock://sec.gov/edgar/data/宇树科技总部位于中国杭州，由创始人兼ceo王兴兴于2016年创立-证实-辟谣-声明",
-        "domain": "sec.gov",
-        "source_tier": "OFFICIAL",
-        "is_synthetic": true,
+        "id": "s-3-7ea2",
+        "url": "https://www.cnn.com/election/2026",
+        "domain": "www.cnn.com",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_SUCCESS",
+        "fetch_mode": "LIVE",
+        "content_hash": "91207d8e29e3accdcd5723daade9479d068fabecdf23e0e0256d7917782c9935",
+        "raw_text_length": 358
+      },
+      {
+        "id": "s-4-f09b",
+        "url": "https://www.nbcnews.com/politics/elections",
+        "domain": "www.nbcnews.com",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_SUCCESS",
+        "fetch_mode": "LIVE",
+        "content_hash": "2059bf2be4b01c29cc5b16f221b52b9f81e979415811cdbb9d2d28a8efb03294",
+        "raw_text_length": 836
+      },
+      {
+        "id": "s-5-8f73",
+        "url": "https://election.news.sky.com/elections/us-election",
+        "domain": "election.news.sky.com",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_SUCCESS",
+        "fetch_mode": "LIVE",
+        "content_hash": "abcce216b2ba0fe52db4a18bccd15ff3ecb21aa0b1f5869ed5271ec9012b799a",
+        "raw_text_length": 1117
+      },
+      {
+        "id": "s-6-1a1e",
+        "url": "https://littlecaesars.com/en-us/",
+        "domain": "littlecaesars.com",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_EMPTY",
+        "fetch_mode": "LIVE",
+        "content_hash": null,
         "raw_text_length": 0
       },
       {
-        "id": "s-r2-3-07f7",
-        "url": "mock://reddit.com/r/tech/宇树科技总部位于中国杭州，由创始人兼ceo王兴兴于2016年创立-证实-辟谣-声明_discussion",
-        "domain": "reddit.com",
-        "source_tier": "COMMUNITY",
-        "is_synthetic": true,
+        "id": "s-r2-1-12fc",
+        "url": "https://m.timesofindia.com/",
+        "domain": "m.timesofindia.com",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_SUCCESS",
+        "fetch_mode": "LIVE",
+        "content_hash": null,
+        "raw_text_length": 0
+      },
+      {
+        "id": "s-r2-2-580e",
+        "url": "https://m.timesofindia.com/sports/cricket/icc-cricket-world-cup-2019/teams/india",
+        "domain": "m.timesofindia.com",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_SUCCESS",
+        "fetch_mode": "LIVE",
+        "content_hash": null,
+        "raw_text_length": 0
+      },
+      {
+        "id": "s-r2-3-0dc4",
+        "url": "https://m.timesofindia.com/videos/entertainment/bollywood",
+        "domain": "m.timesofindia.com",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_SUCCESS",
+        "fetch_mode": "LIVE",
+        "content_hash": null,
+        "raw_text_length": 0
+      },
+      {
+        "id": "s-r2-4-451f",
+        "url": "https://m.timesofindia.com/gdprform.cms",
+        "domain": "m.timesofindia.com",
+        "source_tier": "UNKNOWN",
+        "is_synthetic": false,
+        "fetch_status": "FETCH_SUCCESS",
+        "fetch_mode": "LIVE",
+        "content_hash": null,
         "raw_text_length": 0
       }
     ],
-    "evidences": [
-      {
-        "id": "e-03ee43",
-        "source_id": "s-1-44a3",
-        "exact_quote": "Alphabet SEC 10-Q 披露：2024年第三季度 GAAP 净利润录得 263.01 亿美元",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-010db6",
-        "source_id": "s-1-44a3",
-        "exact_quote": "彭博分析师报告：剔除特定股权激励与税费后，部分非GAAP调整后运营指标呈现差异化统计",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": false,
-        "contradicts_claim": false,
-        "is_admissible": false
-      },
-      {
-        "id": "e-r2-56d0e4",
-        "source_id": "s-r2-1-6664",
-        "exact_quote": "宇树科技官方架构：总部位于中国杭州，由创始人王兴兴于2016年创立",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": true,
-        "contradicts_claim": false,
-        "is_admissible": true
-      },
-      {
-        "id": "e-r2-402a0a",
-        "source_id": "s-r2-1-6664",
-        "exact_quote": "36氪专访：王兴兴于2016年在杭州创立宇树科技，深耕四足与人形机器人",
-        "char_start": null,
-        "char_end": null,
-        "match_tier": "UNVERIFIED",
-        "supports_claim": true,
-        "contradicts_claim": false,
-        "is_admissible": true
-      }
-    ],
-    "relations": [
-      {
-        "relation_type": "DIRECT_SUPPORT",
-        "accounting_standard": "GAAP",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [],
-        "polarity_reasoning": "GAAP 会计准则下官方权威确认"
-      },
-      {
-        "relation_type": "QUALIFIED_CONFLICT",
-        "accounting_standard": "NON_GAAP",
-        "temporal_evolution": "CURRENT",
-        "matched_slots": [],
-        "polarity_reasoning": "合法会计口径分歧"
-      }
-    ],
+    "evidences": [],
+    "relations": [],
     "why_reasons": [
-      "✓ 找到 2 个相互独立的权威信息源证实该融资事件",
-      "✓ 获得企业官方公告与主流财经创投直接确认",
-      "ℹ️ 未发现主要投资方或监管层面的相悖反驳"
+      "✓ The contract explicitly states delivery within 30 days",
+      "! The supplier's performance history shows consistent delays",
+      "ℹ️ Industry standards suggest 45-day delivery is typical"
     ],
     "evidence_gaps": [
-      "尚未查验对应工商登记实缴资本变更记录"
+      "Signed delivery receipts for the last three shipments",
+      "Email correspondence regarding delay notifications"
     ]
   }
 ]

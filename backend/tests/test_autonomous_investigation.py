@@ -54,8 +54,8 @@ async def test_autonomous_loop_terminates_in_single_round_when_sufficient():
     mock_search = MagicMock()
 
     # Search returns 2 official/authoritative sources
-    search_item_1 = MagicMock(url="https://sec.gov/filing", title="Official SEC Filing", snippet="Confirmed $1B funding", domain="sec.gov", is_synthetic=False, published_date="2026-08-30")
-    search_item_2 = MagicMock(url="https://reuters.com/news", title="Reuters News", snippet="Reuters independently confirmed $1B funding", domain="reuters.com", is_synthetic=False, published_date="2026-08-30")
+    search_item_1 = MagicMock(url="https://sec.gov/filing", title="Official SEC Filing", snippet="Confirmed $1B funding", domain="sec.gov", is_synthetic=True, published_date="2026-08-30")
+    search_item_2 = MagicMock(url="https://reuters.com/news", title="Reuters News", snippet="Reuters independently confirmed $1B funding", domain="reuters.com", is_synthetic=True, published_date="2026-08-30")
     mock_search.search = AsyncMock(return_value=[search_item_1, search_item_2])
 
     mock_llm.generate_structured = AsyncMock(return_value=EvidenceExtractionBatch(
@@ -95,9 +95,9 @@ async def test_autonomous_loop_triggers_round_2_on_insufficient():
     mock_search = MagicMock()
 
     # Round 1: Single forum post -> INSUFFICIENT
-    item_r1 = MagicMock(url="https://forum.example/post", title="Forum Rumor", snippet="Someone says company raised $1B", domain="forum.example", is_synthetic=False, published_date="2026-08-30")
+    item_r1 = MagicMock(url="https://forum.example/post", title="Forum Rumor", snippet="Someone says company raised $1B", domain="forum.example", is_synthetic=True, published_date="2026-08-30")
     # Round 2: Targeted search finds official announcement
-    item_r2 = MagicMock(url="https://sec.gov/filing", title="Official SEC Announcement", snippet="Confirmed $1B official filing", domain="sec.gov", is_synthetic=False, published_date="2026-08-30")
+    item_r2 = MagicMock(url="https://sec.gov/filing", title="Official SEC Announcement", snippet="Confirmed $1B official filing", domain="sec.gov", is_synthetic=True, published_date="2026-08-30")
     
     mock_search.search = AsyncMock(side_effect=[[item_r1], [item_r2]])
 
