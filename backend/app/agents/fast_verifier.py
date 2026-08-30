@@ -322,7 +322,11 @@ class FastClaimVerifierAgent:
             why_reasons=why_reasons,
             evidence_gaps=evidence_gaps,
             next_step_advice=next_step_advice,
-            verified_as_of=today_str
+            verified_as_of=today_str,
+            assessment=assessment,
+            sources=sources,
+            evidences=evidences,
+            provenances=provenances
         )
 
     def _classify_source_tier(self, domain: str, url: str) -> SourceTier:

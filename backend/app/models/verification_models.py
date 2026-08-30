@@ -13,6 +13,7 @@ AI Claim Verifier — Core Data Models (v4 Final)
 """
 
 from __future__ import annotations
+from typing import Optional, List, Dict, Any
 from enum import Enum
 from pydantic import BaseModel
 
@@ -261,6 +262,12 @@ class Verdict(BaseModel):
     # 时间有效性
     verified_as_of: str = ""               # "截至 2026-08-27"
 
+    # 完整审计证据链与溯源元数据 (Auditable Evidence Chain & Provenance)
+    assessment: Optional[EvidenceAssessment] = None
+    sources: list[Source] = []
+    evidences: list[Evidence] = []
+    provenances: list[SourceProvenance] = []
+
 
 # ──────────────────────────────────────────────
 #  OverallCoverage（多 Claim 汇总）
@@ -284,3 +291,7 @@ class OverallCoverage(BaseModel):
 
     coverage_summary: str = ""
     # "你提供的说法包含 3 个可验证事实，其中 2 个证据充分，1 个证据不足。"
+
+
+Verdict.model_rebuild()
+OverallCoverage.model_rebuild()

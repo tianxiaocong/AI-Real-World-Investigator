@@ -291,11 +291,15 @@ function renderVerificationResult(coverage) {
         const verdict = verdictMap[claim.id] || { evidence_state: "INSUFFICIENT", why_reasons: [], evidence_gaps: [] };
         const stateInfo = formatEvidenceState(verdict.evidence_state);
         const verifInfo = formatVerifiability(claim.verifiability);
+        const assessment = verdict.assessment || {};
+        const sources = verdict.sources || [];
+        const evidences = verdict.evidences || [];
+        const provenances = verdict.provenances || [];
 
         const card = document.createElement("div");
         card.className = "verdict-card";
 
-        // Why reasons list
+        // Tab 1: Why reasons list
         const reasons = verdict.why_reasons || [];
         const reasonsHtml = reasons.map(r => {
             let iconClass = "reason-bullet-check";
@@ -309,7 +313,6 @@ function renderVerificationResult(coverage) {
             `;
         }).join("");
 
-        // Gaps
         const gaps = verdict.evidence_gaps || [];
         const gapsHtml = gaps.length > 0 ? `
             <div class="evidence-gaps-block">
@@ -320,13 +323,100 @@ function renderVerificationResult(coverage) {
             </div>
         ` : "";
 
-        // Next steps
         const adviceHtml = verdict.next_step_advice ? `
             <div class="advice-block">
                 <div class="block-label"><i data-lucide="compass"></i> 下一步核实建议</div>
                 <div class="advice-text">${escapeHtml(verdict.next_step_advice)}</div>
             </div>
         ` : "";
+
+        // Tab 2: Provenance DAG Nodes
+        const provMap = {};
+        provenances.forEach(p => {
+            provMap[p.source_id] = p;
+        });
+
+        const sourcesDagHtml = sources.length > 0 ? sources.map(s => {
+            const tierClass = `tier-${(s.source_tier || "unknown").toLowerCase()}`;
+            const prov = provMap[s.id];
+            const republishHtml = prov ? `
+                <div class="dag-republish-tag" title="${escapeHtml(prov.explanation || '')}">
+                    <i data-lucide="git-branch" style="width:12px;height:12px;"></i> ${escapeHtml(prov.explanation || '同源转载')}
+                </div>
+            ` : "";
+            return `
+                <div class="dag-node-card">
+                    <div class="dag-node-header">
+                        <span class="dag-tier-badge ${tierClass}">${escapeHtml(s.source_tier || 'UNKNOWN')}</span>
+                        ${s.is_synthetic ? '<span class="verif-tag" style="font-size:0.65rem;">测试快照</span>' : ''}
+                    </div>
+                    <div class="dag-node-domain">${escapeHtml(s.domain || s.title)}</div>
+                    ${republishHtml}
+                </div>
+            `;
+        }).join("") : '<div class="why-text">暂无检索信源</div>';
+
+        const quotesDagHtml = evidences.length > 0 ? evidences.map(e => {
+            let polarityClass = "polarity-context";
+            let polarityLabel = "⚪ 背景";
+            if (e.supports_claim) {
+                polarityClass = "polarity-support";
+                polarityLabel = "🟢 支持 (DIRECT)";
+            } else if (e.contradicts_claim) {
+                polarityClass = "polarity-contradict";
+                polarityLabel = "🔴 反驳 (DIRECT)";
+            }
+            return `
+                <div class="dag-node-card">
+                    <div class="dag-quote-polarity ${polarityClass}">${polarityLabel}</div>
+                    <div style="font-size:0.8rem;color:var(--text-primary);margin-top:6px;line-height:1.4;">
+                        "${escapeHtml(e.exact_quote ? e.exact_quote.slice(0, 70) + (e.exact_quote.length > 70 ? '...' : '') : '')}"
+                    </div>
+                </div>
+            `;
+        }).join("") : '<div class="why-text">暂无提取证据</div>';
+
+        // Tab 3: Raw-Text Quote Inspector Cards
+        const quotesInspectorHtml = evidences.length > 0 ? evidences.map((e, qIdx) => {
+            let tierPillClass = "tier-exact";
+            let tierLabel = "EXACT";
+            if (e.locator_tier === "NORMALIZED_EXACT") {
+                tierPillClass = "tier-normalized";
+                tierLabel = "NORMALIZED_EXACT";
+            } else if (e.locator_tier === "UNVERIFIED") {
+                tierPillClass = "tier-unverified";
+                tierLabel = "UNVERIFIED (HALLUCINATION REJECTED)";
+            }
+
+            const charRange = (e.char_start !== undefined && e.char_end !== undefined && e.char_start !== null) 
+                ? `[char ${e.char_start}:${e.char_end}]` 
+                : `[char-level verified]`;
+
+            return `
+                <div class="quote-inspector-card">
+                    <div class="quote-card-meta">
+                        <span class="quote-tier-pill ${tierPillClass}">
+                            <i data-lucide="shield-check" style="width:13px;height:13px;"></i> ${tierLabel} ${charRange}
+                        </span>
+                        <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted);">
+                            信源 ID: ${escapeHtml(e.source_id)}
+                        </span>
+                    </div>
+                    <div class="quote-text-block">
+                        ${escapeHtml(e.exact_quote)}
+                    </div>
+                    ${e.context ? `<div class="quote-context-preview">上下文: ${escapeHtml(e.context)}</div>` : ''}
+                    ${e.evidence_note ? `<div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">备注: ${escapeHtml(e.evidence_note)}</div>` : ''}
+                </div>
+            `;
+        }).join("") : '<div class="why-text">暂无提取引文</div>';
+
+        // Tab 4: Telemetry Metrics
+        const indepCount = assessment.independent_source_count !== undefined ? assessment.independent_source_count : sources.length;
+        const officialCount = assessment.official_source_count !== undefined ? assessment.official_source_count : 0;
+        const directSupportCount = assessment.direct_support_count !== undefined ? assessment.direct_support_count : (evidences.filter(e => e.supports_claim).length);
+        const contradictCount = assessment.direct_contradiction_count !== undefined ? assessment.direct_contradiction_count : (evidences.filter(e => e.contradicts_claim).length);
+        const republishCount = assessment.republish_count !== undefined ? assessment.republish_count : provenances.length;
 
         card.innerHTML = `
             <div class="verdict-card-header">
@@ -341,16 +431,108 @@ function renderVerificationResult(coverage) {
                 <h3 class="verdict-statement-heading">${escapeHtml(claim.statement)}</h3>
             </div>
 
-            <div class="verdict-reasons-block">
-                <div class="block-label"><i data-lucide="check-square"></i> 为什么这样判断？(核验依据)</div>
-                <div class="why-reasons-list">
-                    ${reasonsHtml || '<div class="why-text">暂无详细判定理由</div>'}
+            <!-- Tab Navigation Header -->
+            <div class="verdict-tab-nav" data-card-idx="${idx}">
+                <button type="button" class="verdict-tab-btn active" data-tab="summary-${idx}">
+                    <i data-lucide="check-square" style="width:14px;height:14px;"></i> 结论与依据
+                </button>
+                <button type="button" class="verdict-tab-btn" data-tab="graph-${idx}">
+                    <i data-lucide="git-merge" style="width:14px;height:14px;"></i> 证据链图谱 (${sources.length}信源)
+                </button>
+                <button type="button" class="verdict-tab-btn" data-tab="quotes-${idx}">
+                    <i data-lucide="quote" style="width:14px;height:14px;"></i> 逐字引文透视 (${evidences.length}条)
+                </button>
+                <button type="button" class="verdict-tab-btn" data-tab="metrics-${idx}">
+                    <i data-lucide="activity" style="width:14px;height:14px;"></i> 规则判定度量
+                </button>
+            </div>
+
+            <!-- Tab 1: Summary Pane -->
+            <div class="verdict-tab-pane active" id="tab-summary-${idx}">
+                <div class="verdict-reasons-block">
+                    <div class="block-label"><i data-lucide="list-checks"></i> 为什么这样判断？(判定依据)</div>
+                    <div class="why-reasons-list">
+                        ${reasonsHtml || '<div class="why-text">暂无详细判定理由</div>'}
+                    </div>
+                </div>
+                ${gapsHtml}
+                ${adviceHtml}
+            </div>
+
+            <!-- Tab 2: Provenance DAG Pane -->
+            <div class="verdict-tab-pane" id="tab-graph-${idx}">
+                <div class="provenance-dag-wrap">
+                    <div class="dag-flow-grid">
+                        <div class="dag-stage-col">
+                            <div class="dag-col-title"><i data-lucide="globe" style="width:13px;height:13px;"></i> 1. 检索公开信源</div>
+                            ${sourcesDagHtml}
+                        </div>
+                        <div class="dag-stage-col">
+                            <div class="dag-col-title"><i data-lucide="file-text" style="width:13px;height:13px;"></i> 2. 证据极性判定</div>
+                            ${quotesDagHtml}
+                        </div>
+                        <div class="dag-stage-col">
+                            <div class="dag-col-title"><i data-lucide="cpu" style="width:13px;height:13px;"></i> 3. 确定性规则门</div>
+                            <div class="dag-node-card" style="border-left: 3px solid var(--accent-cyan);">
+                                <div style="font-size:0.75rem;color:var(--text-muted);font-weight:700;">RULE GATE</div>
+                                <div style="font-size:0.85rem;color:var(--text-primary);margin:4px 0;">
+                                    独立信源: <strong>${indepCount}</strong> 个<br>
+                                    官方直证: <strong>${officialCount}</strong> 个<br>
+                                    直接反驳: <strong>${contradictCount}</strong> 个
+                                </div>
+                                <span class="verdict-state-pill sm ${stateInfo.className}">${stateInfo.label}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            ${gapsHtml}
-            ${adviceHtml}
+            <!-- Tab 3: Quotes Inspector Pane -->
+            <div class="verdict-tab-pane" id="tab-quotes-${idx}">
+                <div class="quotes-inspector-grid">
+                    ${quotesInspectorHtml}
+                </div>
+            </div>
+
+            <!-- Tab 4: Telemetry Metrics Pane -->
+            <div class="verdict-tab-pane" id="tab-metrics-${idx}">
+                <div class="telemetry-grid">
+                    <div class="telemetry-card">
+                        <div class="telemetry-val">${indepCount}</div>
+                        <div class="telemetry-label">独立有效信源数 ($N_{indep}$)</div>
+                    </div>
+                    <div class="telemetry-card">
+                        <div class="telemetry-val">${officialCount}</div>
+                        <div class="telemetry-label">官方一手信源数 ($N_{official}$)</div>
+                    </div>
+                    <div class="telemetry-card">
+                        <div class="telemetry-val">${directSupportCount}</div>
+                        <div class="telemetry-label">直接强证实证据 ($N_{support}$)</div>
+                    </div>
+                    <div class="telemetry-card">
+                        <div class="telemetry-val">${contradictCount}</div>
+                        <div class="telemetry-label">直接权威反驳 ($N_{contra}$)</div>
+                    </div>
+                    <div class="telemetry-card">
+                        <div class="telemetry-val">${republishCount}</div>
+                        <div class="telemetry-label">同源转载去重数 ($N_{republish}$)</div>
+                    </div>
+                </div>
+            </div>
         `;
+
+        // Attach Tab Click Handlers
+        card.querySelectorAll(".verdict-tab-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const targetTab = btn.dataset.tab;
+                card.querySelectorAll(".verdict-tab-btn").forEach(b => b.classList.remove("active"));
+                card.querySelectorAll(".verdict-tab-pane").forEach(p => p.classList.remove("active"));
+                btn.classList.add("active");
+                const targetPane = card.querySelector(`#tab-${targetTab}`);
+                if (targetPane) targetPane.classList.add("active");
+                lucide.createIcons();
+            });
+        });
 
         verdictCardsContainer.appendChild(card);
     });
@@ -358,6 +540,7 @@ function renderVerificationResult(coverage) {
     verdictResultSection.style.display = "block";
     lucide.createIcons();
 }
+
 
 // ──────────────────────────────────────────────
 //  Presentation Format Helpers
