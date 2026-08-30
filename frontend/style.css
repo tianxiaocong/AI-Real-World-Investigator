@@ -1192,3 +1192,86 @@ body::before {
     font-weight: 500;
 }
 
+/* ─── Autonomous Multi-Round Investigation Banner ─── */
+.multi-round-timeline-banner {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.12), rgba(16, 185, 129, 0.08));
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin: 12px 0 16px 0;
+    backdrop-filter: blur(8px);
+}
+
+.timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+    display: inline-block;
+    animation: pulseGlow 1.8s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+.timeline-steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+}
+
+.round-step {
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 600;
+    font-family: var(--font-mono);
+}
+
+.round-step.r1 {
+    background: rgba(234, 179, 8, 0.15);
+    color: #facc15;
+    border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.round-step.gap {
+    background: rgba(147, 51, 234, 0.15);
+    color: #c084fc;
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    max-width: 320px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.round-step.r2 {
+    background: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.timeline-arrow {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+}
+

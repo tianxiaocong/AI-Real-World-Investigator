@@ -321,14 +321,14 @@ class MockLLMProvider(LLMProvider):
             return DecomposeOutput(
                 claims=[
                     RawDecomposedClaim(
-                        statement=f"{target_name} 于2024年完成近10亿元人民币B2轮融资，美团领投",
-                        subject=target_name,
-                        predicate="完成融资",
-                        object_value="近10亿元人民币",
-                        time_context="2024年",
+                        statement=target_name if len(target_name) > 5 else f"{target_name} 于2024年完成近10亿元人民币B2轮融资，美团领投",
+                        subject=target_name[:20],
+                        predicate="事实陈述",
+                        object_value="",
+                        time_context="最新",
                         polarity=True,
                         verifiability=Verifiability.PUBLICLY_VERIFIABLE,
-                        verifiability_reason="重大创投融资通常有投资方或权威媒体公开披露"
+                        verifiability_reason="公开事实核验通常有权威媒体或官方渠道披露"
                     )
                 ]
             )  # type: ignore

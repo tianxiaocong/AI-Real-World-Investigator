@@ -267,6 +267,7 @@ class Verdict(BaseModel):
     sources: list[Source] = []
     evidences: list[Evidence] = []
     provenances: list[SourceProvenance] = []
+    multi_round_audit: Optional[Dict[str, Any]] = None
 
 
 # ──────────────────────────────────────────────

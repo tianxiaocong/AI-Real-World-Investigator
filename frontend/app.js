@@ -418,6 +418,23 @@ function renderVerificationResult(coverage) {
         const contradictCount = assessment.direct_contradiction_count !== undefined ? assessment.direct_contradiction_count : (evidences.filter(e => e.contradicts_claim).length);
         const republishCount = assessment.republish_count !== undefined ? assessment.republish_count : provenances.length;
 
+        const audit = verdict.multi_round_audit || { round_count: 1 };
+        const multiRoundHtml = audit.round_count > 1 ? `
+            <div class="multi-round-timeline-banner">
+                <div class="timeline-header">
+                    <span class="pulse-dot"></span>
+                    <strong>自主调查循环 (Autonomous Multi-Round Investigation)</strong>
+                </div>
+                <div class="timeline-steps">
+                    <span class="round-step r1"><i data-lucide="search" style="width:12px;height:12px;"></i> Round 1: 发现单源/缺口 (🟡 ${escapeHtml(audit.initial_state)})</span>
+                    <span class="timeline-arrow">──▶</span>
+                    <span class="round-step gap">🎯 触发缺口定向检索: "${escapeHtml(audit.gap_query || '')}"</span>
+                    <span class="timeline-arrow">──▶</span>
+                    <span class="round-step r2">✨ Round 2 注入 ${audit.new_sources_added || 0} 个补充信源 ──▶ 最终: ${stateInfo.label}</span>
+                </div>
+            </div>
+        ` : '';
+
         card.innerHTML = `
             <div class="verdict-card-header">
                 <div class="verdict-main-badge-wrap">
@@ -426,6 +443,8 @@ function renderVerificationResult(coverage) {
                 </div>
                 <span class="as-of-label">核验时间: ${verdict.verified_as_of || "最新"}</span>
             </div>
+
+            ${multiRoundHtml}
 
             <div class="verdict-claim-box">
                 <h3 class="verdict-statement-heading">${escapeHtml(claim.statement)}</h3>

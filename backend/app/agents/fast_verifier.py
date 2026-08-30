@@ -316,6 +316,116 @@ class FastClaimVerifierAgent:
             evidences=evidences
         )
 
+        multi_round_audit = {
+            "round_count": 1,
+            "initial_state": evidence_state.value,
+            "final_state": evidence_state.value,
+            "resolved_gaps": []
+        }
+
+        # 5. 【Autonomous Evidence-Gap Investigation Loop】
+        # 若第一轮由于单源、缺少官方确认或证据不足落入 INSUFFICIENT，且存在明确证据缺口，则自动发起第 2 轮定向缺口检索
+        if evidence_state == EvidenceState.INSUFFICIENT and evidence_gaps and len(sources) > 0:
+            logger.info(f"[Autonomous Loop] Claim '{claim.statement[:30]}' is INSUFFICIENT. Triggering Round 2 with gaps: {evidence_gaps}")
+            gap_query = self._generate_gap_targeted_query(claim, evidence_gaps)
+            round_2_results = await self.search.search(gap_query, max_results=4)
+            
+            existing_urls = {s.url for s in sources}
+            new_sources: List[Source] = []
+            
+            for idx, item in enumerate(round_2_results):
+                url = getattr(item, "url", "#")
+                if url in existing_urls:
+                    continue
+                s_id = f"s-r2-{idx+1}-{uuid.uuid4().hex[:4]}"
+                title = getattr(item, "title", "Web Source (R2)")
+                domain = getattr(item, "domain", None)
+                if not domain:
+                    domain = url.split("/")[2] if "://" in url else "web"
+                tier = self._classify_source_tier(domain, url)
+                
+                source = Source(
+                    id=s_id,
+                    url=url,
+                    domain=domain,
+                    title=title,
+                    source_tier=tier,
+                    publish_date=getattr(item, "published_date", None) or today_str,
+                    is_synthetic=getattr(item, "is_synthetic", False)
+                )
+                new_sources.append(source)
+                sources.append(source)
+                existing_urls.add(url)
+
+            if new_sources:
+                r2_snippets_text = "\n\n".join([
+                    f"[Source ID: {s.id} | {s.domain} | {s.title}]\n{s.title}\n{getattr(round_2_results[i], 'snippet', '')}"
+                    for i, s in enumerate(new_sources)
+                ])
+
+                r2_prompt = f"""针对待核验主张："{claim.statement}"
+第一轮调查发现存在以下关键证据缺口：{'; '.join(evidence_gaps)}
+以下是针对该缺口定向检索到的补充网页摘要：
+{r2_snippets_text}
+
+请提取能够弥补上述缺口、直接支持或反驳该主张的精确证据片段。"""
+
+                try:
+                    ext_res_r2: EvidenceExtractionBatch = await self.llm.generate_structured(
+                        prompt=r2_prompt,
+                        response_model=EvidenceExtractionBatch,
+                        system_prompt="你是一个严谨的事实核验证据提取器。提取补充证据并严格区分极性。"
+                    )
+                    for raw_ev in ext_res_r2.evidences:
+                        matched_s_id = new_sources[0].id
+                        for s in new_sources:
+                            if s.domain in raw_ev.exact_quote or s.title in raw_ev.exact_quote:
+                                matched_s_id = s.id
+                                break
+                        
+                        ev = Evidence(
+                            id=f"e-r2-{uuid.uuid4().hex[:6]}",
+                            source_id=matched_s_id,
+                            claim_id=claim.id,
+                            exact_quote=raw_ev.exact_quote,
+                            context=raw_ev.context,
+                            supports_claim=raw_ev.supports_claim if not (raw_ev.supports_claim and raw_ev.contradicts_claim) else True,
+                            contradicts_claim=raw_ev.contradicts_claim if not (raw_ev.supports_claim and raw_ev.contradicts_claim) else False,
+                            directness=raw_ev.directness,
+                            scope_match=raw_ev.scope_match,
+                            evidence_note=raw_ev.evidence_note
+                        )
+                        evidences.append(ev)
+                except Exception as e:
+                    logger.warning(f"Round 2 extraction failed: {e}")
+
+                # 重新评估合并证据集
+                assessment = assess_evidence_for_claim(
+                    claim=claim,
+                    sources=sources,
+                    evidences=evidences,
+                    provenances=provenances
+                )
+                evidence_state = compute_evidence_state(assessment, claim.verifiability)
+                
+                # 重新生成解释与剩余缺口
+                why_reasons, evidence_gaps, next_step_advice = await self._generate_verdict_explanation(
+                    claim=claim,
+                    assessment=assessment,
+                    evidence_state=evidence_state,
+                    sources=sources,
+                    evidences=evidences
+                )
+
+                multi_round_audit = {
+                    "round_count": 2,
+                    "initial_state": "INSUFFICIENT",
+                    "final_state": evidence_state.value,
+                    "gap_query": gap_query,
+                    "new_sources_added": len(new_sources),
+                    "state_elevated": (evidence_state != EvidenceState.INSUFFICIENT)
+                }
+
         return Verdict(
             claim_id=claim.id,
             evidence_state=evidence_state,
@@ -326,8 +436,21 @@ class FastClaimVerifierAgent:
             assessment=assessment,
             sources=sources,
             evidences=evidences,
-            provenances=provenances
+            provenances=provenances,
+            multi_round_audit=multi_round_audit
         )
+
+    def _generate_gap_targeted_query(self, claim: Claim, gaps: List[str]) -> str:
+        """根据证据缺口生成定向搜索关键词"""
+        base = claim.statement
+        gap_str = " ".join(gaps)
+        if any(kw in gap_str for kw in ["官方", "公告", "声明"]):
+            return f"{base} 官方公告 声明"
+        elif any(kw in gap_str for kw in ["SEC", "财报", "10-Q"]):
+            return f"{base} SEC filing 10-Q"
+        elif any(kw in gap_str for kw in ["独立", "第三方", "证实"]):
+            return f"{base} Reuters Bloomberg 权威报道"
+        return f"{base} 证实 辟谣 声明"
 
     def _classify_source_tier(self, domain: str, url: str) -> SourceTier:
         """根据域名与 URL 快速归类来源类型"""
