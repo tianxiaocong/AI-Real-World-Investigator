@@ -171,33 +171,54 @@ class FastClaimVerifierAgent:
     def _build_directed_search_queries(self, claim: Claim, fact_slots: FactSlots) -> List[str]:
         """构建多路高信噪比定向搜索查询，结合原始语义、复合槽位与权威/争议修饰词"""
         queries: List[str] = []
-        entity = fact_slots.entity or (claim.attributes.subject if claim.attributes else "") or claim.statement[:20]
+        raw_entity = fact_slots.entity or (claim.attributes.subject if claim.attributes else "") or claim.statement[:20]
         
-        # 1. 原始关键语义 Query (提取核心名词短语)
-        raw_clean = claim.statement.replace("网络传闻称", "").replace("据报道", "").strip()
-        queries.append(raw_clean)
+        # 提取核心实体（去除如 "及工作室"、"工作室"、"等人"、"团队"、"官方" 等修饰后缀以确保检索命中率）
+        core_entity = raw_entity
+        for suffix in ["及工作室", "工作室", "等人", "团队", "官方"]:
+            if core_entity.endswith(suffix) and len(core_entity) > len(suffix):
+                core_entity = core_entity[:-len(suffix)].strip()
+                break
 
-        # 2. 结构化实体 + 槽位数值 Query
+        # 1. 结构化实体 + 核心槽位数值 Query (过滤与实体重复项，保持紧凑 2~3 词最佳)
         slot_vals = [cs.value for cs in fact_slots.compound_slots if cs.value]
         time_ctx = fact_slots.time_context or ""
-        if slot_vals:
-            queries.append(f"{entity} {' '.join(slot_vals)} {time_ctx}".strip())
+        distinct_slots = [v for v in slot_vals if v and v.lower() not in raw_entity.lower()]
+        if distinct_slots:
+            queries.append(f"{core_entity} {' '.join(distinct_slots[:2])}".strip())
         elif fact_slots.predicate and fact_slots.predicate != "statement":
-            queries.append(f"{entity} {fact_slots.predicate} {time_ctx}".strip())
+            queries.append(f"{core_entity} {fact_slots.predicate}".strip())
+
+        # 2. 争议/辟谣/回应/绯闻定向 Query (保持 2~3 个精准词)
+        if not fact_slots.polarity or any(k in claim.statement for k in ["传闻", "出轨", "辟谣", "辞职", "否认", "被查", "涉嫌", "造谣", "绯闻", "风波"]):
+            if any(k in claim.statement for k in ["辟谣", "造谣", "维权", "澄清"]):
+                queries.append(f"{core_entity} 辟谣")
+                queries.append(f"{core_entity} 声明 回应")
+            elif any(k in claim.statement for k in ["出轨", "绯闻", "风波"]):
+                queries.append(f"{core_entity} 出轨 绯闻")
+            elif "辞职" in claim.statement:
+                queries.append(f"{core_entity} 辞职 传闻")
+            else:
+                queries.append(f"{core_entity} 辟谣 声明")
 
         # 3. 官方/权威定向 Query
         if fact_slots.accounting_basis == AccountingStandard.GAAP:
-            queries.append(f"{entity} {time_ctx} GAAP 财报 净利润 官方 SEC".strip())
+            queries.append(f"{core_entity} {time_ctx} GAAP 财报 净利润".strip())
         elif any(cs.slot_name in ("price", "msrp", "memory") for cs in fact_slots.compound_slots):
-            queries.append(f"{entity} {' '.join(slot_vals)} 官方 建议零售价 MSRP 规格".strip())
+            queries.append(f"{core_entity} {' '.join(distinct_slots[:2])} 建议零售价 规格".strip())
         elif any(cs.slot_name in ("founder", "founding_year", "headquarters") for cs in fact_slots.compound_slots):
-            queries.append(f"{entity} 创始人 总部 创立时间 官方简介".strip())
+            queries.append(f"{core_entity} 创始人 总部 创立时间".strip())
         else:
-            queries.append(f"{entity} 官方公告 新闻稿".strip())
+            queries.append(f"{core_entity} 官方公告 新闻稿".strip())
 
-        # 4. 争议/辟谣定向 Query (针对否定或传闻主张)
-        if not fact_slots.polarity or "传闻" in claim.statement or "辞职" in claim.statement or "否认" in claim.statement:
-            queries.append(f"{entity} {fact_slots.predicate or ''} 辟谣 声明 澄清 辞职".strip())
+        # 4. 原始关键语义 Query (若原句过长则提炼关键词短语，避免整句送检0条结果)
+        raw_clean = claim.statement.replace("网络传闻称", "").replace("据报道", "").strip()
+        if len(raw_clean) <= 20:
+            queries.append(raw_clean)
+        else:
+            parts = [p.strip() for p in re.split(r'[,，。；;、\s]+', raw_clean) if len(p.strip()) >= 2]
+            short_q = " ".join(parts[:2])
+            queries.append(short_q or raw_clean[:20])
 
         # 去重且保持顺序
         seen = set()
@@ -226,10 +247,20 @@ class FastClaimVerifierAgent:
         combined = f"{title} {snippet} {url}"
 
         # 1. 动态提取核心实体 Stem Tokens
-        entity = (fact_slots.entity or (claim.attributes.subject if claim.attributes else "") or "").lower().strip()
-        entity_tokens = re.findall(r'[\u4e00-\u9fa5]{2,}|[a-z0-9]{3,}', entity)
-        if not entity_tokens and entity:
-            entity_tokens = [entity]
+        raw_entity = (fact_slots.entity or (claim.attributes.subject if claim.attributes else "") or "").lower().strip()
+        core_entity = raw_entity
+        for suffix in ["及工作室", "工作室", "等人", "团队", "官方"]:
+            if core_entity.endswith(suffix) and len(core_entity) > len(suffix):
+                core_entity = core_entity[:-len(suffix)].strip()
+                break
+
+        entity_tokens = set()
+        if core_entity:
+            entity_tokens.add(core_entity)
+            for tok in re.findall(r'[\u4e00-\u9fa5]{2,}|[a-z0-9]{3,}', core_entity):
+                entity_tokens.add(tok)
+        if raw_entity and raw_entity != core_entity:
+            entity_tokens.add(raw_entity)
 
         entity_matched = any(token in combined for token in entity_tokens)
 
@@ -780,13 +811,13 @@ class FastClaimVerifierAgent:
         d = domain.lower()
         if any(g in d for g in [".gov", "sec.gov", "samr.gov", ".edu", "court.gov"]):
             return SourceTier.OFFICIAL
-        if any(o in d for o in ["reuters.com", "bloomberg.com", "apnews.com", "wsj.com", "ft.com", "xinhuanet.com", "cctv.com"]):
+        if any(o in d for o in ["reuters.com", "bloomberg.com", "apnews.com", "wsj.com", "ft.com", "xinhuanet.com", "cctv.com", "people.com.cn"]):
             return SourceTier.AUTHORITATIVE
-        if any(m in d for m in ["36kr.com", "ithome.com", "thepaper.cn", "caixin.com", "sina.com.cn", "163.com", "qq.com"]):
+        if any(m in d for m in ["36kr.com", "ithome.com", "thepaper.cn", "caixin.com", "sina.com.cn", "sina.cn", "163.com", "qq.com", "sohu.com", "ifeng.com", "msn.com", "msn.cn", "jiemian.com", "zaobao.com"]):
             return SourceTier.MAINSTREAM
         if any(i in d for i in ["techcrunch.com", "huxiu.com", "geekpark.net", "infoq.cn", "csdn.net"]):
             return SourceTier.INDUSTRY
-        if any(c in d for c in ["zhihu.com", "weibo.com", "reddit.com", "tieba.baidu.com", "x.com", "xiaohongshu.com"]):
+        if any(c in d for c in ["zhihu.com", "weibo.com", "weibo.cn", "reddit.com", "tieba.baidu.com", "x.com", "xiaohongshu.com", "douban.com", "bilibili.com", "baijiahao.baidu.com"]):
             return SourceTier.COMMUNITY
         return SourceTier.UNKNOWN
 
