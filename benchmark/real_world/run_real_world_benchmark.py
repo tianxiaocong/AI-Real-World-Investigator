@@ -28,7 +28,8 @@ from app.providers.llm.mock_provider import MockLLMProvider
 from app.providers.llm import get_llm_provider
 from pydantic import BaseModel
 
-STATE_ORDER = [
+# Unordered category labels for confusion matrix visualization display only
+CONFUSION_MATRIX_LABELS = [
     "SUFFICIENT", "STRONG", "INSUFFICIENT", "CONFLICTING", "UNSUPPORTED", "NOT_ASSESSABLE"
 ]
 

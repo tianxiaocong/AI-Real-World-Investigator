@@ -22,7 +22,8 @@ from app.engine.verdict_rules import (
     assess_evidence_for_claim, compute_evidence_state
 )
 
-STATE_ORDER = [
+# Unordered category labels for confusion matrix visualization display only
+CONFUSION_MATRIX_LABELS = [
     "SUFFICIENT", "STRONG", "INSUFFICIENT", "CONFLICTING", "UNSUPPORTED", "NOT_ASSESSABLE"
 ]
 
@@ -160,11 +161,11 @@ def run_rule_regression_benchmark():
     print(f" Conservative Miss Rate  : {miss_rate:.1f}% ({conservative_miss_cases}/{total_cases})")
     print(f"============================================================")
     print(f" Confusion Matrix (Gold Rows x Pred Cols):")
-    header = f"{'GOLD / PRED':<15}" + "".join([f"{s[:6]:>8}" for s in STATE_ORDER])
+    header = f"{'GOLD / PRED':<15}" + "".join([f"{s[:6]:>8}" for s in CONFUSION_MATRIX_LABELS])
     print(header)
-    for g in STATE_ORDER:
+    for g in CONFUSION_MATRIX_LABELS:
         row_str = f"{g:<15}"
-        for p in STATE_ORDER:
+        for p in CONFUSION_MATRIX_LABELS:
             row_str += f"{confusion_matrix[g][p]:>8}"
         print(row_str)
     print(f"============================================================\n")

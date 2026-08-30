@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 import numpy as np
 from urllib.parse import urlparse
 from typing import List, Dict, Any, Optional, Set
@@ -285,7 +286,7 @@ class VerificationAgent:
                 claim_index=0,
                 verifiability=verifiability,
                 verifiability_reason="公开资料检索核验" if verifiability == Verifiability.PUBLICLY_VERIFIABLE else "主观观点/非公开推论",
-                verified_as_of="2026-08-28"
+                verified_as_of=datetime.now(timezone.utc).strftime("%Y-%m-%d")
             )
 
             assessment: EvidenceAssessment = assess_evidence_for_claim(

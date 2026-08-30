@@ -6,6 +6,7 @@ The single, canonical business logic layer for fact verification across:
 - Phase 5D Real-Factual E2E Benchmark Runner
 """
 
+from datetime import datetime, timezone
 import logging
 from typing import List, Dict, Any, Optional, Tuple
 
@@ -274,7 +275,7 @@ class VerificationService:
             claim_index=0,
             verifiability=verifiability,
             verifiability_reason="公开事实核验",
-            verified_as_of="2026-08-28"
+            verified_as_of=datetime.now(timezone.utc).strftime("%Y-%m-%d")
         )
 
         # 4. Deterministic Verdict Rules Engine
