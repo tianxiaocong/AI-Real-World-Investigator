@@ -1,308 +1,668 @@
-[
-  {
-    "id": "blind-01",
-    "domain": "Hardware / Multi-Spec",
-    "claim": "英伟达正式发布的 GeForce RTX 4070 Ti Super 显卡官方建议零售价(MSRP)为799美元，并配备16GB GDDR6X显存。",
-    "execution_metadata": {
-      "llm_provider": "sensenova",
-      "model": "glm-5.2",
-      "search_provider": "duckduckgo",
-      "timestamp": "2026-08-30T08:07:01.391578+00:00"
-    },
-    "verdict_state": "INSUFFICIENT",
-    "fact_slots": {
-      "entity": "英伟达",
-      "predicate": "正式发布",
-      "compound_slots": [],
-      "time_context": null,
-      "accounting_basis": "UNKNOWN",
-      "trial_phase": null,
-      "polarity": true
-    },
-    "sources": [],
-    "evidences": [],
-    "relations": [],
-    "why_reasons": [
-      "ℹ️ 当前检索引擎未返回任何相关来源，无法获取关于该显卡发布状态的任何公开信息。",
-      "! 缺乏英伟达官方的直接证实或新闻稿，无法确认“正式发布”这一动作的真实性。",
-      "! 未检索到任何科技媒体或可靠反证对该声明进行报道或反驳。"
-    ],
-    "evidence_gaps": [
-      "尚未找到英伟达官方网站或新闻室关于 GeForce RTX 4070 Ti Super 显卡发布的公告。",
-      "尚未找到主流科技媒体对该款显卡发布的新闻报道或评测文章。"
-    ]
+{
+  "audit_funnel_summary": {
+    "decomposition_slot_recall": "100.0%",
+    "search_relevance_rate": "84.0%",
+    "live_fetch_success_rate": "52.4%",
+    "extracted_evidences_count": 3,
+    "quote_exact_rate": "100.0%",
+    "valid_relations_count": 3,
+    "overclaim_rate": "0.0%"
   },
-  {
-    "id": "blind-02",
-    "domain": "Financial / Accounting Duality",
-    "claim": "Alphabet公布的2024年第三季度财报中，按公认会计准则(GAAP)计算的净利润为263.01亿美元，而市场部分非GAAP分析口径给出了不同的利润表现。",
-    "execution_metadata": {
-      "llm_provider": "sensenova",
-      "model": "glm-5.2",
-      "search_provider": "duckduckgo",
-      "timestamp": "2026-08-30T08:07:01.391578+00:00"
-    },
-    "verdict_state": "INSUFFICIENT",
-    "fact_slots": {
-      "entity": "Alphabet",
-      "predicate": "净利润",
-      "compound_slots": [],
-      "time_context": "2024年第三季度",
-      "accounting_basis": "GAAP",
-      "trial_phase": null,
-      "polarity": true
-    },
-    "sources": [],
-    "evidences": [],
-    "relations": [],
-    "why_reasons": [
-      "ℹ️ 当前检索未捕获到任何与该声明相关的信息源，无法进行交叉验证。",
-      "! 缺乏Alphabet官方财报或SEC 10-Q文件作为直接证实来源。",
-      "! 未找到第三方财经媒体（如路透社、彭博社）对该具体财务数据的报道作为旁证。"
-    ],
-    "evidence_gaps": [
-      "尚未找到Alphabet官方投资者关系页面发布的2024年第三季度财报原文或新闻稿。",
-      "尚未找到美国证券交易委员会（SEC）EDGAR系统中Alphabet提交的2024年第三季度10-Q季度报告。"
-    ]
-  },
-  {
-    "id": "blind-03",
-    "domain": "Temporal / Pricing Evolution",
-    "claim": "OpenAI 针对个人用户的 ChatGPT Plus 订阅服务最初定价为每月20美元，截至2024年全球官方标准月费仍维持在20美元。",
-    "execution_metadata": {
-      "llm_provider": "sensenova",
-      "model": "glm-5.2",
-      "search_provider": "duckduckgo",
-      "timestamp": "2026-08-30T08:07:01.391578+00:00"
-    },
-    "verdict_state": "INSUFFICIENT",
-    "fact_slots": {
-      "entity": "OpenAI",
-      "predicate": "最初定价",
-      "compound_slots": [
+  "cases": [
+    {
+      "id": "blind-01",
+      "domain": "Hardware / Multi-Spec",
+      "claim": "英伟达正式发布的 GeForce RTX 4070 Ti Super 显卡官方建议零售价(MSRP)为799美元，并配备16GB GDDR6X显存。",
+      "execution_metadata": {
+        "llm_provider": "sensenova",
+        "model": "glm-5.2",
+        "search_provider": "duckduckgo",
+        "timestamp": "2026-08-30T08:47:22.530455+00:00"
+      },
+      "verdict_state": "INSUFFICIENT",
+      "fact_slots": {
+        "entity": "英伟达",
+        "predicate": "发布定价",
+        "compound_slots": [
+          {
+            "slot_name": "brand",
+            "value": "英伟达",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "model",
+            "value": "GeForce RTX 4070 Ti Super",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "price",
+            "value": "799",
+            "unit": "USD",
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "msrp",
+            "value": "官方建议零售价",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          }
+        ],
+        "time_context": null,
+        "accounting_basis": "UNKNOWN",
+        "trial_phase": null,
+        "polarity": true
+      },
+      "sources": [
         {
-          "slot_name": "product",
-          "value": "ChatGPT Plus",
-          "unit": null,
-          "is_required": true,
-          "qualifier": null
+          "id": "s-1-c019",
+          "url": "https://www.nvidia.cn/",
+          "domain": "www.nvidia.cn",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "be814d0288aeb0eacf54a9af61cd020bb318f0d00a0ba9806ba5d6601d1fd2f5",
+          "raw_text_length": 3222
         },
         {
-          "slot_name": "price",
-          "value": "20",
-          "unit": "USD",
-          "is_required": true,
-          "qualifier": null
+          "id": "s-2-95be",
+          "url": "https://www.nvidia.com/en-us/",
+          "domain": "www.nvidia.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "994d1f09d0bc25f3fc829db81b6ea2e9e24ef7d9505602eb9f0ca7242478c2cb",
+          "raw_text_length": 5931
         },
         {
-          "slot_name": "billing_cycle",
-          "value": "month",
-          "unit": null,
-          "is_required": true,
-          "qualifier": null
-        }
-      ],
-      "time_context": "最初发布时",
-      "accounting_basis": "UNKNOWN",
-      "trial_phase": null,
-      "polarity": true
-    },
-    "sources": [],
-    "evidences": [],
-    "relations": [],
-    "why_reasons": [
-      "ℹ️ 当前检索未捕获到任何相关来源，无法对声明进行事实核查。",
-      "! 缺乏OpenAI官方公告或可靠新闻报道来证实ChatGPT Plus最初定价为每月20美元。",
-      "! 没有发现任何反证或矛盾信息来推翻该定价声明。"
-    ],
-    "evidence_gaps": [
-      "尚未找到OpenAI关于ChatGPT Plus订阅服务最初定价的官方公告或新闻稿。",
-      "尚未找到权威科技媒体对ChatGPT Plus发布初期定价的报道记录。"
-    ]
-  },
-  {
-    "id": "blind-04",
-    "domain": "Corporate / Denial vs Rumor",
-    "claim": "网络传闻称大模型初创公司Anthropic的CEO Dario Amodei已于2024年8月辞职并卸任所有职务。",
-    "execution_metadata": {
-      "llm_provider": "sensenova",
-      "model": "glm-5.2",
-      "search_provider": "duckduckgo",
-      "timestamp": "2026-08-30T08:07:01.391578+00:00"
-    },
-    "verdict_state": "INSUFFICIENT",
-    "fact_slots": {
-      "entity": "Dario Amodei",
-      "predicate": "担任",
-      "compound_slots": [],
-      "time_context": null,
-      "accounting_basis": "UNKNOWN",
-      "trial_phase": null,
-      "polarity": true
-    },
-    "sources": [],
-    "evidences": [],
-    "relations": [],
-    "why_reasons": [
-      "ℹ️ 当前检索未获取到任何相关来源信息，缺乏可溯源的数据基础。",
-      "! 未找到任何直接支持或反驳该声明的证据记录。",
-      "! 缺乏 Anthropic 官方或权威媒体对该人员职务的直接证实。"
-    ],
-    "evidence_gaps": [
-      "尚未找到 Anthropic 官方网站或公开新闻稿中关于 Dario Amodei 职务的明确表述",
-      "尚未找到权威商业或科技媒体对该高管任命的公开报道"
-    ]
-  },
-  {
-    "id": "blind-05",
-    "domain": "Standard Factual Assertion",
-    "claim": "具身智能人形机器人企业宇树科技(Unitree Robotics)总部位于中国杭州，由创始人兼CEO王兴兴于2016年创立。",
-    "execution_metadata": {
-      "llm_provider": "sensenova",
-      "model": "glm-5.2",
-      "search_provider": "duckduckgo",
-      "timestamp": "2026-08-30T08:07:01.391578+00:00"
-    },
-    "verdict_state": "INSUFFICIENT",
-    "fact_slots": {
-      "entity": "宇树科技",
-      "predicate": "行业属性",
-      "compound_slots": [
+          "id": "s-3-61ce",
+          "url": "https://www.nvidia.cn/geforce/drivers/",
+          "domain": "www.nvidia.cn",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "3c5d4c00d904af5629923d6165395ca27224d359a99ec2d72de83534b18b7d67",
+          "raw_text_length": 2876
+        },
         {
-          "slot_name": "industry",
-          "value": "具身智能人形机器人企业",
-          "unit": null,
-          "is_required": true,
-          "qualifier": null
+          "id": "s-4-cec7",
+          "url": "https://baike.baidu.com/item/nVidia/325313",
+          "domain": "baike.baidu.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
         }
       ],
-      "time_context": null,
-      "accounting_basis": "UNKNOWN",
-      "trial_phase": null,
-      "polarity": true
+      "evidences": [],
+      "relations": [],
+      "why_reasons": [
+        "ℹ️ 检索到4个独立信息源，但证据摘要为空，表明现有来源均未提供可直接引用的具体证据内容",
+        "! 未找到英伟达官方产品页面或新闻稿直接证实RTX 4070 Ti Super建议零售价为799美元的表述",
+        "! 现有来源中未包含任何可靠反证，无法确认或否定该价格声明",
+        "✓ 由于既无直接支持证据也无可靠反证，当前信息不足以对该声明作出核验判定"
+      ],
+      "evidence_gaps": [
+        "尚未找到英伟达官方产品页面或官方新闻稿中关于RTX 4070 Ti Super建议零售价的直接表述",
+        "尚未找到可靠科技媒体对英伟达官方定价的明确引用或报道"
+      ]
     },
-    "sources": [
-      {
-        "id": "s-1-b83c",
-        "url": "https://apnews.com/projects/elections-2026/",
-        "domain": "apnews.com",
-        "source_tier": "AUTHORITATIVE",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_SUCCESS",
-        "fetch_mode": "LIVE",
-        "content_hash": "2ba6d1daa2cc9c25ea9c5a862969855c49ae6bb4bf6bce9c99ed9f932aba7fa0",
-        "raw_text_length": 2921
+    {
+      "id": "blind-02",
+      "domain": "Financial / Accounting Duality",
+      "claim": "Alphabet公布的2024年第三季度财报中，按公认会计准则(GAAP)计算的净利润为263.01亿美元，而市场部分非GAAP分析口径给出了不同的利润表现。",
+      "execution_metadata": {
+        "llm_provider": "sensenova",
+        "model": "glm-5.2",
+        "search_provider": "duckduckgo",
+        "timestamp": "2026-08-30T08:47:22.530455+00:00"
       },
-      {
-        "id": "s-2-a1be",
-        "url": "https://en.m.wikipedia.org/wiki/2024_United_States_presidential_election",
-        "domain": "en.m.wikipedia.org",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_EMPTY",
-        "fetch_mode": "LIVE",
-        "content_hash": null,
-        "raw_text_length": 0
+      "verdict_state": "INSUFFICIENT",
+      "fact_slots": {
+        "entity": "Alphabet",
+        "predicate": "净利润",
+        "compound_slots": [
+          {
+            "slot_name": "net_income",
+            "value": "263.01",
+            "unit": "亿美元",
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "year",
+            "value": "2024",
+            "unit": "年",
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "quarter",
+            "value": "第三季度",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "accounting_basis",
+            "value": "GAAP",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          }
+        ],
+        "time_context": "2024年第三季度",
+        "accounting_basis": "GAAP",
+        "trial_phase": null,
+        "polarity": true
       },
-      {
-        "id": "s-3-7ea2",
-        "url": "https://www.cnn.com/election/2026",
-        "domain": "www.cnn.com",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_SUCCESS",
-        "fetch_mode": "LIVE",
-        "content_hash": "91207d8e29e3accdcd5723daade9479d068fabecdf23e0e0256d7917782c9935",
-        "raw_text_length": 358
+      "sources": [
+        {
+          "id": "s-1-86bf",
+          "url": "https://www.worldometers.info/languages/english-alphabet/",
+          "domain": "www.worldometers.info",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "3860f884e0a3396edce3cb8fee730da2370eb4b1d3ee4e9e0032ebd724cccf94",
+          "raw_text_length": 2273
+        },
+        {
+          "id": "s-2-8e58",
+          "url": "https://en.wikipedia.org/wiki/English_alphabet",
+          "domain": "en.wikipedia.org",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-3-16dd",
+          "url": "https://en.wikipedia.org/wiki/Alphabet_Inc.",
+          "domain": "en.wikipedia.org",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-4-08eb",
+          "url": "https://finance.yahoo.com/quote/GOOGL/",
+          "domain": "finance.yahoo.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "37d87c66a5d3aa589273215843bd98d5037d84304e4bb7d02fcf0ad95b4d2e9a",
+          "raw_text_length": 1694
+        }
+      ],
+      "evidences": [
+        {
+          "id": "e-cb07b4",
+          "source_id": "s-4-08eb",
+          "exact_quote": "Net Income Avi to Common (ttm) 244.12B",
+          "char_start": 1406,
+          "char_end": 1444,
+          "match_tier": "EXACT",
+          "supports_claim": false,
+          "contradicts_claim": false,
+          "is_admissible": true
+        }
+      ],
+      "relations": [
+        {
+          "relation_type": "CONTEXTUAL",
+          "accounting_standard": "UNKNOWN",
+          "temporal_evolution": "CURRENT",
+          "matched_slots": [],
+          "polarity_reasoning": "该数据为过去12个月(ttm)的净利润，数值为2441.2亿美元，与主张中的2024年第三季度GAAP净利润263.01亿美元在时间口径和数值上均不一致，仅作为背景信息提供。"
+        }
+      ],
+      "why_reasons": [
+        "✓ 已检索到的4个独立信息源中，均未包含Alphabet 2024年第三季度GAAP净利润为263.01亿美元的直接数据",
+        "! 捕获的唯一证据摘要仅提供过去十二个月(TTM)净利润数据(244.12B)，与声明中针对单季度(Q3 2024)的特定数值无法直接对应或验证",
+        "ℹ️ 未检索到Alphabet官方投资者关系页面发布的2024年Q3财报新闻稿或SEC 10-Q文件作为直接证实来源",
+        "! 既未找到直接支持证据，也未发现可靠反证，无法对该具体数值做出真伪判定"
+      ],
+      "evidence_gaps": [
+        "尚未找到Alphabet官方发布的2024年第三季度财报新闻稿中GAAP净利润的具体数值",
+        "尚未找到Alphabet向SEC提交的2024年第三季度10-Q季度报告中经审计的净利润数据"
+      ]
+    },
+    {
+      "id": "blind-03",
+      "domain": "Temporal / Pricing Evolution",
+      "claim": "OpenAI 针对个人用户的 ChatGPT Plus 订阅服务最初定价为每月20美元，截至2024年全球官方标准月费仍维持在20美元。",
+      "execution_metadata": {
+        "llm_provider": "sensenova",
+        "model": "glm-5.2",
+        "search_provider": "duckduckgo",
+        "timestamp": "2026-08-30T08:47:22.530455+00:00"
       },
-      {
-        "id": "s-4-f09b",
-        "url": "https://www.nbcnews.com/politics/elections",
-        "domain": "www.nbcnews.com",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_SUCCESS",
-        "fetch_mode": "LIVE",
-        "content_hash": "2059bf2be4b01c29cc5b16f221b52b9f81e979415811cdbb9d2d28a8efb03294",
-        "raw_text_length": 836
+      "verdict_state": "INSUFFICIENT",
+      "fact_slots": {
+        "entity": "OpenAI",
+        "predicate": "订阅定价",
+        "compound_slots": [
+          {
+            "slot_name": "product",
+            "value": "ChatGPT Plus",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "target_user",
+            "value": "个人用户",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "initial_price",
+            "value": "20",
+            "unit": "USD",
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "billing_cycle",
+            "value": "每月",
+            "unit": "月",
+            "is_required": true,
+            "qualifier": null
+          }
+        ],
+        "time_context": "最初",
+        "accounting_basis": "UNKNOWN",
+        "trial_phase": null,
+        "polarity": true
       },
-      {
-        "id": "s-5-8f73",
-        "url": "https://election.news.sky.com/elections/us-election",
-        "domain": "election.news.sky.com",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_SUCCESS",
-        "fetch_mode": "LIVE",
-        "content_hash": "abcce216b2ba0fe52db4a18bccd15ff3ecb21aa0b1f5869ed5271ec9012b799a",
-        "raw_text_length": 1117
+      "sources": [
+        {
+          "id": "s-1-6428",
+          "url": "https://openai.com/",
+          "domain": "openai.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-2-9f01",
+          "url": "https://openai.com/index/chatgpt/",
+          "domain": "openai.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-3-b477",
+          "url": "https://en.wikipedia.org/wiki/OpenAI",
+          "domain": "en.wikipedia.org",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-4-b620",
+          "url": "https://chatgpt.com/",
+          "domain": "chatgpt.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-5-b70a",
+          "url": "https://platform.openai.com/",
+          "domain": "platform.openai.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        }
+      ],
+      "evidences": [],
+      "relations": [],
+      "why_reasons": [
+        "ℹ️ 检索到5个独立信息源，但已捕获证据摘要为空，表明现有来源中未提取到与该声明直接相关的有效信息内容",
+        "! 缺少OpenAI官方公告或定价页面的直接证实，无法确认'最初定价为每月20美元'这一具体声明的准确性",
+        "! 现有来源中既无直接支持证据，也无可靠反证，无法对该声明做出真假判定",
+        "ℹ️ 规则引擎判定状态为INSUFFICIENT，反映当前检索结果不足以支撑或否定该声明"
+      ],
+      "evidence_gaps": [
+        "尚未找到OpenAI官方关于ChatGPT Plus发布时初始定价的公告、新闻稿或官方博客文章",
+        "尚未找到OpenAI官网定价页面或帮助文档中关于ChatGPT Plus最初价格的历史记录"
+      ]
+    },
+    {
+      "id": "blind-04",
+      "domain": "Corporate / Denial vs Rumor",
+      "claim": "网络传闻称大模型初创公司Anthropic的CEO Dario Amodei已于2024年8月辞职并卸任所有职务。",
+      "execution_metadata": {
+        "llm_provider": "sensenova",
+        "model": "glm-5.2",
+        "search_provider": "duckduckgo",
+        "timestamp": "2026-08-30T08:47:22.530455+00:00"
       },
-      {
-        "id": "s-6-1a1e",
-        "url": "https://littlecaesars.com/en-us/",
-        "domain": "littlecaesars.com",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_EMPTY",
-        "fetch_mode": "LIVE",
-        "content_hash": null,
-        "raw_text_length": 0
+      "verdict_state": "UNSUPPORTED",
+      "fact_slots": {
+        "entity": "Dario Amodei",
+        "predicate": "辞职卸任",
+        "compound_slots": [
+          {
+            "slot_name": "company",
+            "value": "Anthropic",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "person",
+            "value": "Dario Amodei",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "role",
+            "value": "CEO",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "year",
+            "value": "2024",
+            "unit": "年",
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "month",
+            "value": "8",
+            "unit": "月",
+            "is_required": true,
+            "qualifier": null
+          }
+        ],
+        "time_context": "2024年8月",
+        "accounting_basis": "UNKNOWN",
+        "trial_phase": null,
+        "polarity": true
       },
-      {
-        "id": "s-r2-1-12fc",
-        "url": "https://m.timesofindia.com/",
-        "domain": "m.timesofindia.com",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_SUCCESS",
-        "fetch_mode": "LIVE",
-        "content_hash": null,
-        "raw_text_length": 0
+      "sources": [
+        {
+          "id": "s-1-8a25",
+          "url": "https://en.wikipedia.org/wiki/Dario_Amodei",
+          "domain": "en.wikipedia.org",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-2-9572",
+          "url": "https://www.dariohealth.com/",
+          "domain": "www.dariohealth.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "512f6cdb2f53345450614d55fd730e93abbd9ad63b4a287c1c699fa0a2ba4d53",
+          "raw_text_length": 1349
+        },
+        {
+          "id": "s-3-ffa2",
+          "url": "https://store.mydario.com/",
+          "domain": "store.mydario.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "2a0cb3ad29df725bf813e028ad5748e7010f50e31a32fdfa8631c4a0f6cb6160",
+          "raw_text_length": 6679
+        },
+        {
+          "id": "s-4-ca62",
+          "url": "https://shop.mydario.com/",
+          "domain": "shop.mydario.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "f38480eb78662cfd040e85ef455c892537e28ab9f657d68095b407ce12825c58",
+          "raw_text_length": 2914
+        },
+        {
+          "id": "s-5-447e",
+          "url": "https://www.anthropic.com/news",
+          "domain": "www.anthropic.com",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "ebe7d02579ae931e2f662a6b505393b1f0c78f4d3607b72c3e33f2a92fb6c033",
+          "raw_text_length": 817
+        },
+        {
+          "id": "s-6-52bc",
+          "url": "https://blockchain.news/zh/ainews/anthropic-ceo-dario-amodei-issues-statement-on-talks-with-us-department-of-war-policy-safeguards-and-ai-safety-analysis-zh",
+          "domain": "blockchain.news",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "94c0d07698f938001143e474881e8e2ea89349080d079fa620fa39848384bc72",
+          "raw_text_length": 3818
+        },
+        {
+          "id": "s-7-bb2c",
+          "url": "https://txtmix.com/posts/tech/dario-amodei-policy-ai-exponential/",
+          "domain": "txtmix.com",
+          "source_tier": "COMMUNITY",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_SUCCESS",
+          "fetch_mode": "LIVE",
+          "content_hash": "b8f8b65b5d7dd91246845da52914738b4b931452809b4deaa7262ffb629812b5",
+          "raw_text_length": 9861
+        },
+        {
+          "id": "s-8-6823",
+          "url": "https://www.ai-insight.org/reports/dario-amodei-policy-on-the-ai-exponential",
+          "domain": "www.ai-insight.org",
+          "source_tier": "UNKNOWN",
+          "is_synthetic": false,
+          "fetch_status": "FETCH_EMPTY",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        }
+      ],
+      "evidences": [
+        {
+          "id": "e-4aef51",
+          "source_id": "s-6-52bc",
+          "exact_quote": "Anthropic CEO Dario Amodei就与美国战争部会谈发表声明",
+          "char_start": 0,
+          "char_end": 39,
+          "match_tier": "EXACT",
+          "supports_claim": false,
+          "contradicts_claim": true,
+          "is_admissible": true
+        },
+        {
+          "id": "e-4a8e57",
+          "source_id": "s-7-bb2c",
+          "exact_quote": "Anthropic 联合创始人兼 CEO Dario Amodei 于 2026 年 6 月发布《Policy on the AI Exponential》",
+          "char_start": 81,
+          "char_end": 159,
+          "match_tier": "EXACT",
+          "supports_claim": false,
+          "contradicts_claim": true,
+          "is_admissible": true
+        }
+      ],
+      "relations": [
+        {
+          "relation_type": "DIRECT_CONTRADICT",
+          "accounting_standard": "UNKNOWN",
+          "temporal_evolution": "CURRENT",
+          "matched_slots": [
+            "company",
+            "person",
+            "role"
+          ],
+          "polarity_reasoning": "文章在讨论2024年及以后的事件时仍称其为Anthropic CEO，反驳了2024年8月辞职的主张。"
+        },
+        {
+          "relation_type": "DIRECT_CONTRADICT",
+          "accounting_standard": "UNKNOWN",
+          "temporal_evolution": "CURRENT",
+          "matched_slots": [
+            "company",
+            "person",
+            "role",
+            "year"
+          ],
+          "polarity_reasoning": "明确指出2026年6月Dario Amodei仍是Anthropic CEO，直接否定2024年8月辞职传闻。"
+        }
+      ],
+      "why_reasons": [
+        "✓ 检索到的8个独立信息源中，无一包含支持Dario Amodei于2024年8月辞去Anthropic CEO职务的证据",
+        "! 存在直接反证：有来源显示Amodei在2024年8月之后仍以\"Anthropic CEO\"身份发表公开声明（如就与美国战争部会谈发表声明），与传闻中其已卸任的说法直接矛盾",
+        "! 另有来源显示Amodei于2026年6月仍以联合创始人兼CEO身份发布政策文件，进一步反驳其于2024年8月卸任所有职务的说法",
+        "ℹ️ 未找到任何来自Anthropic官方渠道的直接证实或公司公告支持该传闻"
+      ],
+      "evidence_gaps": [
+        "尚未找到Anthropic官方发布的关于CEO变更或Dario Amodei卸任的正式公告",
+        "尚未找到Dario Amodei本人公开声明辞职的可靠原始信息源"
+      ]
+    },
+    {
+      "id": "blind-05",
+      "domain": "Standard Factual Assertion",
+      "claim": "具身智能人形机器人企业宇树科技(Unitree Robotics)总部位于中国杭州，由创始人兼CEO王兴兴于2016年创立。",
+      "execution_metadata": {
+        "llm_provider": "sensenova",
+        "model": "glm-5.2",
+        "search_provider": "duckduckgo",
+        "timestamp": "2026-08-30T08:47:22.530455+00:00"
       },
-      {
-        "id": "s-r2-2-580e",
-        "url": "https://m.timesofindia.com/sports/cricket/icc-cricket-world-cup-2019/teams/india",
-        "domain": "m.timesofindia.com",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_SUCCESS",
-        "fetch_mode": "LIVE",
-        "content_hash": null,
-        "raw_text_length": 0
+      "verdict_state": "INSUFFICIENT",
+      "fact_slots": {
+        "entity": "宇树科技",
+        "predicate": "总部位于",
+        "compound_slots": [
+          {
+            "slot_name": "headquarters",
+            "value": "中国杭州",
+            "unit": null,
+            "is_required": true,
+            "qualifier": null
+          },
+          {
+            "slot_name": "industry",
+            "value": "具身智能人形机器人",
+            "unit": null,
+            "is_required": false,
+            "qualifier": null
+          }
+        ],
+        "time_context": null,
+        "accounting_basis": "UNKNOWN",
+        "trial_phase": null,
+        "polarity": true
       },
-      {
-        "id": "s-r2-3-0dc4",
-        "url": "https://m.timesofindia.com/videos/entertainment/bollywood",
-        "domain": "m.timesofindia.com",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_SUCCESS",
-        "fetch_mode": "LIVE",
-        "content_hash": null,
-        "raw_text_length": 0
-      },
-      {
-        "id": "s-r2-4-451f",
-        "url": "https://m.timesofindia.com/gdprform.cms",
-        "domain": "m.timesofindia.com",
-        "source_tier": "UNKNOWN",
-        "is_synthetic": false,
-        "fetch_status": "FETCH_SUCCESS",
-        "fetch_mode": "LIVE",
-        "content_hash": null,
-        "raw_text_length": 0
-      }
-    ],
-    "evidences": [],
-    "relations": [],
-    "why_reasons": [
-      "✓ The contract explicitly states delivery within 30 days",
-      "! The supplier's performance history shows consistent delays",
-      "ℹ️ Industry standards suggest 45-day delivery is typical"
-    ],
-    "evidence_gaps": [
-      "Signed delivery receipts for the last three shipments",
-      "Email correspondence regarding delay notifications"
-    ]
-  }
-]
+      "sources": [
+        {
+          "id": "s-1-bcc4",
+          "url": "https://www.microsoft.com/en-us?msockid=321bd30f23aa6af61525c4ca22d66bed",
+          "domain": "www.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-2-1cf7",
+          "url": "https://account.microsoft.com/account",
+          "domain": "account.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-3-9779",
+          "url": "https://myaccount.microsoft.com/",
+          "domain": "myaccount.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        },
+        {
+          "id": "s-4-cdf9",
+          "url": "https://myaccount.microsoft.com/login",
+          "domain": "myaccount.microsoft.com",
+          "source_tier": "AUTHORITATIVE",
+          "is_synthetic": false,
+          "fetch_status": "REJECTED_IRRELEVANT",
+          "fetch_mode": "LIVE",
+          "content_hash": null,
+          "raw_text_length": 0
+        }
+      ],
+      "evidences": [],
+      "relations": [],
+      "why_reasons": [
+        "ℹ️ 检索到4个独立信息源，但已捕获证据摘要为空，表明现有来源中未提取到与声明直接相关的有效内容",
+        "! 缺乏宇树科技官方公告、官网信息或工商注册记录等权威直接证实",
+        "! 未找到可靠反证或否认该声明的信息，无法形成支持或反驳的完整证据链",
+        "ℹ️ 现有来源信息不足以对'总部位于中国杭州'这一具体事实做出充分判定"
+      ],
+      "evidence_gaps": [
+        "尚未找到宇树科技官方网站或官方公告中关于总部地址的直接声明",
+        "尚未找到宇树科技的工商注册信息或企业信用记录中的注册地址"
+      ]
+    }
+  ]
+}

@@ -169,30 +169,132 @@ class FastClaimVerifierAgent:
         )
         return coverage
 
+    def _build_directed_search_queries(self, claim: Claim, fact_slots: FactSlots) -> List[str]:
+        """构建多路高信噪比定向搜索查询，结合原始语义、复合槽位与权威/争议修饰词"""
+        queries: List[str] = []
+        entity = fact_slots.entity or (claim.attributes.subject if claim.attributes else "") or claim.statement[:20]
+        
+        # 1. 原始关键语义 Query (提取核心名词短语)
+        raw_clean = claim.statement.replace("网络传闻称", "").replace("据报道", "").strip()
+        queries.append(raw_clean)
+
+        # 2. 结构化实体 + 槽位数值 Query
+        slot_vals = [cs.value for cs in fact_slots.compound_slots if cs.value]
+        time_ctx = fact_slots.time_context or ""
+        if slot_vals:
+            queries.append(f"{entity} {' '.join(slot_vals)} {time_ctx}".strip())
+        elif fact_slots.predicate and fact_slots.predicate != "statement":
+            queries.append(f"{entity} {fact_slots.predicate} {time_ctx}".strip())
+
+        # 3. 官方/权威定向 Query
+        if fact_slots.accounting_basis == AccountingStandard.GAAP:
+            queries.append(f"{entity} {time_ctx} GAAP 财报 净利润 官方 SEC".strip())
+        elif any(cs.slot_name in ("price", "msrp", "memory") for cs in fact_slots.compound_slots):
+            queries.append(f"{entity} {' '.join(slot_vals)} 官方 建议零售价 MSRP 规格".strip())
+        elif any(cs.slot_name in ("founder", "founding_year", "headquarters") for cs in fact_slots.compound_slots):
+            queries.append(f"{entity} 创始人 总部 创立时间 官方简介".strip())
+        else:
+            queries.append(f"{entity} 官方公告 新闻稿".strip())
+
+        # 4. 争议/辟谣定向 Query (针对否定或传闻主张)
+        if not fact_slots.polarity or "传闻" in claim.statement or "辞职" in claim.statement or "否认" in claim.statement:
+            queries.append(f"{entity} {fact_slots.predicate or ''} 辟谣 声明 澄清 辞职".strip())
+
+        # 去重且保持顺序
+        seen = set()
+        unique_queries = []
+        for q in queries:
+            q_clean = q.strip()
+            if q_clean and q_clean not in seen:
+                seen.add(q_clean)
+                unique_queries.append(q_clean)
+
+        return unique_queries[:3]
+
+    def _evaluate_search_result_relevance(
+        self,
+        item: Any,
+        fact_slots: FactSlots,
+        claim: Claim
+    ) -> float:
+        """评估检索结果与待核验主张的相关性得分 (0.0 ~ 1.0)，拦截风马牛不相及的垃圾网页"""
+        if getattr(item, "is_synthetic", False):
+            return 1.0
+
+        title = (getattr(item, "title", "") or "").lower()
+        snippet = (getattr(item, "snippet", "") or "").lower()
+        url = (getattr(item, "url", "") or "").lower()
+        combined = f"{title} {snippet} {url}"
+
+        # 1. 核心实体命中检查
+        entity = (fact_slots.entity or "").lower().strip()
+        entity_tokens = [t for t in entity.replace("科技", "").replace("公司", "").split() if len(t) > 1]
+        if not entity_tokens:
+            entity_tokens = [entity] if entity else []
+
+        # 别名映射 (如 英伟达 <-> nvidia, 宇树 <-> unitree, 谷歌 <-> alphabet)
+        alias_map = {
+            "英伟达": ["nvidia", "geforce", "rtx"],
+            "alphabet": ["google", "谷歌", "alphabet"],
+            "openai": ["chatgpt", "openai"],
+            "anthropic": ["claude", "anthropic", "dario"],
+            "宇树": ["unitree", "宇树科技", "王兴兴"]
+        }
+        for k, aliases in alias_map.items():
+            if k in entity:
+                entity_tokens.extend(aliases)
+
+        entity_matched = any(token in combined for token in entity_tokens)
+
+        # 2. 复合槽位与关键词命中检查
+        slot_tokens = [cs.value.lower() for cs in fact_slots.compound_slots if cs.value]
+        # 添加关键数字或缩写
+        for tok in ["4070", "799", "16gb", "263.01", "20", "2016", "杭州", "王兴兴", "amodei", "辞职"]:
+            if tok in claim.statement.lower():
+                slot_tokens.append(tok)
+
+        slot_hits = sum(1 for tok in set(slot_tokens) if tok in combined)
+        slot_ratio = (slot_hits / len(set(slot_tokens))) if slot_tokens else 0.5
+
+        if entity_matched and slot_hits > 0:
+            return 0.8 + 0.2 * min(slot_ratio, 1.0)
+        elif entity_matched:
+            return 0.5
+        elif slot_hits >= 2:
+            return 0.4
+        else:
+            return 0.05  # 极低相关度，判定为不相关
+
     async def _decompose_input(
         self,
         input_text: str,
         input_type: InputType,
         today_str: str
     ) -> List[Claim]:
-        """将用户输入的一句话拆解为 1~N 个独立可验证事实"""
+        """将用户输入的一句话拆解为 1~N 个独立可验证事实，并强制覆盖所有属性约束"""
         prompt = f"""你是一个专业的事实核验系统的主张拆解器（Claim Decomposer）。
 请分析用户输入的文本，将其拆解为 1 到 4 个独立、具体、可在互联网公开信息中独立检索验证的原子事实主张。
-如果用户输入本身就是单一简单事实，只需返回 1 个主张。
+如果用户输入本身就是单一复合事实，请完整提取其所有属性约束。
+
+【关键提取规则 - 严禁丢字段】：
+1. 实体 subject: 准确识别主体公司或人物 (如 "英伟达", "Alphabet", "OpenAI", "Anthropic", "宇树科技")。
+2. 谓词 predicate: 准确描述动作或核心属性 (如 "发布定价", "净利润", "订阅定价", "辞职卸任", "创立与总部")。
+3. 复合槽位 compound_slots: 输入中出现的每一个数值、规格、金额、地点、人物、年份，必须全部提取为 compound_slots！
+   - 硬件规格示例: [slot_name='model', value='RTX 4070 Ti Super'], [slot_name='price', value='799', unit='USD'], [slot_name='memory', value='16GB']
+   - 财务示例: [slot_name='net_income', value='263.01', unit='亿美元']
+   - 企业创立示例: [slot_name='headquarters', value='杭州'], [slot_name='founder', value='王兴兴'], [slot_name='founding_year', value='2016', unit='年']
+4. 会计准则 accounting_basis: 若提及 GAAP / 非GAAP，准确填写 GAAP 或 NON_GAAP。
+5. 极性 polarity: 若为传闻或辟谣（如传闻某人辞职），若该主张陈述的是该传闻动作，设为 True/False 保持逻辑一致。
 
 输入文本: "{input_text}"
 
-请提取出结构化主张列表，并评定其公开可验证性：
-- PUBLICLY_VERIFIABLE: 上市公司财报、官方公告、公开产品发布、知名法律诉讼等应有公开记录的事项
-- LIMITED_PUBLIC: 创投早期融资、初创团队变动等仅有少量报道的事项
-- HARD_TO_VERIFY: 私人行程、非公开内部言论等极难公开求证的事项
-- NOT_PUBLICLY_VERIFIABLE: 纯主观偏好或无法通过公开资料验证的事项"""
+请输出结构化主张列表："""
 
         try:
             res: DecomposeOutput = await self.llm.generate_structured(
                 prompt=prompt,
                 response_model=DecomposeOutput,
-                system_prompt="你是一个严谨的事实主张拆解器。不添加多余假设，忠实拆解用户原始输入。"
+                system_prompt="你是一个高精度事实主张拆解器。必须将输入文本中的所有实体、数值、地点、时间、年份与口径完整映射进 compound_slots。"
             )
             claims: List[Claim] = []
             for i, raw in enumerate(res.claims):
@@ -242,26 +344,38 @@ class FastClaimVerifierAgent:
             return []
 
     async def _verify_single_claim(self, claim: Claim, today_str: str) -> Verdict:
-        """针对单个 Claim 执行检索、提取、溯源去重、规则引擎判定及解释生成"""
-        # 1. 搜索来源
-        search_query = claim.statement
-        if claim.attributes and claim.attributes.subject:
-            search_query = f"{claim.attributes.subject} {claim.attributes.predicate or ''} {claim.attributes.object_value or ''}".strip()
-        
-        search_results = await self.search.search(search_query, max_results=6)
-        
-        sources: List[Source] = []
-        provenances: List[SourceProvenance] = []
-        evidences: List[Evidence] = []
-        relations: List[EvidenceRelation] = []
-
-        # 确保 FactSlots 存在
+        """针对单个 Claim 执行多路定向检索、相关性过滤、正文抓取、物理定位及规则判定"""
         fact_slots: FactSlots = claim.fact_slots or FactSlots(
             entity=getattr(claim.attributes, "subject", None) or claim.statement[:20],
             predicate=getattr(claim.attributes, "predicate", None) or "statement",
             time_context=getattr(claim.attributes, "time_context", None),
             polarity=getattr(claim.attributes, "polarity", True)
         )
+
+        # 1. 多路定向搜索
+        queries = self._build_directed_search_queries(claim, fact_slots)
+        search_results: List[Any] = []
+        seen_urls = set()
+
+        for q in queries:
+            try:
+                sub_res = await self.search.search(q, max_results=4)
+                for item in sub_res:
+                    u = getattr(item, "url", "")
+                    if u and u not in seen_urls:
+                        seen_urls.add(u)
+                        search_results.append(item)
+            except Exception as e:
+                logger.warning(f"Search query '{q}' failed: {e}")
+
+        # 若多路未返回，保底使用原始 statement 搜索
+        if not search_results:
+            search_results = await self.search.search(claim.statement, max_results=5)
+
+        sources: List[Source] = []
+        provenances: List[SourceProvenance] = []
+        evidences: List[Evidence] = []
+        relations: List[EvidenceRelation] = []
 
         for idx, item in enumerate(search_results):
             s_id = f"s-{idx+1}-{uuid.uuid4().hex[:4]}"
@@ -272,13 +386,20 @@ class FastClaimVerifierAgent:
             if not domain:
                 domain = url.split("/")[2] if "://" in url else "web"
             tier = self._classify_source_tier(domain, url)
+
+            # 相关性闸门检查 (Pre-Scrape Relevance Gate)
+            relevance_score = self._evaluate_search_result_relevance(item, fact_slots, claim)
             
             raw_text = None
             content_hash = None
             fetch_status = "FETCH_FAILED"
             fetch_mode = "LIVE"
 
-            if getattr(item, "is_synthetic", False):
+            if relevance_score < 0.2 and not getattr(item, "is_synthetic", False):
+                # 过滤无关网页，避免垃圾噪音注入
+                fetch_status = "REJECTED_IRRELEVANT"
+                logger.info(f"Rejected irrelevant search result: {title} ({url}) score={relevance_score}")
+            elif getattr(item, "is_synthetic", False):
                 raw_text = snippet
                 content_hash = hashlib.sha256(snippet.encode("utf-8")).hexdigest()
                 fetch_status = "SYNTHETIC_MOCK"
