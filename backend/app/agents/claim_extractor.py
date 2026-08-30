@@ -128,7 +128,8 @@ class ClaimExtractorAgent:
             start, end, prefix, suffix, match_tier, element_role, block_id = WebScraper.locate_quote_spans(text_to_use, raw_quote)
             
             if match_tier == "UNVERIFIED":
-                logger.debug(f"Quote not verifiable in source text: {raw_quote[:40]}")
+                logger.warning(f"Discarding unverified hallucinated quote: {raw_quote[:40]}")
+                continue
             
             res_dict = {
                 "statement": raw.statement,

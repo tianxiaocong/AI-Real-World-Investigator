@@ -238,9 +238,10 @@ class EvidenceAssessment(BaseModel):
     contradicting_evidence_count: int = 0
     context_only_count: int = 0
 
-    # 支持侧质量（不是简单数数）
+    # 支持侧质量（必须区分检索到的独立源 vs 真正提供直接支持的独立源）
     has_direct_support: bool = False        # 是否有 directness=DIRECT 且 scope_match=True 的支持
-    has_strong_independent_support: bool = False  # ≥2 独立来源 + 至少一个 DIRECT + scope_match
+    direct_supporting_origin_count: int = 0 # 真正提供 DIRECT 支持的独立 origin 数量
+    has_strong_independent_support: bool = False  # ≥2 独立 origin 直接支持
     has_supporting_official_source: bool = False  # 官方来源是否 **直接支持** 该 Claim
 
     # 反驳侧质量

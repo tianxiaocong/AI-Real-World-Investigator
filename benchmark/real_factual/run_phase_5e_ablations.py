@@ -191,15 +191,28 @@ async def run_single_condition(
             gold = {}
             gold_state = "INSUFFICIENT"
 
-        is_pass = (pred_state == gold_state)
-        overclaim = is_overclaim(pred_state, gold_state)
-        conservative_miss = is_conservative_miss(pred_state, gold_state)
+        # Strict Invariant: Infrastructure crashes CANNOT be counted as task pass!
+        if infra_failed:
+            is_pass = False
+            overclaim = False
+            conservative_miss = False
+            evaluation_tag = "INFRA_FAILURE"
+        else:
+            is_pass = (pred_state == gold_state)
+            overclaim = is_overclaim(pred_state, gold_state)
+            conservative_miss = is_conservative_miss(pred_state, gold_state)
+            evaluation_tag = "PASS" if is_pass else ("MODEL FAILURE / SAFE" if not overclaim else "MODEL FAILURE / OVERCLAIM")
 
+        raw_exts = pred_res.get("raw_extractions", [])
         extracted_evs = pred_res.get("extracted_evidences", [])
-        has_quote = len(extracted_evs) > 0 and any(e.get("exact_quote") for e in extracted_evs)
-        quote_matched = any(e.get("directness") == "DIRECT" for e in extracted_evs)
 
-        evaluation_tag = "PASS" if is_pass else ("MODEL FAILURE / SAFE" if not overclaim else "MODEL FAILURE / OVERCLAIM")
+        # 5-Tier Grounding Breakdown & Admissibility Metrics
+        case_total_quotes = len(raw_exts)
+        case_exact_quotes = sum(1 for item in raw_exts if item.get("quote_match") == "EXACT")
+        case_norm_quotes = sum(1 for item in raw_exts if item.get("quote_match") == "NORMALIZED_EXACT")
+        case_fuzzy_quotes = sum(1 for item in raw_exts if item.get("quote_match") == "FUZZY")
+        case_unverified_quotes = sum(1 for item in raw_exts if item.get("quote_match") == "UNVERIFIED")
+        case_admissible_evs = sum(1 for ev in extracted_evs if ev.get("directness") == "DIRECT")
 
         logger.info(f"[{cfg['name']}] Case {len(case_results)+1}/{len(claims)} ({case_id}) -> Pred: {pred_state:<12} | Gold: {gold_state:<12} | {evaluation_tag} ({elapsed:.1f}s)")
 
@@ -215,37 +228,66 @@ async def run_single_condition(
             "is_overclaim": overclaim,
             "is_conservative_miss": conservative_miss,
             "infra_failed": infra_failed,
-            "has_quote": has_quote,
-            "quote_matched": quote_matched,
+            "total_quotes": case_total_quotes,
+            "exact_quotes": case_exact_quotes,
+            "normalized_quotes": case_norm_quotes,
+            "fuzzy_quotes": case_fuzzy_quotes,
+            "unverified_quotes": case_unverified_quotes,
+            "admissible_evidences": case_admissible_evs,
             "independent_count": pred_res.get("independent_sources_count", 0),
             "gold_independent_count": gold.get("gold_source_counts", {}).get("independent_origins", 1),
             "elapsed_sec": round(elapsed, 2)
         })
 
-    # Summary Metrics
+    # Summary Metrics (Strict Academic Reporting)
     total = len(case_results)
+    infra_cnt = sum(1 for r in case_results if r["infra_failed"])
+    valid_cases = [r for r in case_results if not r["infra_failed"]]
+    valid_total = len(valid_cases)
+
     pass_cnt = sum(1 for r in case_results if r["is_pass"])
+    valid_pass_cnt = sum(1 for r in valid_cases if r["is_pass"])
     overclaim_cnt = sum(1 for r in case_results if r["is_overclaim"])
     miss_cnt = sum(1 for r in case_results if r["is_conservative_miss"])
-    quote_cnt = sum(1 for r in case_results if r["quote_matched"])
-    extract_cnt = sum(1 for r in case_results if r["has_quote"])
-    infra_cnt = sum(1 for r in case_results if r["infra_failed"])
+
+    total_quotes_all = sum(r["total_quotes"] for r in case_results)
+    exact_quotes_all = sum(r["exact_quotes"] for r in case_results)
+    norm_quotes_all = sum(r["normalized_quotes"] for r in case_results)
+    fuzzy_quotes_all = sum(r["fuzzy_quotes"] for r in case_results)
+    unverified_all = sum(r["unverified_quotes"] for r in case_results)
+    admissible_all = sum(r["admissible_evidences"] for r in case_results)
 
     summary = {
         "condition_key": condition_key,
         "condition_name": cfg["name"],
         "mode": mode,
         "total_cases": total,
-        "accuracy": round((pass_cnt / total) * 100, 1) if total else 0.0,
-        "accuracy_count": f"{pass_cnt}/{total}",
+        "overall_accuracy": round((pass_cnt / total) * 100, 1) if total else 0.0,
+        "overall_accuracy_count": f"{pass_cnt}/{total}",
+        "conditional_accuracy": round((valid_pass_cnt / valid_total) * 100, 1) if valid_total else 0.0,
+        "conditional_accuracy_count": f"{valid_pass_cnt}/{valid_total}",
+        "infra_success_rate": round(((total - infra_cnt) / total) * 100, 1) if total else 0.0,
+        "infra_failures": infra_cnt,
         "overclaim_rate": round((overclaim_cnt / total) * 100, 1) if total else 0.0,
         "overclaim_count": f"{overclaim_cnt}/{total}",
         "conservative_miss_rate": round((miss_cnt / total) * 100, 1) if total else 0.0,
         "conservative_miss_count": f"{miss_cnt}/{total}",
-        "quote_grounding_rate": round((quote_cnt / total) * 100, 1) if total else 0.0,
-        "quote_grounding_count": f"{quote_cnt}/{total}",
-        "claim_extraction_rate": round((extract_cnt / total) * 100, 1) if total else 0.0,
-        "infra_failures": infra_cnt,
+        "quote_metrics": {
+            "total_extracted_quotes": total_quotes_all,
+            "exact_quotes": exact_quotes_all,
+            "exact_grounding_rate": round((exact_quotes_all / total_quotes_all) * 100, 1) if total_quotes_all else 0.0,
+            "normalized_quotes": norm_quotes_all,
+            "normalized_grounding_rate": round((norm_quotes_all / total_quotes_all) * 100, 1) if total_quotes_all else 0.0,
+            "fuzzy_quotes": fuzzy_quotes_all,
+            "fuzzy_rate": round((fuzzy_quotes_all / total_quotes_all) * 100, 1) if total_quotes_all else 0.0,
+            "unverified_quotes": unverified_all,
+            "unverified_rate": round((unverified_all / total_quotes_all) * 100, 1) if total_quotes_all else 0.0,
+            "admissible_direct_evidences": admissible_all,
+            "admissibility_rate": round((admissible_all / total_quotes_all) * 100, 1) if total_quotes_all else 0.0
+        },
+        "accuracy": round((pass_cnt / total) * 100, 1) if total else 0.0,
+        "accuracy_count": f"{pass_cnt}/{total}",
+        "quote_grounding_rate": round((exact_quotes_all / total_quotes_all) * 100, 1) if total_quotes_all else 0.0,
         "cases": case_results
     }
 

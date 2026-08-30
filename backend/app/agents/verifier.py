@@ -196,54 +196,59 @@ class VerificationAgent:
                 source_objects.append(src)
                 
                 # Check for origin provenance
-                if s.get("origin_source_id"):
-                    provenance_objects.append(
-                        SourceProvenance(
-                            source_id=s_id,
-                            origin_source_id=s["origin_source_id"],
-                            provenance_type=ProvenanceType.CITES if s.get("provenance_type") == "CITES" else ProvenanceType.REPUBLISHES
-                        )
-                    )
-                elif s.get("origin_domain"):
-                    res_id = resolve_provenance_target(s["origin_domain"], source_objects)
+                orig_ref = s.get("origin_source_id") or s.get("origin_url") or s.get("referenced_url")
+                if orig_ref:
+                    res_id = resolve_provenance_target(orig_ref, source_objects) or orig_ref
                     if res_id and res_id != s_id:
                         provenance_objects.append(
                             SourceProvenance(
                                 source_id=s_id,
                                 origin_source_id=res_id,
-                                provenance_type=ProvenanceType.REPUBLISHES
+                                provenance_type=ProvenanceType.CITES if s.get("provenance_type") == "CITES" else ProvenanceType.REPUBLISHES
                             )
                         )
                 
-                # Construct Evidence
+                # Construct Evidence with Strict Physical Admissibility
                 exact_quote = (s.get("exact_quote") or "").strip()
-                if exact_quote:
-                    # Valid exact quote extracted from source
+                quote_match = s.get("quote_match", "")
+                char_start = s.get("char_start")
+                char_end = s.get("char_end")
+
+                # Physical Evidence Admissibility Invariant:
+                # ONLY EXACT and NORMALIZED_EXACT are admitted as direct factual evidence!
+                # FUZZY is strictly degraded to non-supporting CONTEXTUAL candidate.
+                # UNVERIFIED is completely rejected.
+                if exact_quote and quote_match in ("EXACT", "NORMALIZED_EXACT"):
                     evidence_objects.append(
                         Evidence(
                             id=f"e-{claim.get('id', 'c')}-{idx}",
                             source_id=s_id,
                             claim_id=claim.get("id", "c"),
                             exact_quote=exact_quote,
+                            char_start=char_start,
+                            char_end=char_end,
                             supports_claim=True,
                             contradicts_claim=False,
                             directness=EvidenceDirectness.DIRECT,
-                            scope_match=True
+                            scope_match=True,
+                            evidence_note=f"Admissible grounded physical quote ({quote_match})."
                         )
                     )
                 else:
-                    # No quote extracted -> Strictly non-supporting background context
+                    note = f"Non-direct evidence: quote_match={quote_match}" if exact_quote else "No exact verbatim quote anchored; treated strictly as non-supporting background context."
                     evidence_objects.append(
                         Evidence(
                             id=f"e-{claim.get('id', 'c')}-{idx}",
                             source_id=s_id,
                             claim_id=claim.get("id", "c"),
-                            exact_quote="",
+                            exact_quote=exact_quote if quote_match == "FUZZY" else "",
+                            char_start=char_start if quote_match == "FUZZY" else None,
+                            char_end=char_end if quote_match == "FUZZY" else None,
                             supports_claim=False,
                             contradicts_claim=False,
                             directness=EvidenceDirectness.CONTEXTUAL,
                             scope_match=False,
-                            evidence_note="No exact verbatim quote anchored; treated strictly as non-supporting background context."
+                            evidence_note=note
                         )
                     )
 

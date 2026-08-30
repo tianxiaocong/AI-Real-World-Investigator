@@ -196,11 +196,9 @@ def assess_evidence_for_claim(
         else:
             context_count += 1
 
-    # 强独立支持：至少 2 个独立来源，且至少存在直接支撑
-    has_strong_independent_support = (
-        independent_count >= 2 and 
-        len(direct_supporting_origins) >= 2
-    )
+    # 强独立直接支持：至少 2 个独立 origin 提供直接支持 (DIRECT + scope_match)
+    direct_origin_count = len(direct_supporting_origins)
+    has_strong_independent_support = (direct_origin_count >= 2)
 
     # --- DETERMINISTIC RULE 3: Consistency Calculation from Scope Issues ---
     has_high_quantifier_conflict = False
@@ -230,6 +228,7 @@ def assess_evidence_for_claim(
         contradicting_evidence_count=contradicting_count,
         context_only_count=context_count,
         has_direct_support=has_direct_support,
+        direct_supporting_origin_count=direct_origin_count,
         has_strong_independent_support=has_strong_independent_support,
         has_supporting_official_source=has_supporting_official,
         has_credible_contradicting_evidence=has_credible_contradiction,
@@ -260,16 +259,17 @@ def compute_evidence_state(
     if assessment.has_credible_contradicting_evidence and assessment.has_direct_support:
         return EvidenceState.CONFLICTING
 
-    # 4. 证据充分：≥2 独立来源直接支持 + 官方一手来源直接证实 + 无可信反驳 + 数值/时空一致
-    if (assessment.independent_source_count >= 2
+    # 4. 证据充分：≥2 独立 origin 直接支持 + 官方一手来源直接证实 + 无可信反驳 + 数值/时空一致
+    # 严格安全不变量：必须满足 has_strong_independent_support (direct_supporting_origin_count >= 2)，
+    # 彻底杜绝使用全量无关 sources 数量充数的假充分现象！
+    if (assessment.has_strong_independent_support
         and assessment.has_supporting_official_source
-        and assessment.has_direct_support
         and not assessment.has_credible_contradicting_evidence
         and assessment.value_consistent is not False
         and assessment.time_consistent is not False):
         return EvidenceState.SUFFICIENT
 
-    # 5. 证据较强：≥2 独立来源直接支持 + 无可信反驳 + 数值/时空一致 (哪怕没有官方一手源)
+    # 5. 证据较强：≥2 独立 origin 直接支持 + 无可信反驳 + 数值/时空一致 (哪怕没有官方一手源)
     if (assessment.has_strong_independent_support
         and not assessment.has_credible_contradicting_evidence
         and assessment.value_consistent is not False

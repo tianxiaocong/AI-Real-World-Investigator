@@ -234,7 +234,12 @@ class VerificationService:
                         supports = True
 
                 ev_id = f"ev-{src_obj.id}-{len(collected_evidences)+1}"
-                directness = EvidenceDirectness.DIRECT if item.get("quote_match") in ("EXACT", "NORMALIZED_EXACT") else EvidenceDirectness.CONTEXTUAL
+                quote_match = item.get("quote_match", "")
+                if quote_match in ("EXACT", "NORMALIZED_EXACT"):
+                    directness = EvidenceDirectness.DIRECT
+                else:
+                    directness = EvidenceDirectness.CONTEXTUAL
+                    supports = False  # Strict Physical Invariant: Only verified quotes can directly support claims
 
                 collected_evidences.append(
                     Evidence(
