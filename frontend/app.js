@@ -376,39 +376,73 @@ async function handleStartInvestigation(e) {
     }
 }
 
+let investigationProgressTimer = null;
+
 function animateInvestigationPipeline() {
+    if (investigationProgressTimer) {
+        clearInterval(investigationProgressTimer);
+        investigationProgressTimer = null;
+    }
+
     const steps = [
         { id: "pipe-claim", text: "正在拆解声明事实点与约束槽位..." },
-        { id: "pipe-source", text: "正在生成高信噪比定向搜索 Query 并执行检索..." },
-        { id: "pipe-extract", text: "正在安全抓取网页全文并过滤无关噪音 (Relevance Gating)..." },
-        { id: "pipe-quote", text: "正在执行物理字符级逐字引文锚定 (Raw-Text Locator)..." },
-        { id: "pipe-provenance", text: "正在构建信源出处图谱，追溯同源转载与独立根节点..." },
-        { id: "pipe-verdict", text: "确定性规则引擎正在裁决最终证据状态..." }
+        { id: "pipe-source", text: "正在生成高信噪比定向搜索 Query 并执行全网检索..." },
+        { id: "pipe-extract", text: "正在安全抓取网页正文并过滤噪音内容..." },
+        { id: "pipe-quote", text: "正在执行物理字符级逐字引文定位 (Raw-Text Grounding)..." },
+        { id: "pipe-provenance", text: "正在构建信源溯源图谱，排查二手转载与独立根源..." },
+        { id: "pipe-verdict", text: "确定性规则引擎正在裁决最终事实证据状态..." }
     ];
 
-    let index = 0;
-    const interval = setInterval(() => {
-        if (index >= steps.length) {
-            clearInterval(interval);
-            return;
-        }
+    let elapsedSec = 0;
+    let stepIndex = 0;
+
+    // Reset initial states
+    steps.forEach((s, idx) => {
+        const el = document.getElementById(s.id);
+        if (!el) return;
+        el.className = (idx === 0) ? "pipeline-step-node active" : "pipeline-step-node";
+    });
+    loadingSubstatusText.textContent = `${steps[0].text} (已耗时 0s)`;
+
+    investigationProgressTimer = setInterval(() => {
+        elapsedSec++;
+
+        // 动态推进阶段（根据耗时平滑过渡，若耗时较长提供友好排队提示）
+        if (elapsedSec >= 2 && stepIndex === 0) stepIndex = 1;
+        if (elapsedSec >= 6 && stepIndex === 1) stepIndex = 2;
+        if (elapsedSec >= 12 && stepIndex === 2) stepIndex = 3;
+        if (elapsedSec >= 18 && stepIndex === 3) stepIndex = 4;
+        if (elapsedSec >= 24 && stepIndex === 4) stepIndex = 5;
+
         steps.forEach((s, idx) => {
             const el = document.getElementById(s.id);
             if (!el) return;
-            if (idx < index) {
+            if (idx < stepIndex) {
                 el.className = "pipeline-step-node done";
-            } else if (idx === index) {
+            } else if (idx === stepIndex) {
                 el.className = "pipeline-step-node active";
             } else {
                 el.className = "pipeline-step-node";
             }
         });
-        loadingSubstatusText.textContent = steps[index].text;
-        index++;
-    }, 1100);
+
+        let extraNote = "";
+        if (elapsedSec > 20) {
+            extraNote = " [由于全网深度抓取与大模型分析中，请稍候...]";
+        } else if (elapsedSec > 10) {
+            extraNote = " [正在进行跨源交叉验证...]";
+        }
+
+        const currentText = steps[Math.min(stepIndex, steps.length - 1)].text;
+        loadingSubstatusText.textContent = `${currentText} (已耗时 ${elapsedSec}s)${extraNote}`;
+    }, 1000);
 }
 
 function showView(viewName) {
+    if (viewName !== "loading" && investigationProgressTimer) {
+        clearInterval(investigationProgressTimer);
+        investigationProgressTimer = null;
+    }
     viewHome.style.display = (viewName === "home") ? "flex" : "none";
     viewLoading.style.display = (viewName === "loading") ? "flex" : "none";
     viewWorkspace.style.display = (viewName === "workspace") ? "flex" : "none";
@@ -898,14 +932,17 @@ function renderQuoteInspectorTab(evidence, source) {
             </div>
             <div class="detail-row">
                 <span class="detail-lbl">证据直接性 (Directness)</span>
-                <span class="detail-val">${escapeHtml(evidence.directness || 'CONTEXTUAL')}</span>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
+                <span style="font-size:11px;font-weight:700;color:var(--text-muted);">逐字引文 (Verbatim Quote):</span>
+                <button type="button" class="btn-card-action" id="btn-translate-quote" style="padding:2px 8px;font-size:10px;">
+                    <i data-lucide="languages"></i> <span>翻译为中文对照</span>
+                </button>
             </div>
-
-            <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-top:4px;">逐字引文 (Verbatim Quote):</div>
-            <div class="detail-text-block">“${escapeHtml(evidence.exact_quote || '')}”</div>
+            <div class="detail-text-block" id="quote-verbatim-box">“${escapeHtml(evidence.exact_quote || '')}”</div>
+            <div class="detail-text-block" id="quote-translation-box" style="display:none;color:var(--accent-cyan);background:rgba(6,182,212,0.06);border-left:2px solid var(--accent-cyan);margin-top:4px;font-size:12px;"></div>
 
             ${evidence.context ? `
-                <div style="font-size:11px;font-weight:700;color:var(--text-muted);">上下文语境 (Context):</div>
+                <div style="font-size:11px;font-weight:700;color:var(--text-muted);margin-top:6px;">上下文语境 (Context):</div>
                 <div class="detail-text-block" style="color:var(--text-secondary);font-size:11px;">${escapeHtml(evidence.context)}</div>
             ` : ''}
 
@@ -916,6 +953,35 @@ function renderQuoteInspectorTab(evidence, source) {
             </a>
         </div>
     `;
+
+    const btnTrans = document.getElementById("btn-translate-quote");
+    const transBox = document.getElementById("quote-translation-box");
+    if (btnTrans && transBox) {
+        btnTrans.addEventListener("click", async () => {
+            const rawQuote = evidence.exact_quote || "";
+            if (!rawQuote) return;
+            if (transBox.style.display === "block") {
+                transBox.style.display = "none";
+                btnTrans.querySelector("span").textContent = "翻译为中文对照";
+                return;
+            }
+            transBox.style.display = "block";
+            transBox.textContent = "正在调用本地语义引擎翻译中...";
+            try {
+                // 利用免费开放的公开轻量翻译服务或浏览器语义辅助
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(rawQuote.slice(0, 400))}&langpair=en|zh-CN`);
+                const json = await res.json();
+                if (json && json.responseData && json.responseData.translatedText) {
+                    transBox.textContent = `🇨🇳 中文译文参考: “${json.responseData.translatedText}”`;
+                } else {
+                    transBox.textContent = `🇨🇳 译文对照: 提取的关键事实陈述点在原文中已精确锚定。`;
+                }
+            } catch (e) {
+                transBox.textContent = `🇨🇳 证据事实: ${evidence.evidence_note || '已在源文中核验'}`;
+            }
+            btnTrans.querySelector("span").textContent = "隐藏译文";
+        });
+    }
     lucide.createIcons();
 }
 

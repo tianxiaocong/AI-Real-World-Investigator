@@ -83,7 +83,8 @@ class OpenAICompatibleProvider(LLMProvider):
         self.stats["total_requests"] += 1
 
         async with self._semaphore:
-            for attempt in range(3):
+            max_attempts = 5
+            for attempt in range(max_attempts):
                 try:
                     client = await self._get_client()
                     response = await client.post(url, headers=headers, json=payload)
@@ -97,8 +98,8 @@ class OpenAICompatibleProvider(LLMProvider):
                     self.stats["timeouts"] += 1
                     self.stats["retries"] += 1
                     await self._invalidate_client()
-                    logger.warning(f"HTTPX Timeout: {e}. Retrying {attempt+1}/3 with jitter...")
-                    if attempt == 2:
+                    logger.warning(f"HTTPX Timeout: {e}. Retrying {attempt+1}/{max_attempts} with jitter...")
+                    if attempt == max_attempts - 1:
                         self.stats["permanent_failures"] += 1
                         raise
                     jitter = random.uniform(1.0, 2.5)
@@ -107,8 +108,8 @@ class OpenAICompatibleProvider(LLMProvider):
                     self.stats["connect_errors"] += 1
                     self.stats["retries"] += 1
                     await self._invalidate_client()
-                    logger.warning(f"HTTPX RequestError: {type(e).__name__} - {e}. Reconnecting & Retrying {attempt+1}/3...")
-                    if attempt == 2:
+                    logger.warning(f"HTTPX RequestError: {type(e).__name__} - {e}. Reconnecting & Retrying {attempt+1}/{max_attempts}...")
+                    if attempt == max_attempts - 1:
                         self.stats["permanent_failures"] += 1
                         raise
                     jitter = random.uniform(1.0, 2.0)
@@ -116,12 +117,19 @@ class OpenAICompatibleProvider(LLMProvider):
                 except httpx.HTTPStatusError as e:
                     if e.response.status_code in [429, 502, 503, 504]:
                         self.stats["retries"] += 1
-                        logger.warning(f"HTTP Status {e.response.status_code}. Retrying {attempt+1}/3...")
-                        if attempt == 2:
+                        # Check Retry-After header
+                        retry_after = e.response.headers.get("Retry-After")
+                        if retry_after and retry_after.isdigit():
+                            wait_time = float(retry_after) + random.uniform(0.2, 0.8)
+                            logger.warning(f"HTTP Status {e.response.status_code}. Retry-After: {retry_after}s. Waiting {wait_time:.1f}s (Attempt {attempt+1}/{max_attempts})...")
+                        else:
+                            # 动态阶梯重试：初始 1.5s，封顶 8s，避免堆积导致单次核验卡死数分钟
+                            wait_time = min(8.0, 1.5 * (1.6 ** attempt) + random.uniform(0.5, 1.5))
+                            logger.warning(f"HTTP Status {e.response.status_code}. Retrying {attempt+1}/{max_attempts} after {wait_time:.1f}s backoff...")
+                        if attempt == max_attempts - 1:
                             self.stats["permanent_failures"] += 1
                             raise
-                        jitter = random.uniform(1.0, 3.0)
-                        await asyncio.sleep(3.0 * (1.5 ** attempt) + jitter)
+                        await asyncio.sleep(wait_time)
                     else:
                         self.stats["permanent_failures"] += 1
                         raise

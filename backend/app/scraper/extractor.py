@@ -16,6 +16,19 @@ HEADERS = {
     "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
 }
 
+# Wikimedia requires identifiable User-Agent per https://meta.wikimedia.org/wiki/User-Agent_policy
+WIKIMEDIA_HEADERS = {
+    "User-Agent": "AIRealWorldInvestigator/1.0 (https://github.com/AIRealWorldInvestigator; contact@investigator-factcheck.org) Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9,zh-CN;q=0.8,zh;q=0.7",
+}
+
+def get_headers_for_url(url: str) -> dict:
+    domain = urlparse(url).hostname or ""
+    if "wikipedia.org" in domain or "wikimedia.org" in domain or "wiktionary.org" in domain:
+        return WIKIMEDIA_HEADERS
+    return HEADERS
+
 import unicodedata
 
 class WebScraper:
@@ -61,7 +74,8 @@ class WebScraper:
         """Fetch URL content with hop-by-hop SSRF validation across redirects, clean HTML, and compute metadata"""
         current_url = url
         try:
-            async with httpx.AsyncClient(timeout=timeout_seconds, follow_redirects=False, headers=HEADERS) as client:
+            req_headers = get_headers_for_url(current_url)
+            async with httpx.AsyncClient(timeout=timeout_seconds, follow_redirects=False, headers=req_headers) as client:
                 redirect_count = 0
                 response = None
 
@@ -70,7 +84,8 @@ class WebScraper:
                         logger.warning(f"SSRF check rejected URL: {current_url}")
                         return None
 
-                    response = await client.get(current_url)
+                    req_headers = get_headers_for_url(current_url)
+                    response = await client.get(current_url, headers=req_headers)
 
                     # Check if response is a redirect
                     if response.is_redirect or response.status_code in (301, 302, 303, 307, 308):

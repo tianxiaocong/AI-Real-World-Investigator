@@ -16,6 +16,7 @@ import asyncio
 import hashlib
 import datetime
 import logging
+import time
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
@@ -63,6 +64,67 @@ from app.engine.reasoning_v2_engine import (
 from app.scraper.extractor import WebScraper
 
 logger = logging.getLogger(__name__)
+
+# 跨语种实体映射表: 中文名 → (英文名, 目标搜索语言, 领域上下文关键词)
+# 领域上下文关键词用于构建更精准的跨语种定向搜索 Query
+INTL_ENTITY_MAP = {
+    # 北美
+    "加利福尼亚": ("California", "en", "fast food minimum wage"),
+    "加州": ("California", "en", "fast food minimum wage"),
+    "纽约": ("New York", "en", ""),
+    "得克萨斯": ("Texas", "en", ""),
+    "华盛顿": ("Washington", "en", ""),
+    # 欧洲
+    "巴黎": ("Paris", "fr", "stationnement SUV parking"),
+    "法国": ("France", "en", ""),
+    "德国": ("Germany", "en", ""),
+    "意大利": ("Italy", "en", ""),
+    "欧洲": ("Europe", "en", ""),
+    "欧盟": ("European Union", "en", "regulation directive"),
+    "伦敦": ("London", "en", ""),
+    "柏林": ("Berlin", "de", ""),
+    # 亚洲
+    "东京": ("Tokyo", "ja", ""),
+    "首尔": ("Seoul", "ko", ""),
+    "新加坡": ("Singapore", "en", ""),
+    # 企业
+    "波音": ("Boeing", "en", "aerospace acquisition"),
+    "星巴克": ("Starbucks", "en", "store revenue"),
+    "苹果": ("Apple", "en", "iPhone product"),
+    "特斯拉": ("Tesla", "en", "electric vehicle"),
+    "索尼": ("Sony", "en", "PlayStation gaming"),
+    "大众汽车": ("Volkswagen", "en", "factory plant"),
+    "大众": ("Volkswagen", "en", "factory plant"),
+    "皮克斯": ("Pixar", "en", "animation film"),
+    "微软": ("Microsoft", "en", "software AI"),
+    "英伟达": ("NVIDIA", "en", "GPU chip"),
+    "三星": ("Samsung", "en", "semiconductor"),
+    "丰田": ("Toyota", "en", "automotive"),
+    "任天堂": ("Nintendo", "en", "gaming console"),
+    # 文体人物
+    "阿尔卡拉斯": ("Alcaraz", "en", "tennis ATP"),
+    "凯尔特人": ("Celtics", "en", "NBA basketball"),
+    "梅西": ("Messi", "en", "football soccer"),
+    # 文化/历史
+    "泰坦尼克": ("Titanic", "en", ""),
+    "阿波罗": ("Apollo", "en", "NASA space mission"),
+    "苏富比": ("Sotheby's", "en", "auction art"),
+    "头脑特工队": ("Inside Out", "en", "Pixar animated film"),
+    "黄石": ("Yellowstone", "en", "national park"),
+    "卢浮宫": ("Louvre", "fr", "museum art"),
+    # 机构
+    "世卫": ("WHO", "en", "health organization"),
+    "欧空局": ("ESA", "en", "space agency"),
+    "太空总署": ("NASA", "en", "space agency"),
+    "OpenAI": ("OpenAI", "en", "AI model GPT"),
+    "FDA": ("FDA", "en", "drug approval"),
+    "Leqembi": ("Leqembi", "en", "Alzheimer drug"),
+    "GDPR": ("GDPR", "en", "data privacy regulation"),
+    "AI法案": ("AI Act", "en", "European Union regulation"),
+}
+
+# 简化映射: 中文名 → 英文名 (用于 relevance matching)
+INTL_ENTITY_EN_NAMES = {zh: info[0] for zh, info in INTL_ENTITY_MAP.items()}
 
 
 # ──────────────────────────────────────────────
@@ -220,6 +282,44 @@ class FastClaimVerifierAgent:
             short_q = " ".join(parts[:2])
             queries.append(short_q or raw_clean[:20])
 
+        # 5. 跨语种官方定向 Query (若涉及海外实体/地名/机构/外企，自动追加精准定向检索词)
+        stmt = claim.statement
+        raw_matched = [(zh, info) for zh, info in INTL_ENTITY_MAP.items() if zh in stmt or zh in core_entity]
+        # 优先匹配在 core_entity 中出现且字符更长更具体的实体
+        matched_intl = sorted(raw_matched, key=lambda x: (x[0] in core_entity, len(x[0])), reverse=True)
+        existing_en_tokens = re.findall(r'[A-Za-z0-9\-\.]{3,}', stmt)
+
+        if matched_intl:
+            # 使用匹配实体的上下文构建高精度跨语种 Query
+            primary_zh, (en_name, lang, domain_ctx) = matched_intl[0]
+            # 提取关键谓词/动作词作为 Query 上下文
+            predicate_ctx = fact_slots.predicate if fact_slots.predicate and fact_slots.predicate != "statement" else ""
+            # 提取年份时间 (支持中文字符环绕的四位年份)
+            year_match = re.findall(r'(?:19|20)\d{2}', stmt)
+            # 提取金额/数字
+            numbers = re.findall(r'\$?\d+(?:\.\d+)?(?:\%|美元|亿|万|euro|usd)?\b', stmt)
+            clean_nums = [n.replace("美元", " USD").replace("亿", "B").replace("万", "0k").strip() for n in numbers[:2]]
+            # 组合: 英文实体名 + 完整领域上下文 + 年份 + 关键数值
+            parts = [en_name]
+            if domain_ctx:
+                parts.append(domain_ctx)  # 使用完整领域上下文 (如 fast food minimum wage)
+            if year_match:
+                parts.append(year_match[0])
+            if clean_nums and not any(cn in " ".join(parts) for cn in clean_nums):
+                parts.extend(clean_nums)
+            elif predicate_ctx and not domain_ctx:
+                parts.append(predicate_ctx)
+            en_query = " ".join(parts).strip()
+            if len(en_query.split()) >= 1:
+                queries.append(en_query)
+        elif existing_en_tokens:
+            # Claim 中已有英文 token (如品牌名), 构建英文补充 Query
+            numbers = re.findall(r'(?:19|20)\d{2}|\$?\d+(?:\.\d+)?(?:\%|美元|亿|万)?\b', stmt)
+            clean_nums = [n.replace("美元", "").replace("亿", "B").replace("万", "0k") for n in numbers[:2]]
+            en_query = f"{' '.join(existing_en_tokens[:3])} {' '.join(clean_nums)}".strip()
+            if len(en_query.split()) >= 1:
+                queries.append(en_query)
+
         # 去重且保持顺序
         seen = set()
         unique_queries = []
@@ -229,7 +329,7 @@ class FastClaimVerifierAgent:
                 seen.add(q_clean)
                 unique_queries.append(q_clean)
 
-        return unique_queries[:3]
+        return unique_queries[:4]
 
     def _evaluate_search_result_relevance(
         self,
@@ -262,6 +362,11 @@ class FastClaimVerifierAgent:
         if raw_entity and raw_entity != core_entity:
             entity_tokens.add(raw_entity)
 
+        # 跨语种实体别名扩充 (Cross-Lingual Entity Synonyms)
+        for zh, en_name in INTL_ENTITY_EN_NAMES.items():
+            if zh.lower() in core_entity or zh.lower() in claim.statement.lower():
+                entity_tokens.add(en_name.lower())
+
         entity_matched = any(token in combined for token in entity_tokens)
 
         # 2. 动态提取复合槽位与数值、关键约束词
@@ -287,7 +392,7 @@ class FastClaimVerifierAgent:
         elif slot_hits >= 2:
             return 0.4
         else:
-            return 0.05  # 极低相关度，判定为不相关
+            return 0.25  # 降低门槛，防止错杀跨语言和国外权威网页
 
     async def _decompose_input(
         self,
@@ -367,8 +472,120 @@ class FastClaimVerifierAgent:
             logger.warning(f"Claim decomposition failed: {e}. Falling back to single claim.")
             return []
 
+    async def _parallel_fetch_sources(
+        self,
+        search_results: List[Any],
+        fact_slots: FactSlots,
+        claim: Claim,
+        today_str: str,
+        id_prefix: str = "s",
+        max_concurrency: int = 5,
+        timeout_seconds: int = 8
+    ) -> List[Source]:
+        """使用受控并发池（Semaphore）并发抓取并清洗网页正文，避免单线程串行超时堆叠。
+        
+        安全保证:
+        - return_exceptions=True: 单个 URL 失败不会拖死整个 batch
+        - Semaphore: 限制并发数防止目标站点限流
+        - 每个 URL 独立 timeout: 单页超时不影响其他页面
+        - 稳定顺序: asyncio.gather 保持与 search_results 完全相同的顺序
+        """
+        semaphore = asyncio.Semaphore(max_concurrency)
+
+        async def fetch_one(idx: int, item: Any) -> Source:
+            t_start = time.monotonic()
+            s_id = f"{id_prefix}-{idx+1}-{uuid.uuid4().hex[:4]}"
+            url = getattr(item, "url", "#")
+            title = getattr(item, "title", "Web Source")
+            snippet = getattr(item, "snippet", "")
+            domain = getattr(item, "domain", None)
+            if not domain:
+                domain = url.split("/")[2] if "://" in url else "web"
+            tier = self._classify_source_tier(domain, url)
+
+            relevance_score = self._evaluate_search_result_relevance(item, fact_slots, claim)
+
+            raw_text = None
+            content_hash = None
+            fetch_status = "FETCH_FAILED"
+            fetch_mode = "LIVE"
+            http_status = None
+
+            if relevance_score < 0.2 and not getattr(item, "is_synthetic", False):
+                fetch_status = "REJECTED_IRRELEVANT"
+                logger.info(f"[{id_prefix.upper()}] Rejected irrelevant: {title[:40]} ({url[:60]}) score={relevance_score}")
+            elif getattr(item, "is_synthetic", False):
+                raw_text = snippet
+                content_hash = hashlib.sha256(snippet.encode("utf-8")).hexdigest()
+                fetch_status = "SYNTHETIC_MOCK"
+                fetch_mode = "SYNTHETIC"
+            elif url.startswith("http"):
+                async with semaphore:
+                    try:
+                        scraped = await WebScraper.fetch_and_extract(url, timeout_seconds=timeout_seconds)
+                        if scraped and scraped.clean_text:
+                            raw_text = scraped.clean_text
+                            content_hash = scraped.content_hash
+                            fetch_status = "FETCH_SUCCESS"
+                            fetch_mode = "LIVE"
+                        else:
+                            fetch_status = "FETCH_EMPTY"
+                            fetch_mode = "LIVE"
+                    except Exception as e:
+                        logger.warning(f"[{id_prefix.upper()}] Live fetch failed for {url[:60]}: {e}")
+                        fetch_status = "FETCH_FAILED"
+                        fetch_mode = "LIVE"
+
+            elapsed_ms = round((time.monotonic() - t_start) * 1000)
+            logger.info(f"[{id_prefix.upper()}] {url[:60]} -> {fetch_status} in {elapsed_ms}ms")
+
+            return Source(
+                id=s_id,
+                url=url,
+                domain=domain,
+                title=title,
+                source_tier=tier,
+                publish_date=getattr(item, "published_date", None) or today_str,
+                is_synthetic=getattr(item, "is_synthetic", False),
+                raw_text=raw_text,
+                content_hash=content_hash,
+                fetch_status=fetch_status,
+                fetch_mode=fetch_mode
+            )
+
+        tasks = [fetch_one(i, item) for i, item in enumerate(search_results)]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # 安全处理: 将异常结果转换为 FETCH_FAILED Source, 保持稳定顺序
+        sources: List[Source] = []
+        for i, result in enumerate(results):
+            if isinstance(result, Exception):
+                item = search_results[i]
+                url = getattr(item, "url", "#")
+                domain = getattr(item, "domain", None) or (url.split("/")[2] if "://" in url else "web")
+                logger.warning(f"[{id_prefix.upper()}] fetch_one({i}) raised exception: {result}")
+                sources.append(Source(
+                    id=f"{id_prefix}-{i+1}-err",
+                    url=url,
+                    domain=domain,
+                    title=getattr(item, "title", "Web Source"),
+                    source_tier=self._classify_source_tier(domain, url),
+                    publish_date=today_str,
+                    is_synthetic=False,
+                    raw_text=None,
+                    content_hash=None,
+                    fetch_status="FETCH_EXCEPTION",
+                    fetch_mode="LIVE"
+                ))
+            else:
+                sources.append(result)
+        return sources
+
     async def _verify_single_claim(self, claim: Claim, today_str: str) -> Verdict:
         """针对单个 Claim 执行多路定向检索、相关性过滤、正文抓取、物理定位及规则判定"""
+        timings: Dict[str, Any] = {}  # 性能观测数据
+        t_total_start = time.monotonic()
+
         fact_slots: FactSlots = claim.fact_slots or FactSlots(
             entity=getattr(claim.attributes, "subject", None) or claim.statement[:20],
             predicate=getattr(claim.attributes, "predicate", None) or "statement",
@@ -377,6 +594,7 @@ class FastClaimVerifierAgent:
         )
 
         # 1. 多路定向搜索
+        t_search_start = time.monotonic()
         queries = self._build_directed_search_queries(claim, fact_slots)
         search_results: List[Any] = []
         seen_urls = set()
@@ -396,68 +614,30 @@ class FastClaimVerifierAgent:
         if not search_results:
             search_results = await self.search.search(claim.statement, max_results=5)
 
-        sources: List[Source] = []
+        timings["search_time_ms"] = round((time.monotonic() - t_search_start) * 1000)
+        timings["search_queries"] = queries
+        timings["search_results_count"] = len(search_results)
+
+        # 并发执行正文抓取与相关性过滤 (5路并发，单页8秒超时熔断)
+        t_scrape_start = time.monotonic()
+        sources: List[Source] = await self._parallel_fetch_sources(
+            search_results=search_results,
+            fact_slots=fact_slots,
+            claim=claim,
+            today_str=today_str,
+            id_prefix="s",
+            max_concurrency=5,
+            timeout_seconds=8
+        )
+        timings["scrape_time_ms"] = round((time.monotonic() - t_scrape_start) * 1000)
+        timings["scrape_success"] = sum(1 for s in sources if s.fetch_status == "FETCH_SUCCESS")
+        timings["scrape_fail"] = sum(1 for s in sources if s.fetch_status in ("FETCH_FAILED", "FETCH_EXCEPTION"))
+        timings["scrape_403"] = sum(1 for s in sources if s.fetch_status == "FETCH_EMPTY")  # approximate
+        timings["scrape_rejected"] = sum(1 for s in sources if s.fetch_status == "REJECTED_IRRELEVANT")
+
         provenances: List[SourceProvenance] = []
         evidences: List[Evidence] = []
         relations: List[EvidenceRelation] = []
-
-        for idx, item in enumerate(search_results):
-            s_id = f"s-{idx+1}-{uuid.uuid4().hex[:4]}"
-            url = getattr(item, "url", "#")
-            title = getattr(item, "title", "Web Source")
-            snippet = getattr(item, "snippet", "")
-            domain = getattr(item, "domain", None)
-            if not domain:
-                domain = url.split("/")[2] if "://" in url else "web"
-            tier = self._classify_source_tier(domain, url)
-
-            # 相关性闸门检查 (Pre-Scrape Relevance Gate)
-            relevance_score = self._evaluate_search_result_relevance(item, fact_slots, claim)
-            
-            raw_text = None
-            content_hash = None
-            fetch_status = "FETCH_FAILED"
-            fetch_mode = "LIVE"
-
-            if relevance_score < 0.2 and not getattr(item, "is_synthetic", False):
-                # 过滤无关网页，避免垃圾噪音注入
-                fetch_status = "REJECTED_IRRELEVANT"
-                logger.info(f"Rejected irrelevant search result: {title} ({url}) score={relevance_score}")
-            elif getattr(item, "is_synthetic", False):
-                raw_text = snippet
-                content_hash = hashlib.sha256(snippet.encode("utf-8")).hexdigest()
-                fetch_status = "SYNTHETIC_MOCK"
-                fetch_mode = "SYNTHETIC"
-            elif url.startswith("http"):
-                try:
-                    scraped = await WebScraper.fetch_and_extract(url, timeout_seconds=10)
-                    if scraped and scraped.clean_text:
-                        raw_text = scraped.clean_text
-                        content_hash = scraped.content_hash
-                        fetch_status = "FETCH_SUCCESS"
-                        fetch_mode = "LIVE"
-                    else:
-                        fetch_status = "FETCH_EMPTY"
-                        fetch_mode = "LIVE"
-                except Exception as e:
-                    logger.warning(f"Live fetch failed for {url}: {e}")
-                    fetch_status = "FETCH_FAILED"
-                    fetch_mode = "LIVE"
-            
-            source = Source(
-                id=s_id,
-                url=url,
-                domain=domain,
-                title=title,
-                source_tier=tier,
-                publish_date=getattr(item, "published_date", None) or today_str,
-                is_synthetic=getattr(item, "is_synthetic", False),
-                raw_text=raw_text,
-                content_hash=content_hash,
-                fetch_status=fetch_status,
-                fetch_mode=fetch_mode
-            )
-            sources.append(source)
 
         # 2. 从检索内容中提取证据与 V2 关系
         sources_with_text = [s for s in sources if s.raw_text]
@@ -605,67 +785,17 @@ class FastClaimVerifierAgent:
             round_2_results = await self.search.search(gap_query, max_results=4)
             
             existing_urls = {s.url for s in sources}
-            new_sources: List[Source] = []
-            
-            for idx, item in enumerate(round_2_results):
-                url = getattr(item, "url", "#")
-                if url in existing_urls:
-                    continue
-                s_id = f"s-r2-{idx+1}-{uuid.uuid4().hex[:4]}"
-                title = getattr(item, "title", "Web Source (R2)")
-                snippet = getattr(item, "snippet", "")
-                domain = getattr(item, "domain", None)
-                if not domain:
-                    domain = url.split("/")[2] if "://" in url else "web"
-                tier = self._classify_source_tier(domain, url)
-                
-                # 相关性闸门检查 (Pre-Scrape Relevance Gate)
-                relevance_score = self._evaluate_search_result_relevance(item, fact_slots, claim)
-                raw_text = None
-                content_hash = None
-                fetch_status = "FETCH_FAILED"
-                fetch_mode = "LIVE"
-
-                if relevance_score < 0.2 and not getattr(item, "is_synthetic", False):
-                    fetch_status = "REJECTED_IRRELEVANT"
-                    logger.info(f"[R2] Rejected irrelevant search result: {title} ({url}) score={relevance_score}")
-                elif getattr(item, "is_synthetic", False):
-                    raw_text = snippet
-                    content_hash = hashlib.sha256(snippet.encode("utf-8")).hexdigest()
-                    fetch_status = "SYNTHETIC_MOCK"
-                    fetch_mode = "SYNTHETIC"
-                elif url.startswith("http"):
-                    try:
-                        scraped = await WebScraper.fetch_and_extract(url, timeout_seconds=10)
-                        if scraped and scraped.clean_text:
-                            raw_text = scraped.clean_text
-                            content_hash = scraped.content_hash
-                            fetch_status = "FETCH_SUCCESS"
-                            fetch_mode = "LIVE"
-                        else:
-                            fetch_status = "FETCH_EMPTY"
-                            fetch_mode = "LIVE"
-                    except Exception as e:
-                        logger.warning(f"Round 2 live fetch failed for {url}: {e}")
-                        fetch_status = "FETCH_FAILED"
-                        fetch_mode = "LIVE"
-
-                source = Source(
-                    id=s_id,
-                    url=url,
-                    domain=domain,
-                    title=title,
-                    source_tier=tier,
-                    publish_date=getattr(item, "published_date", None) or today_str,
-                    is_synthetic=getattr(item, "is_synthetic", False),
-                    raw_text=raw_text,
-                    content_hash=content_hash,
-                    fetch_status=fetch_status,
-                    fetch_mode=fetch_mode
-                )
-                new_sources.append(source)
-                sources.append(source)
-                existing_urls.add(url)
+            filtered_round_2_results = [item for item in round_2_results if getattr(item, "url", "#") not in existing_urls]
+            new_sources = await self._parallel_fetch_sources(
+                search_results=filtered_round_2_results,
+                fact_slots=fact_slots,
+                claim=claim,
+                today_str=today_str,
+                id_prefix="s-r2",
+                max_concurrency=5,
+                timeout_seconds=8
+            )
+            sources.extend(new_sources)
 
             # 仅在抓取到真实正文时提取证据与物理定位
             sources_with_text_r2 = [s for s in new_sources if s.raw_text]

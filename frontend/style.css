@@ -1887,44 +1887,67 @@ body {
     background: var(--state-not-assessable-solid);
 }
 
-/* ==========================================================================
-   Responsive Adaptations
-   ========================================================================== */
 @media (max-width: 960px) {
     .workbench-grid {
-        grid-template-columns: 240px minmax(0, 1fr);
+        grid-template-columns: 260px minmax(0, 1fr);
     }
     .col-inspector-panel {
         grid-column: 1 / -1;
+        max-height: 480px;
     }
 }
 
 @media (max-width: 768px) {
     .app-shell {
-        padding: 0 16px 40px 16px;
+        padding: 0 12px 30px 12px;
     }
     .app-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 14px;
+        gap: 12px;
+        padding: 12px 14px;
     }
     .header-actions {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-start;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .action-btn {
+        padding: 6px 10px;
+        font-size: 12px;
     }
     .workbench-grid {
-        grid-template-columns: 1fr;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
     }
     .hero-prompt {
-        font-size: 28px;
+        font-size: 26px;
+    }
+    .hero-subtext {
+        font-size: 13px;
     }
     .pipeline-flow-container {
-        flex-direction: column;
-        gap: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
     .pipeline-connector {
-        width: 2px;
-        height: 14px;
-        margin: 0 auto;
+        display: none;
+    }
+    .workspace-summary-strip {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .summary-metrics-strip {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+    .summary-actions {
+        width: 100%;
+        justify-content: space-between;
     }
 }

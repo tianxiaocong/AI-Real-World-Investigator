@@ -62,7 +62,11 @@ async def fast_verify_claim(req: FastVerifyRequest):
     else:
         chosen_key = openai_k or None
 
-    llm = get_llm_provider(req.llm_provider, tier="reasoning", api_key=chosen_key)
+    try:
+        llm = get_llm_provider(req.llm_provider, tier="reasoning", api_key=chosen_key)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     search = get_search_provider(req.search_provider, api_key=tavily_k or None)
     
     agent = FastClaimVerifierAgent(llm_provider=llm, search_provider=search)
